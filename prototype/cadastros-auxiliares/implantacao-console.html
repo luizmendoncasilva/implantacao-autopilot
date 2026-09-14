@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
+  <title>Console de Implantação — AutoPilot</title>
+  <link rel="stylesheet" href="../shared/css/tokens.css" />
+  <link rel="stylesheet" href="../shared/css/base.css" />
+  <link rel="stylesheet" href="../shared/css/components.css?v=2" />
+  <link rel="stylesheet" href="../shared/css/layout.css" />
+</head>
+<body>
+  <div id="shell-root"></div>
+
+  <template id="page-content">
+    <section class="max-w-7xl flex flex-col gap-4">
+      <a href="implantacao-empresas.html" class="flex items-center gap-1 text-sm font-medium link-info w-fit">
+        <span id="icon-voltar"></span> voltar para a lista
+      </a>
+      <div id="console-header-mount"></div>
+      <div id="console-tabs-mount"></div>
+      <div id="console-content-mount" class="flex flex-col gap-4"></div>
+    </section>
+  </template>
+
+  <!-- Drawer lateral — Conferência do colaborador (Concil), aba Dados do
+       Colaborador. Componente em js/implantacao/fila-colaborador.js. -->
+  <div class="sheet-overlay" id="concil-overlay"></div>
+  <div class="sheet-panel sheet-panel-wide" id="concil-panel" role="dialog" aria-modal="true" aria-labelledby="concil-title">
+    <button type="button" class="sheet-close" id="concil-close"></button>
+    <div class="sheet-header">
+      <div class="flex items-start gap-3">
+        <div class="avatar-circle" id="concil-avatar"></div>
+        <div class="flex flex-col gap-0-5 min-w-0">
+          <div class="sheet-title" id="concil-title" style="padding-right:0;">Colaborador</div>
+          <div class="sheet-description" id="concil-sub">Empresa · CPF</div>
+        </div>
+      </div>
+    </div>
+    <div class="sheet-body">
+      <div class="alert alert-warning" id="concil-resumo">
+        <span id="icon-concil-resumo"></span>
+        <div class="alert-desc" id="concil-resumo-texto"></div>
+      </div>
+      <div class="flex flex-col gap-3" id="concil-campos"></div>
+    </div>
+    <div class="sheet-footer" style="justify-content:space-between;">
+      <div class="flex items-center gap-2 text-xs text-muted" id="concil-fila">
+        <span id="concil-fila-texto"></span>
+        <button type="button" class="btn-link link-info" id="concil-proximo">Próximo pendente →</button>
+      </div>
+      <div class="flex gap-2">
+        <button type="button" class="btn btn-outline" id="concil-ignorar" style="display:none;">Ignorar por enquanto</button>
+        <button type="button" class="btn" id="concil-criar" style="display:none;">Criar colaborador no Autopilot</button>
+        <button type="button" class="btn" id="concil-salvar">Salvar conciliação</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drawer — Dependentes do colaborador (RF-DP-406). -->
+  <div class="sheet-overlay" id="dependentes-overlay"></div>
+  <div class="sheet-panel" id="dependentes-panel" role="dialog" aria-modal="true" aria-labelledby="dependentes-title">
+    <button type="button" class="sheet-close" id="dependentes-close"></button>
+    <div class="sheet-header">
+      <div class="sheet-title" id="dependentes-title">Dependentes</div>
+      <div class="sheet-description" id="dependentes-nome"></div>
+    </div>
+    <div class="sheet-body">
+      <div class="flex flex-col gap-2" id="dependentes-lista"></div>
+    </div>
+  </div>
+
+  <!-- Modal — linha rejeitada na extração da Ficha Financeira (RF-DP-402/403). -->
+  <div class="dialog-overlay" id="dialog-rejeitado">
+    <div class="dialog-content" role="dialog" aria-modal="true" aria-labelledby="dialog-rejeitado-titulo">
+      <button type="button" class="dialog-close" data-close-dialog="dialog-rejeitado" aria-label="Fechar"><span id="icon-close-rejeitado"></span></button>
+      <div class="flex flex-col gap-1">
+        <h2 class="dialog-title" id="dialog-rejeitado-titulo">Linha rejeitada</h2>
+        <p class="dialog-description" id="dialog-rejeitado-nome"></p>
+      </div>
+      <div class="alert alert-destructive">
+        <span id="icon-alert-rejeitado"></span>
+        <div class="alert-desc" id="dialog-rejeitado-motivo"></div>
+      </div>
+      <div class="sheet-field-locked-value font-mono" id="dialog-rejeitado-linha" style="font-size:12.5px;"></div>
+      <div class="flex flex-col gap-1">
+        <label class="field-label" for="dialog-rejeitado-input" id="dialog-rejeitado-label"></label>
+        <input id="dialog-rejeitado-input" class="field-input font-mono" />
+        <span class="text-xs" id="dialog-rejeitado-erro" style="display:none; color:var(--destructive);">Valor ainda inválido.</span>
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-outline" data-close-dialog="dialog-rejeitado">Fechar</button>
+        <button type="button" class="btn" id="btn-rejeitado-reprocessar" disabled>Salvar e reprocessar linha</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drawer "Visualizar" da aba Dados do Colaborador — ficha completa com
+       pendências/dependentes resolvíveis. Componente em
+       js/implantacao/visualizar-colaborador.js. -->
+  <div class="sheet-overlay" id="visualizar-overlay"></div>
+  <div class="sheet-panel sheet-panel-wide" id="visualizar-panel" role="dialog" aria-modal="true" aria-labelledby="visualizar-title">
+    <button type="button" class="sheet-close" id="visualizar-close"></button>
+    <div class="sheet-header">
+      <div class="flex items-start gap-3">
+        <div class="avatar-circle" id="visualizar-avatar"></div>
+        <div class="flex flex-col gap-0-5 min-w-0">
+          <div class="sheet-title" id="visualizar-title" style="padding-right:0;">Colaborador</div>
+          <div class="sheet-description" id="visualizar-sub">Empresa · CPF</div>
+        </div>
+      </div>
+    </div>
+    <div class="sheet-body flex flex-col gap-5" id="visualizar-body"></div>
+  </div>
+
+  <!-- Drawer lateral genérico — "Visualizar" (dados completos, somente
+       leitura) usado pelas abas Financeiro/Rubricas/Cálculo em Paralelo.
+       Sem modais no sistema — mesmo padrão de sheet dos demais drawers
+       desta tela. -->
+  <div class="sheet-overlay" id="visualizar-generico-overlay"></div>
+  <div class="sheet-panel" id="visualizar-generico-panel" role="dialog" aria-modal="true" aria-labelledby="visualizar-generico-titulo">
+    <button type="button" class="sheet-close" id="visualizar-generico-close"><span id="icon-close-visualizar"></span></button>
+    <div class="sheet-header">
+      <div class="sheet-title" id="visualizar-generico-titulo">Detalhes</div>
+      <div class="sheet-description" id="visualizar-generico-sub"></div>
+    </div>
+    <div class="sheet-body">
+      <div class="detail-grid" id="visualizar-generico-corpo"></div>
+    </div>
+  </div>
+
+  <script src="../shared/js/icons.js"></script>
+  <script src="../shared/js/shell.js?v=2"></script>
+  <script src="../shared/js/ui.js?v=2"></script>
+  <script src="../shared/js/fab-tools.js"></script>
+  <script src="../empresas/js/data.js"></script>
+  <script src="js/implantacao/data.js?v=5"></script>
+  <script src="js/implantacao/empresas-data.js?v=7"></script>
+  <script src="js/implantacao/visualizar-colaborador.js?v=2"></script>
+  <script src="js/implantacao/fila-colaborador.js?v=1"></script>
+  <script>
+    document.getElementById("concil-close").innerHTML = Icon("x", "size-4");
+    document.getElementById("dependentes-close").innerHTML = Icon("x", "size-4");
+    document.getElementById("icon-close-rejeitado").innerHTML = Icon("x", "size-4");
+    document.getElementById("icon-alert-rejeitado").innerHTML = Icon("circle-x", "size-4");
+    document.getElementById("icon-concil-resumo").innerHTML = Icon("alert-triangle", "size-4");
+  </script>
+  <script src="js/implantacao/console.js?v=13"></script>
+</body>
+</html>

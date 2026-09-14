@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
+  <title>Dados gerais — Empresas — AutoPilot</title>
+  <link rel="stylesheet" href="../shared/css/tokens.css" />
+  <link rel="stylesheet" href="../shared/css/base.css" />
+  <link rel="stylesheet" href="../shared/css/components.css" />
+  <link rel="stylesheet" href="../shared/css/layout.css" />
+</head>
+<body>
+  <div id="shell-root"></div>
+
+  <template id="page-content">
+    <div id="detail-shell-mount"></div>
+  </template>
+
+  <!-- Sheet (drawer) de edição da empresa — dados hoje espelhados do Cockpit.
+       CNPJ, Certificado digital, Contador responsável e Contrato ficam
+       bloqueados; os demais campos passam a ser editáveis por aqui. -->
+  <div class="sheet-overlay" id="edit-empresa-overlay"></div>
+  <div class="sheet-panel sheet-panel-wide" id="edit-empresa-panel" role="dialog" aria-modal="true" aria-labelledby="edit-empresa-title">
+    <button type="button" class="sheet-close" id="edit-empresa-close"></button>
+    <div class="sheet-header">
+      <div class="sheet-title" id="edit-empresa-title">Editar empresa</div>
+      <div class="sheet-description">Altere os dados cadastrais da empresa. CNPJ, Certificado digital, Contador responsável e Contrato não podem ser alterados por aqui.</div>
+    </div>
+    <div class="sheet-body">
+      <div class="sheet-field"><label class="field-label" for="edit-razao-social">Razão social</label><input class="field-input" id="edit-razao-social" /></div>
+      <div class="sheet-field"><label class="field-label" for="edit-nome-fantasia">Nome fantasia</label><input class="field-input" id="edit-nome-fantasia" /></div>
+      <div class="sheet-field"><label class="field-label" for="edit-natureza-juridica">Natureza jurídica</label><input class="field-input" id="edit-natureza-juridica" /></div>
+      <div class="sheet-field">
+        <label class="field-label">CNPJ</label>
+        <div class="sheet-field-locked-value" id="edit-cnpj-locked"></div>
+        <span class="text-xs text-muted">Bloqueado — identificador da empresa, não pode ser alterado por aqui.</span>
+      </div>
+      <div class="sheet-field">
+        <label class="field-label" for="edit-regime-tributario">Regime tributário federal</label>
+        <div class="field-select-wrap">
+          <select class="field-select" id="edit-regime-tributario"></select>
+          <span class="chev"></span>
+        </div>
+        <span class="text-xs text-muted">No escopo atual, somente Simples Nacional pode ser selecionado. Os demais regimes aparecem no catálogo, mas estão desabilitados.</span>
+      </div>
+      <div class="sheet-row">
+        <div class="sheet-field"><label class="field-label" for="edit-ie">Inscrição estadual</label><input class="field-input" id="edit-ie" /></div>
+        <div class="sheet-field"><label class="field-label" for="edit-im">Inscrição municipal</label><input class="field-input" id="edit-im" /></div>
+      </div>
+      <div class="sheet-row">
+        <div class="sheet-field"><label class="field-label" for="edit-telefone">Telefone</label><input class="field-input" id="edit-telefone" /></div>
+        <div class="sheet-field"><label class="field-label" for="edit-email">E-mail</label><input class="field-input" type="email" id="edit-email" /></div>
+      </div>
+      <div class="sheet-field"><label class="field-label" for="edit-logradouro">Logradouro</label><input class="field-input" id="edit-logradouro" /></div>
+      <div class="sheet-row">
+        <div class="sheet-field"><label class="field-label" for="edit-numero">Número</label><input class="field-input" id="edit-numero" /></div>
+        <div class="sheet-field"><label class="field-label" for="edit-complemento">Complemento</label><input class="field-input" id="edit-complemento" /></div>
+      </div>
+      <div class="sheet-field"><label class="field-label" for="edit-bairro">Bairro</label><input class="field-input" id="edit-bairro" /></div>
+      <div class="sheet-row">
+        <div class="sheet-field"><label class="field-label" for="edit-municipio">Município</label><input class="field-input" id="edit-municipio" /></div>
+        <div class="sheet-field sheet-field-fixed" style="width:80px;"><label class="field-label" for="edit-uf">UF</label><input class="field-input" id="edit-uf" maxlength="2" /></div>
+        <div class="sheet-field"><label class="field-label" for="edit-cep">CEP</label><input class="field-input" id="edit-cep" /></div>
+      </div>
+      <div class="sheet-field">
+        <label class="field-label">Contador responsável</label>
+        <div class="sheet-field-locked-value" id="edit-contador-locked"></div>
+        <span class="text-xs text-muted">Bloqueado — altere pela ação "Alterar"/"Selecionar contador" na seção Contador responsável desta aba.</span>
+      </div>
+      <div class="sheet-field">
+        <label class="field-label">Contrato</label>
+        <div class="sheet-field-locked-value" id="edit-contrato-locked"></div>
+        <span class="text-xs text-muted">Bloqueado — dados do relacionamento comercial.</span>
+      </div>
+      <div class="sheet-field">
+        <label class="field-label">Certificado digital</label>
+        <div class="sheet-field-locked-value" id="edit-certificado-locked"></div>
+        <span class="text-xs text-muted">Bloqueado — atualize junto ao emissor do certificado.</span>
+      </div>
+      <div class="sheet-field"><label class="field-label" for="edit-observacoes">Observações gerais</label><textarea class="field-textarea" id="edit-observacoes" placeholder="Nenhuma observação cadastrada."></textarea></div>
+    </div>
+    <div class="sheet-footer">
+      <span class="text-xs text-muted" style="margin-right:auto;">As alterações serão refletidas no Cockpit.</span>
+      <button type="button" class="btn btn-outline" id="edit-empresa-cancelar">Cancelar</button>
+      <button type="button" class="btn" id="edit-empresa-salvar">Salvar alterações</button>
+    </div>
+  </div>
+
+  <!-- Sheet (drawer) de seleção do Contador Responsável — mesmo padrão de
+       sheet + combobox já usado em "Vincular contador" (empresas/contadores.html):
+       reutiliza o Registro de Contadores, sem criar um segundo cadastro.
+       Solução provisória e genérica (ver docs/cadastro-empresas-spec.md):
+       não exige vínculo prévio via aba Contadores, nem resolve prioridade
+       entre múltiplos contadores — regra definitiva de vínculo pendente. -->
+  <div class="sheet-overlay" id="cr-overlay"></div>
+  <div class="sheet-panel" id="cr-panel" role="dialog" aria-modal="true" aria-labelledby="cr-title">
+    <button type="button" class="sheet-close" id="cr-close"></button>
+    <div class="sheet-header">
+      <div class="sheet-title" id="cr-title">Contador responsável</div>
+      <div class="sheet-description">Selecione, no Registro de Contadores, quem é o contador responsável por esta empresa.</div>
+    </div>
+    <div class="sheet-body">
+      <div class="sheet-field">
+        <label class="field-label">Contador</label>
+        <div class="combobox" id="cr-combobox" data-empty-text="Nenhum contador cadastrado no Registro de Contadores.">
+          <button type="button" class="combobox-trigger">
+            <span class="combobox-label truncate">Selecione um contador</span>
+            <span class="chev"></span>
+          </button>
+          <div class="combobox-panel">
+            <div class="combobox-search">
+              <span class="search-icon"></span>
+              <input type="text" placeholder="Buscar por nome ou CPF..." />
+            </div>
+            <div class="combobox-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sheet-footer">
+      <span class="text-xs text-muted" style="margin-right:auto;">As alterações serão refletidas no Cockpit.</span>
+      <button type="button" class="btn btn-outline" id="cr-cancelar">Cancelar</button>
+      <button type="button" class="btn" id="cr-salvar" disabled>Salvar</button>
+    </div>
+  </div>
+
+  <script src="../shared/js/icons.js"></script>
+  <script src="../shared/js/shell.js"></script>
+  <script src="../shared/js/ui.js"></script>
+  <script src="../shared/js/fab-tools.js"></script>
+  <script src="js/data.js"></script>
+  <script src="../cadastros-auxiliares/js/contadores/data.js"></script>
+  <script src="js/detail-common.js"></script>
+  <script src="js/dados-gerais.js"></script>
+  <script>window.ACTIVE_TAB = "geral";</script>
+  <script src="js/boot-detail.js"></script>
+</body>
+</html>

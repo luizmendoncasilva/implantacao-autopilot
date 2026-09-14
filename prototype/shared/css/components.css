@@ -1,0 +1,1477 @@
+/* Biblioteca de componentes visuais — portada de src/components/ui/index.jsx.
+   Cada bloco abaixo cita o componente React de origem, para facilitar auditoria
+   de fidelidade visual entre o protótipo e o Design System real. */
+
+/* ===== Foco acessível (regra compartilhada) =====
+   Todo elemento interativo custom (não nativo) usa o mesmo anel de foco.
+   Criou um componente novo? Adicione o seletor a um destes dois grupos em vez
+   de repetir a declaração — ou aplique a classe utilitária .focus-ring
+   (base.css) direto no elemento quando não vale a pena nomear um seletor novo.
+   O segundo grupo (offset negativo) é para elementos que ocupam a largura
+   toda de uma linha/lista, onde um anel "pra fora" vazaria do container. */
+.btn:focus-visible,
+.btn-link:focus-visible,
+.link-info:focus-visible,
+.btn-icon-chev:focus-visible,
+.tabs-trigger:focus-visible,
+.toggle-item:focus-visible,
+.combobox-trigger:focus-visible,
+.dialog-close:focus-visible,
+.sheet-close:focus-visible,
+.fab-tools-trigger:focus-visible,
+.fab-tools-item:focus-visible,
+.date-picker-trigger:focus-visible,
+.date-picker-nav-btn:focus-visible,
+.date-picker-day:focus-visible {
+  outline: 2px solid var(--info-text);
+  outline-offset: 2px;
+}
+.row-clickable:focus-visible,
+.docs-list-row:focus-visible {
+  outline: 2px solid var(--info-text);
+  outline-offset: -2px;
+}
+
+/* ===== Button (ui/button) ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+  border-radius: var(--radius-lg);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+  height: 36px;
+  padding: 0 16px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: var(--shadow-xs);
+}
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.btn-sm { height: 32px; padding: 0 12px; gap: 6px; }
+.btn-lg { height: 40px; padding: 0 24px; }
+.btn-secondary { background: var(--secondary); color: var(--secondary-foreground); }
+.btn-outline { background: transparent; color: var(--foreground); border: 1px solid var(--border); }
+.btn-outline:hover:not(:disabled) { background: var(--muted); }
+.btn-ghost { background: transparent; color: var(--ghost-foreground); box-shadow: none; }
+.btn-ghost:hover:not(:disabled) { background: var(--ghost-hover); }
+.btn-destructive { background: var(--destructive); color: var(--destructive-foreground); }
+
+/* ===== Link-as-button (ações de linha "editar"/"excluir") ===== */
+.btn-link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 0;
+  font-family: inherit;
+}
+.btn-link:hover { text-decoration: underline; }
+
+/* ===== Link de destaque (ex.: "voltar para a lista", "Ver em Contadores") ===== */
+.link-info { color: var(--info-text); }
+.link-info:hover { text-decoration: underline; }
+
+/* ===== Botão de ícone isolado (ex.: expandir/recolher matriz na tabela) ===== */
+.btn-icon-chev {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-full);
+  color: var(--muted-foreground);
+}
+.btn-icon-chev:hover { background: var(--outline-hover); }
+
+/* ===== Badge (ui/badge) ===== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  white-space: nowrap;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  padding: 2px 10px;
+  font-size: 11.5px;
+  font-weight: 500;
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+.badge-success { background: var(--success-subtle); color: var(--success-text); border-color: var(--success-border); }
+.badge-warning { background: var(--warning-subtle); color: var(--warning-text); border-color: var(--warning-border); }
+.badge-info { background: var(--info-subtle); color: var(--info-text); border-color: var(--info-border); }
+.badge-outline { background: transparent; color: var(--foreground); border-color: var(--border); }
+.badge-secondary { background: var(--secondary); color: var(--secondary-foreground); }
+.badge-destructive { background: var(--destructive-subtle); color: var(--destructive-text); border-color: var(--destructive-border); }
+
+/* ===== Card (ui/card) ===== */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--shadow-sm);
+  padding: 24px 0;
+}
+.card-header { display: flex; flex-direction: column; gap: 6px; padding: 0 24px; }
+.card-title { font-size: 15px; font-weight: 600; line-height: 1; }
+.card-description { font-size: 13px; color: var(--muted-foreground); }
+.card-content { padding: 0 24px; }
+.card-footer { display: flex; align-items: center; gap: 8px; padding: 24px 24px 0; border-top: 1px solid var(--border); margin-top: 24px; }
+
+/* ===== Detail info grid — bloco seção + grade de campos rótulo/valor usado
+   em telas de detalhe (ex.: aba "Dados gerais" de Empresa). O número de
+   colunas se ajusta à largura disponível (sem breakpoints fixos); campos que
+   precisam de mais espaço (endereço, observações etc.) usam .detail-field-wide. ===== */
+.detail-section { display: flex; flex-direction: column; gap: 14px; }
+.detail-section-title {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted-foreground);
+}
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 18px 32px;
+}
+.detail-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.detail-field-label { font-size: 11.5px; color: var(--muted-foreground); }
+.detail-field-value { font-size: 13.5px; font-weight: 500; color: var(--foreground); line-height: 1.4; }
+.detail-field-wide { grid-column: span 2; }
+@media (max-width: 640px) {
+  .detail-field-wide { grid-column: span 1; }
+}
+
+/* Campo com Origem (docs/parametros-fiscais-arquitetura.md, seção 14) —
+   evolução ADITIVA do .detail-field acima: a origem é só mais um filho
+   dentro do mesmo .detail-field (o badge de origem usa .badge/.badge-outline
+   já existentes, sem classe nova), então nenhum uso atual de .detail-field
+   sem origem muda de aparência. Ver shared/js/origem.js. A única regra nova
+   é o texto do estado "sem valor disponível" do Indicador Calculado (ver
+   shared/js/indicador-calculado.js), que não tinha equivalente antes. */
+.detail-field-unavailable { font-style: italic; font-weight: 400; color: var(--muted-foreground); }
+/* Estado "não aplicável" do Indicador Calculado — deliberadamente SEM
+   itálico (que já significa "unavailable"/falha de origem no restante do
+   app). "Não aplicável" é um resultado esperado do enquadramento da
+   empresa, não uma falha — decisão validada em
+   prototype/parametros-fiscais/exploracao-nao-aplicavel.html, Alternativa A. */
+.detail-field-not-applicable { font-style: normal; font-weight: 400; color: var(--muted-foreground); }
+
+/* ===== Linha de lista (ex.: empresa vinculada a um sócio/contador em
+   Cadastros Auxiliares) — alternativa a uma tabela quando o conteúdo é
+   só um rótulo + um estado por linha. ===== */
+.list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 10px 12px;
+}
+
+/* ===== Input / Select (ui/input, ui/select) ===== */
+.field-input,
+.field-select {
+  height: 36px;
+  width: 100%;
+  min-width: 0;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--input);
+  padding: 0 12px;
+  font-size: 13px;
+  outline: none;
+  background: transparent;
+  color: var(--foreground);
+  box-shadow: var(--shadow-xs);
+  font-family: inherit;
+}
+.field-input:focus,
+.field-select:focus { border-color: var(--ring); }
+/* Estado inválido — mesma convenção de docs/design-system/components/ui/input.tsx
+   ("aria-invalid:border-destructive"), portada para o CSS do protótipo. Usado
+   pela validação de obrigatoriedade da Folha de Pagamento; disponível para
+   qualquer outro campo que precise indicar erro sem inventar uma classe nova. */
+.field-input[aria-invalid="true"],
+.field-select[aria-invalid="true"] { border-color: var(--destructive); }
+/* Estado disabled — mesma convenção já usada em .btn:disabled/.ucheckbox.is-disabled
+   (opacity 0.55 + cursor not-allowed), estendida a input/select. Lacuna
+   identificada pela Fase 3 da Folha de Pagamento (Arredondamento): até então
+   nenhum .field-input/.field-select do protótipo precisava do atributo
+   `disabled`, por isso a regra nunca tinha sido escrita. */
+.field-input:disabled,
+.field-select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.field-select {
+  appearance: none;
+  padding-right: 32px;
+  cursor: pointer;
+  background-image: none;
+}
+.field-select-wrap { position: relative; display: inline-block; }
+.field-select-wrap .chev {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--muted-foreground);
+}
+.field-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+/* ===== Table (ui/table) ===== */
+.table-wrap {
+  position: relative;
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+}
+table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
+.dtable thead { background: var(--muted); }
+.dtable th {
+  height: 44px;
+  padding: 0 24px;
+  text-align: left;
+  vertical-align: middle;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted-foreground);
+}
+.dtable td {
+  padding: 14px 24px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.dtable tbody tr { border-bottom: 1px solid var(--border); transition: background-color 0.15s; }
+.dtable tbody tr:last-child { border-bottom: none; }
+.row-clickable { cursor: pointer; }
+.row-clickable:hover,
+.row-clickable:focus-visible { background: var(--muted); }
+.row-empty-state { padding: 32px 24px; text-align: center; font-size: 11.5px; color: var(--muted-foreground); }
+
+/* Modificadores de tabela — combine com .dtable quando a densidade padrão
+   (colunas soltas, table-layout automático) não servir:
+   .dtable-fixed largura de coluna previsível (use com <colgroup>);
+   .dtable-compact variante mais baixa para tabela aninhada (ex.: filiais
+   dentro de uma matriz), sem precisar sobrescrever altura/fonte por célula. */
+.dtable-fixed { table-layout: fixed; }
+.dtable-compact thead { background: var(--card); }
+.dtable-compact th { height: 30px; }
+
+/* Padding horizontal por coluna — cobre os 3 paddings realmente usados nas
+   tabelas do protótipo (coluna estreita tipo "código", coluna média tipo
+   "CNPJ", e a última coluna, só com ícone de ação). Aplique no <th> e no
+   <td> da mesma coluna. A coluna "solta" (sem classe) fica no padding padrão
+   de 24px do .dtable. */
+.dtable th.col-pad-sm, .dtable td.col-pad-sm { padding-left: 8px; padding-right: 8px; }
+.dtable th.col-pad-md, .dtable td.col-pad-md { padding-left: 12px; padding-right: 12px; }
+.dtable th.col-pad-end, .dtable td.col-pad-end { padding-left: 8px; padding-right: 16px; }
+
+/* Linha de cabeçalho de grupo dentro de uma dtable (ex.: colaboradores da
+   Implantação agrupados por empresa) — separa visualmente sem virar
+   accordion: sempre expandida, só uma <tr> com <td colspan> em destaque
+   entre um grupo e outro. Diferente de .dtable-compact (variante de row
+   normal): aqui a linha inteira é só rótulo, sem células de dado. */
+.dtable-group-row td {
+  background: var(--muted);
+  padding: 10px 24px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--foreground);
+  border-bottom: 1px solid var(--border);
+}
+.dtable-group-row:first-child td { border-top: none; }
+.dtable-group-row-count { font-weight: 500; color: var(--muted-foreground); margin-left: 6px; }
+
+/* ===== Barra de progresso segmentada (Implantação DP por empresa) — cada
+   segmento é uma frente (colaboradores, financeiro, rubricas, cálculo em
+   paralelo), colorida pela completude daquela frente; a separação entre
+   segmentos é o próprio gap. Tooltip customizado ao passar o mouse (o
+   protótipo não tem um componente de tooltip genérico ainda) — content vem
+   de data-tooltip para não duplicar texto em title + elemento. Sem
+   componente React de origem, exclusivo deste resumo. ===== */
+.segbar { display: flex; gap: 3px; width: 100%; height: 8px; }
+.segbar-segment {
+  flex: 1;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--border);
+  position: relative;
+  cursor: default;
+}
+.segbar-segment.is-success { background: var(--success-border); }
+.segbar-segment.is-warning { background: var(--warning-border); }
+/* Tooltip do segbar é montado por JS direto em <body> (UI.initSegbarTooltips,
+   shared/js/ui.js), não um ::after posicionado sobre o próprio segmento —
+   um ::after fica preso ao contexto de recorte do ancestral, e .table-wrap
+   tem overflow-x:auto, que por especificação também recorta o eixo Y (não
+   dá pra deixar só um eixo "visible" quando o outro não é). Um elemento
+   solto em body, position:fixed, escapa desse recorte. */
+.segbar-tooltip {
+  position: fixed;
+  background: var(--foreground);
+  color: var(--background);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  z-index: 9999;
+  pointer-events: none;
+}
+
+/* ===== Evento de histórico (ex.: Histórico de Alterações em Empresas) —
+   agrupa todos os campos alterados numa mesma ação de salvar sob um único
+   cabeçalho (quem + quando), reaproveitando .table-wrap/.dtable-compact para
+   a lista de campos de cada evento. ===== */
+.history-event { display: flex; flex-direction: column; gap: 10px; }
+.history-event-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ===== Tabs (ui/tabs) ===== */
+.tabs-list {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  width: fit-content;
+  border-radius: var(--radius-lg);
+  padding: 3px;
+  background: var(--muted);
+}
+.tabs-trigger {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: var(--radius-md);
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground);
+  transition: background-color 0.15s, color 0.15s;
+}
+.tabs-trigger:hover:not(.is-active) { background: rgba(255, 255, 255, 0.7); }
+.tabs-trigger.is-active { background: var(--card); color: var(--foreground); box-shadow: var(--shadow-xs); }
+
+/* ===== ToggleGroup (ui/toggle-group) ===== */
+.toggle-group {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border-radius: var(--radius-lg);
+  padding: 3px;
+  background: var(--secondary);
+  border: 1px solid var(--border);
+}
+.toggle-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  padding: 6px 12px;
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground);
+}
+.toggle-item:hover:not(.is-on) { background: var(--outline-hover); }
+.toggle-item.is-on { background: var(--card); color: var(--foreground); box-shadow: var(--shadow-xs); }
+
+/* ===== Alert (ui/alert) ===== */
+.alert {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  padding: 12px 16px;
+  font-size: 13px;
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  gap: 2px 12px;
+  align-items: start;
+  background: var(--card);
+  color: var(--card-foreground);
+}
+.alert-info { background: var(--info-subtle); border-color: var(--info-border); color: var(--info-text); }
+.alert-warning { background: var(--warning-subtle); border-color: var(--warning-border); color: var(--warning-text); }
+/* Nível crítico — evolução do componente (só existiam info/warning; ver
+   Auditoria da Trilha Fiscal). Reservado para bloqueios equivalentes ao de
+   apuração fiscal em qualquer trilha, não específico da Fiscal. */
+.alert-destructive { background: var(--destructive-subtle); border-color: var(--destructive-border); color: var(--destructive-text); }
+.alert-desc { grid-column: 2; font-size: 13px; line-height: 1.5; }
+
+/* ===== Switch (ui/switch) ===== */
+.uswitch {
+  width: 32px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  background: var(--input);
+  box-shadow: var(--shadow-xs);
+  cursor: pointer;
+  position: relative;
+  padding: 0;
+}
+.uswitch.is-checked { background: var(--primary); }
+.uswitch .thumb {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--background);
+  transition: transform 0.15s;
+}
+.uswitch.is-checked .thumb { transform: translateX(15px); }
+
+/* ===== Dialog (ui/dialog) =====
+   Mesmo mecanismo de transição do Sheet logo abaixo (opacity no overlay +
+   transform no conteúdo), em vez de display:none/flex sem animação. */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.dialog-overlay.is-open { opacity: 1; pointer-events: auto; }
+/* Dialog de confirmação de reflexo no Cockpit (empresas/js/detail-common.js)
+   abre por cima do drawer "Editar empresa", que continua aberto atrás dele —
+   ao contrário dos demais dialogs desta trilha, que nunca coexistem com um
+   sheet aberto. Precisa de z-index acima de .sheet-panel (61) para não ter
+   seus botões bloqueados pelo drawer ainda visível. */
+#dialog-reflexo-cockpit { z-index: 66; }
+.dialog-content {
+  position: relative;
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  max-width: 480px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--background);
+  box-shadow: var(--shadow-md);
+  padding: 24px;
+  margin: 16px;
+  transform: scale(0.96) translateY(8px);
+  transition: transform 0.2s ease-in-out;
+}
+.dialog-overlay.is-open .dialog-content { transform: scale(1) translateY(0); }
+.dialog-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--foreground);
+  opacity: 0.7;
+}
+.dialog-close:hover,
+.dialog-close:focus-visible { opacity: 1; }
+.dialog-title { font-size: 17px; font-weight: 600; }
+.dialog-description { font-size: 13px; color: var(--muted-foreground); }
+.dialog-footer { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* ===== Sheet / Drawer (ui/sheet) ===== */
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.sheet-overlay.is-open { opacity: 1; pointer-events: auto; }
+.sheet-panel {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 61;
+  width: 420px;
+  max-width: 92vw;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--background);
+  border-left: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out;
+}
+.sheet-panel.is-open { transform: translateX(0); }
+/* Modificador opcional de largura — mesma mecânica do .sheet-panel padrão
+   (usado em Sócios/Contadores/Piso Salarial/Histórico), só mais largo para
+   formulários com mais campos relacionados (ex.: cadastro de Sindicato),
+   onde 420px força tudo para uma única coluna. Não altera .sheet-panel
+   em si, então nenhum Sheet existente muda de largura. */
+.sheet-panel-wide { width: 520px; }
+/* Linha de campos lado a lado dentro do Sheet (ex.: Número + Complemento,
+   Cidade + UF) — mesma ideia de composição horizontal já usada em
+   detail-grid, só que dentro do Sheet, onde os campos ficam em coluna única
+   por padrão. */
+.sheet-row { display: flex; gap: 12px; }
+.sheet-row > .sheet-field { flex: 1; min-width: 0; }
+.sheet-row > .sheet-field-fixed { flex: 0 0 auto; }
+.sheet-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--foreground);
+  opacity: 0.7;
+}
+.sheet-close:hover,
+.sheet-close:focus-visible { opacity: 1; }
+.sheet-header { display: flex; flex-direction: column; gap: 6px; padding: 16px; border-bottom: 1px solid var(--border); }
+.sheet-title { font-size: 17px; font-weight: 600; padding-right: 24px; }
+.sheet-description { font-size: 13px; color: var(--muted-foreground); }
+.sheet-body { display: flex; flex-direction: column; gap: 16px; padding: 0 16px; overflow-y: auto; flex: 1; }
+.sheet-field { display: flex; flex-direction: column; gap: 6px; }
+.sheet-footer { margin-top: auto; display: flex; justify-content: flex-end; gap: 8px; padding: 16px; border-top: 1px solid var(--border); }
+
+/* ===== Campo/seção bloqueada dentro de um sheet (ex.: CNPJ, Certificado
+   digital, Contador responsável e Contrato no drawer de edição de empresa) —
+   mesmo conceito do hint de bloqueio já usado no drawer de sócio (Quadro
+   Societário), com um valor fixo em vez de input. ===== */
+.sheet-field-locked-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 8px 12px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--muted);
+  color: var(--muted-foreground);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.sheet-field-locked-value svg { flex-shrink: 0; }
+
+/* ===== Combobox (ui/command + ui/popover) ===== */
+.combobox { position: relative; width: 100%; }
+.combobox-trigger {
+  height: 36px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--input);
+  padding: 0 12px;
+  font-size: 13px;
+  background: transparent;
+  color: var(--muted-foreground);
+  box-shadow: var(--shadow-xs);
+  cursor: pointer;
+}
+.combobox-trigger.has-value { color: var(--foreground); }
+.combobox-trigger:hover { background: var(--outline-hover); }
+.combobox-trigger:disabled { opacity: 0.55; cursor: not-allowed; }
+.combobox-trigger:disabled:hover { background: transparent; }
+.combobox-panel {
+  position: absolute;
+  z-index: 20;
+  margin-top: 6px;
+  width: 100%;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--background);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  display: none;
+}
+.combobox.is-open .combobox-panel { display: block; }
+.combobox-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--border);
+}
+.combobox-search input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+  width: 100%;
+  color: var(--foreground);
+  font-family: inherit;
+}
+.combobox-list { max-height: 260px; overflow-y: auto; padding: 4px; }
+.combobox-empty { padding: 24px 0; text-align: center; font-size: 13px; color: var(--muted-foreground); }
+.combobox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: var(--radius-md);
+  padding: 6px 8px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--foreground);
+}
+.combobox-item:hover,
+.combobox-item.is-selected { background: var(--accent); }
+.combobox-item .check { visibility: hidden; color: var(--muted-foreground); }
+.combobox-item.is-selected .check { visibility: visible; }
+.combobox-item-sub { font-size: 11px; color: var(--muted-foreground); }
+
+/* ===== Date Picker (ui/date-picker) =====
+   Trigger (botão) + painel de calendário em popover — mesma mecânica de
+   posicionamento do Combobox acima (wrapper relative + painel absolute).
+   Navegação só por setas de mês (sem dropdown de mês/ano do componente
+   original — datas de entrada/saída de sócio não precisam saltar décadas). */
+.date-picker { position: relative; width: 100%; }
+.date-picker-trigger {
+  height: 36px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--input);
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 400;
+  font-family: inherit;
+  background: transparent;
+  color: var(--foreground);
+  box-shadow: var(--shadow-xs);
+  cursor: pointer;
+}
+.date-picker-trigger:hover { background: var(--outline-hover); }
+.date-picker-trigger.is-empty { color: var(--muted-foreground); }
+.date-picker-trigger[aria-invalid="true"] { border-color: var(--destructive); }
+.date-picker-panel {
+  position: absolute;
+  z-index: 20;
+  margin-top: 6px;
+  width: 264px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--background);
+  box-shadow: var(--shadow-md);
+  padding: 12px;
+  display: none;
+}
+.date-picker.is-open .date-picker-panel { display: block; }
+.date-picker-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.date-picker-caption { font-size: 13px; font-weight: 500; }
+.date-picker-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: transparent;
+  color: var(--foreground);
+  cursor: pointer;
+}
+.date-picker-nav-btn:hover { background: var(--ghost-hover); }
+.date-picker-weekdays,
+.date-picker-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+/* Modo mês (granularity:"month" em UI.initDatePicker — competências
+   "MM/AAAA" da Folha de Pagamento): mesma grade/célula, só 12 itens em 3
+   colunas em vez de 42 dias em 7. */
+.date-picker-grid.is-month-grid { grid-template-columns: repeat(3, 1fr); }
+.date-picker-weekdays { margin-bottom: 4px; }
+.date-picker-weekdays span {
+  display: block;
+  text-align: center;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+}
+.date-picker-day {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  border: none;
+  background: transparent;
+  font-size: 12.5px;
+  font-family: inherit;
+  color: var(--foreground);
+  cursor: pointer;
+}
+.date-picker-day:hover { background: var(--ghost-hover); }
+.date-picker-day.is-outside { color: var(--muted-foreground); }
+.date-picker-day.is-today { background: var(--accent); color: var(--accent-foreground); }
+.date-picker-day.is-selected,
+.date-picker-day.is-selected:hover { background: var(--primary); color: var(--primary-foreground); }
+
+/* ===== Toast (ui/sonner) =====
+   bottom:92px (em vez de 20px) para não sobrepor o FAB de ferramentas de
+   prototipação (.fab-tools), fixo no mesmo canto — ver bloco abaixo. */
+.toast {
+  position: fixed;
+  bottom: 92px;
+  right: 20px;
+  z-index: 70;
+  display: none;
+  align-items: flex-start;
+  gap: 10px;
+  width: 340px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--shadow-md);
+  padding: 14px;
+}
+.toast.is-open { display: flex; }
+.toast-icon { color: var(--success-text); flex-shrink: 0; margin-top: 2px; }
+.toast-title { font-size: 13px; font-weight: 500; }
+.toast-desc { font-size: 11.5px; color: var(--muted-foreground); }
+
+/* ===== FAB de ferramentas de prototipação (sem componente React de origem —
+   exclusivo do protótipo estático, ver shared/js/fab-tools.js) =====
+   O menu reaproveita a mesma transição do Sheet (opacity + transform); o
+   catálogo de ações mora em fab-tools.js, então novas ferramentas (exportar/
+   importar estado) não exigem CSS novo. */
+.fab-tools {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 65;
+  opacity: 1;
+  transition: opacity 0.15s;
+}
+.fab-tools-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-full);
+  border: none;
+  cursor: pointer;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: var(--shadow-md);
+  transition: background-color 0.15s;
+}
+.fab-tools-trigger:hover { background: var(--primary-hover); }
+.fab-tools-menu {
+  position: absolute;
+  bottom: 64px;
+  right: 0;
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--background);
+  box-shadow: var(--shadow-md);
+  padding: 6px;
+  opacity: 0;
+  transform: translateY(8px) scale(0.98);
+  pointer-events: none;
+  transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+}
+.fab-tools-menu.is-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+.fab-tools-menu-label {
+  padding: 6px 10px 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.fab-tools-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: transparent;
+  color: var(--foreground);
+  font-size: 13px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.fab-tools-item:hover { background: var(--muted); }
+
+/* ===== Import Wizard (empresas > importação massiva) =====
+   Sem componente React de origem — exclusivo do fluxo de importação em massa
+   deste protótipo (mesma situação do FAB de ferramentas acima). Stepper,
+   dropzone, barra de progresso e cards de estatística não existiam em
+   nenhuma outra trilha; foram desenhados aqui para serem reaproveitados caso
+   outro fluxo em etapas precise deles no futuro. */
+.stepper {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  padding: 18px 24px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: var(--shadow-xs);
+  /* Propositalmente SEM `overflow` aqui. Uma correção anterior tentou
+     resolver o scroll horizontal da Convenção neste elemento (overflow-x
+     via inline style + overflow-y:hidden aqui), mas misturar dois valores
+     de overflow diferentes (auto/hidden) no MESMO elemento que tem
+     border-radius é exatamente o cenário em que o Chromium falha em
+     recortar os cantos pelo raio — o eixo "auto" ganha uma camada de
+     scroll própria que não herda o clip do border-radius, deixando os
+     cantos daquele eixo retos em vez de curvos (reportado nos cantos
+     esquerdos). Um `.stepper` sem overflow nunca sofre esse bug, em
+     nenhum navegador — por isso o scroll horizontal da Convenção agora
+     vive em `.convencao-stepper-sticky` (abaixo), que não tem
+     border-radius e não corre esse risco. */
+}
+.stepper-step { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.stepper-step-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+.stepper-step-label { font-size: 11.5px; font-weight: 500; line-height: 1.35; color: var(--muted-foreground); text-align: center; transition: color 0.2s ease; }
+.stepper-step:hover:not(.is-active) .stepper-step-circle { border-color: var(--ring); }
+.stepper-step:hover:not(.is-active) .stepper-step-label { color: var(--foreground); }
+.stepper-step.is-active .stepper-step-circle { border-color: var(--primary); background: var(--primary); color: var(--primary-foreground); }
+.stepper-step.is-active .stepper-step-label { color: var(--foreground); }
+.stepper-step.is-done .stepper-step-circle { border-color: var(--success-border); background: var(--success-subtle); color: var(--success-text); }
+.stepper-connector { flex: 1; height: 2px; border-radius: var(--radius-full); background: var(--border); margin-top: 13px; transition: background-color 0.2s ease; }
+.stepper-connector.is-done { background: var(--success-border); }
+
+/* Refinamento pontual — Convenção, item 1 (stepper sticky): wrapper só de
+   posicionamento em volta do .stepper já existente (nenhuma alteração nele).
+   .app-content é o único ancestral com scroll (ver layout.css). Fica como um
+   filho comum do flex column do #convencao-root (mesmo gap-4 dos demais
+   irmãos) — sem margin/padding negativos: uma correção anterior usava
+   margin-top:-24px para "colar" o stepper ao topo do scroll, mas isso
+   excedia em 8px o gap-4 (16px) do container, sobrepondo o próprio wrapper
+   (com fundo opaco e a stacking context do position:sticky) sobre os
+   últimos 8px do cabeçalho anterior — visível quando esse cabeçalho não
+   tinha "almofada" própria embaixo (Convenção existente em modo de
+   visualização, sem a caixa de Descrição). `top: 0` já basta: o padding-top
+   do próprio .app-content rola junto com o conteúdo (comportamento padrão
+   de overflow:auto), então o stepper já gruda rente ao topo do scroll sem
+   nenhum salto, dispensando qualquer compensação. */
+.convencao-stepper-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--background);
+  /* Scroll horizontal (fallback para telas muito estreitas) mora aqui, não
+     em `.stepper` — este wrapper não tem border-radius, então não corre o
+     risco de quebrar o recorte dos cantos (ver comentário em `.stepper`). */
+  overflow-x: auto;
+}
+
+.upload-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--muted);
+  padding: 40px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+.upload-dropzone:hover,
+.upload-dropzone.is-dragover { border-color: var(--info-text); background: var(--info-subtle); }
+.upload-dropzone-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  background: var(--card);
+  color: var(--muted-foreground);
+  box-shadow: var(--shadow-xs);
+}
+.upload-file-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  padding: 12px 14px;
+}
+.upload-file-icon { display: flex; flex-shrink: 0; color: var(--info-text); }
+
+/* ===== Skeleton (docs/design-system/components/ui/skeleton.tsx) =====
+   Portado 1:1 da especificação oficial (`animate-pulse rounded-lg bg-muted`):
+   um retângulo cheio que pulsa, sem forma própria — cada uso define
+   largura/altura conforme o que está representando (título, linha de texto,
+   avatar, etc). Não existia implementação no protótipo antes desta trilha;
+   como é um primitivo de carregamento genérico (documentado no Design System
+   para qualquer tela, não uma decisão de negócio da Fiscal), fica aqui em
+   components.css para qualquer trilha reaproveitar — só a composição do
+   skeleton da Fiscal (quais barras, em que layout) é local a
+   parametros-fiscais/js/fiscal-page.js. */
+.skeleton {
+  display: block;
+  border-radius: var(--radius-lg);
+  background: var(--muted);
+  animation: skeleton-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; opacity: 0.7; }
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  border: 2.5px solid var(--border);
+  border-top-color: var(--info-text);
+  animation: spin 0.7s linear infinite;
+}
+.spinner-lg { width: 36px; height: 36px; border-width: 3.5px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  transition: width 0.3s ease-out;
+}
+.progress-bar-fill.is-success { background: var(--success-border); }
+.progress-bar-fill.is-warning { background: var(--warning-border); }
+
+/* Wrapper com tooltip de percentual (dash geral de Implantação — DP/Fiscal/
+   Contábil por empresa). Mesmo tooltip flutuante do segbar
+   (UI.initSegbarTooltips), só que aplicado a uma barra contínua em vez de
+   segmentos discretos — a% exata só aparece no hover, não fica sempre
+   visível ao lado da barra. */
+.progress-bar-wrap { cursor: default; }
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 140px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  padding: 14px 16px;
+}
+.stat-card-value { font-size: 24px; font-weight: 600; line-height: 1; }
+.stat-card-label { font-size: 11.5px; color: var(--muted-foreground); }
+.stat-card-success .stat-card-value { color: var(--success-text); }
+.stat-card-warning .stat-card-value { color: var(--warning-text); }
+
+/* Diagrama "Planilha → Empresas → Cockpit" da tela de resultado */
+.flow-diagram { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.flow-diagram-node {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.flow-diagram-node-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background: var(--info-subtle);
+  color: var(--info-text);
+  flex-shrink: 0;
+}
+.flow-diagram-arrow { color: var(--muted-foreground); flex-shrink: 0; }
+
+/* ===== Checkbox (ui/checkbox) =====
+   Sem <input type="checkbox"> nativo — mesma decisão já tomada para Switch e
+   Toggle acima (botão custom com estado .is-checked), para manter foco visual
+   e hit-area consistentes com o resto do protótipo. Usado pelas relações
+   mãe/dependente da trilha DP (ex.: "Descontar DSR por falta integral"). */
+.ucheckbox {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--foreground);
+}
+.ucheckbox.is-disabled { opacity: 0.55; cursor: not-allowed; }
+.ucheckbox-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--input);
+  background: var(--background);
+  color: var(--primary-foreground);
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.ucheckbox-box.is-checked { background: var(--primary); border-color: var(--primary); }
+.ucheckbox-box svg { width: 11px; height: 11px; visibility: hidden; }
+.ucheckbox-box.is-checked svg { visibility: visible; }
+.ucheckbox-label { line-height: 1.35; }
+.ucheckbox-hint { display: block; font-size: 11.5px; color: var(--muted-foreground); margin-top: 2px; }
+/* Estado de erro do checkbox condicional obrigatório de Férias (Folha de
+   Pagamento) — helper local checkboxCondicional() em folha-page.js, achado
+   P2 da auditoria visual da Fase 5. Regra aditiva e isolada: aplica-se
+   somente quando `.is-invalid` está presente, o que só checkboxCondicional()
+   define — não altera `.ucheckbox`/`.ucheckbox-box` usados pelos checkboxes
+   normais (checkboxField()) em nenhuma outra área/fase. Mesma cor de erro já
+   usada em `.field-input[aria-invalid="true"]`/`.field-select[aria-invalid="true"]`. */
+.ucheckbox-box.is-invalid { border-color: var(--destructive); }
+
+/* ===== Radio (ui/radio-group) =====
+   Mesma decisão de não usar <input type="radio"> nativo, espelhando .ucheckbox
+   acima (indicador custom com estado .is-checked) só troca o formato do
+   indicador (círculo, não quadrado) para seguir docs/design-system/components/ui/radio-group.tsx.
+   Introduzido pela trilha de Folha de Pagamento (campos "Tipo de ambiente",
+   "Opções para unidade do cálculo", "Certificado do Responsável de SST"), que
+   é a primeira a precisar do tipo de campo Radio neste protótipo. */
+.uradio-group { display: flex; flex-direction: column; gap: 8px; }
+.uradio-group.is-row { flex-direction: row; flex-wrap: wrap; gap: 16px; }
+.uradio {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--foreground);
+}
+.uradio-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  border-radius: 50%;
+  border: 1px solid var(--input);
+  background: var(--background);
+  transition: border-color 0.15s;
+}
+.uradio-dot::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  visibility: hidden;
+}
+.uradio-dot.is-checked { border-color: var(--primary); }
+.uradio-dot.is-checked::after { visibility: visible; }
+.uradio-label { line-height: 1.35; }
+
+/* ===== Textarea (ui/textarea) ===== */
+.field-textarea {
+  width: 100%;
+  min-height: 96px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--input);
+  padding: 10px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  line-height: 1.5;
+  resize: vertical;
+  background: transparent;
+  color: var(--foreground);
+  box-shadow: var(--shadow-xs);
+}
+.field-textarea:focus { border-color: var(--ring); outline: none; }
+
+/* ===== Accordion (ui/accordion) =====
+   Usado para organizar a aba "Parâmetros Condicionais" da Convenção (7 grupos
+   citados na especificação: Cálculos, Comissionado, Médias, Estabilidade,
+   Indenização Especial, P.L.R., Observações), evitando abas aninhadas. */
+.accordion { display: flex; flex-direction: column; gap: 8px; }
+.accordion-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  overflow: hidden;
+}
+.accordion-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+.accordion-trigger:hover { background: var(--muted); }
+.accordion-trigger-title { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; color: var(--foreground); }
+.accordion-trigger-chev { display: inline-flex; color: var(--muted-foreground); transition: transform 0.2s; }
+.accordion-item.is-open > .accordion-trigger .accordion-trigger-chev { transform: rotate(180deg); }
+.accordion-content { display: none; padding: 6px 18px 20px; border-top: 1px solid var(--border); }
+.accordion-item.is-open > .accordion-content { display: flex; flex-direction: column; gap: 22px; }
+
+/* Accordion aninhado (nível 2 dentro de outro Accordion — ex.: os
+   subgrupos de "Personaliza"/"eSocial" na trilha de Folha de Pagamento).
+   Reaproveita o mesmo princípio já usado em .condrule-dependent (indentação
+   + borda à esquerda) para comunicar "isto pertence ao grupo acima", em vez
+   de inventar uma superfície nova — e reduz o peso tipográfico do título
+   (menor, `font-weight` normal, cor --muted-foreground) para que o nível 1
+   continue lendo como o elemento dominante. Nenhuma outra propriedade do
+   Accordion muda: mesmo comportamento de abertura/fechamento, mesmo chevron. */
+.accordion-nested {
+  margin-left: 8px;
+  padding-left: 16px;
+  border-left: 2px solid var(--border);
+}
+.accordion-nested .accordion-trigger { padding: 11px 16px; }
+.accordion-nested .accordion-trigger-title { font-size: 12.5px; font-weight: 500; color: var(--muted-foreground); }
+.accordion-nested > .accordion-item.is-open > .accordion-trigger .accordion-trigger-title { color: var(--foreground); }
+
+/* Card leve para subtema dentro de um accordion (ex.: "Férias" dentro de
+   "Cálculos") — mesma linguagem visual do .card, sem sombra própria, já que
+   vive dentro de um accordion que já tem borda. Título no mesmo idioma
+   tipográfico de .detail-section-title (uppercase, discreto), para que a
+   hierarquia "grupo > subtema > campo" seja consistente com o resto do
+   AutoPilot em vez de um rótulo em negrito solto. */
+.subcard { display: flex; flex-direction: column; gap: 12px; padding-top: 18px; border-top: 1px solid var(--border); }
+.subcard:first-child { padding-top: 2px; border-top: none; }
+.subcard-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted-foreground);
+}
+
+/* ===== Bloco de regra condicional (checkbox-mãe + dependente) =====
+   Composição sobre Checkbox + borda já existentes (sem componente novo) para
+   deixar visível, em uma parametrização com muitos condicionais, qual regra
+   está ativa e o que ela habilitou. .condrule-dependent recebe um traço à
+   esquerda para ler como "filho de" a regra acima, mesma ideia de indentação
+   usada em list-row/detail hierarquias do restante do protótipo. */
+.condrule {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  background: var(--card);
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.condrule.is-active {
+  background: var(--accent);
+  border-color: var(--ring);
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+.condrule-dependent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-left: 22px;
+  margin-left: 7px;
+  border-left: 2px solid var(--border);
+}
+
+/* ===== Lista compacta de campos de referência (Parte III) =====
+   Campos previstos na especificação e ainda sem controle interativo nesta
+   versão do protótipo (ver nota em cada subcard) — exibidos como etiquetas
+   soltas em vez de linhas empilhadas, para não competir visualmente com os
+   campos já interativos e não parecer "parede de campos". */
+.ref-taglist { display: flex; flex-wrap: wrap; gap: 6px; }
+.ref-tag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-full);
+  border: 1px dashed var(--border);
+  padding: 3px 10px;
+  font-size: 11px;
+  color: var(--muted-foreground);
+  background: transparent;
+  cursor: default;
+}
+
+/* O FAB some enquanto qualquer Sheet ou Dialog estiver aberto — sem isso ele
+   fica flutuando por cima do drawer lateral/modal (mesmo problema valeria
+   para qualquer outro elemento fixo no canto). Cobre qualquer overlay de
+   qualquer trilha, atual ou futura, sem o FAB precisar conhecer o id de cada
+   um — basta a trilha seguir a convenção .sheet-overlay/.dialog-overlay já
+   documentada em components.css. */
+body:has(.sheet-overlay.is-open) .fab-tools,
+body:has(.dialog-overlay.is-open) .fab-tools {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+
+/* Convenção (Fase 1 da progressão por etapas, ver
+   prototype/sindicatos/js/convencao-detail.js) — a faixa de navegação
+   Voltar/Próxima etapa/Salvar Convenção fica no rodapé do conteúdo da
+   etapa, no mesmo canto inferior direito onde o FAB flutua. Como o FAB é
+   sempre position:fixed, ele pode sobrepor (e bloquear o clique de) esse
+   botão quando o conteúdo da etapa é curto o bastante para terminar perto
+   do fim da viewport. Mesmo princípio já usado acima para Sheet/Dialog:
+   esconder o FAB enquanto essa faixa está visível. */
+body:has(.convencao-etapa-footer) .fab-tools {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+
+/* ===== Seletor de Vigência / Linha do Tempo (docs/parametros-fiscais-arquitetura.md,
+   seção 14) — indicador persistente de vigência no cabeçalho de qualquer
+   trilha versionada, mais a linha do tempo exibida dentro do .sheet-panel
+   padrão (sem overlay/mecânica própria). Generalizado desde já (ver
+   shared/js/vigencia.js) para reuso por DP/Contábil quando adotarem
+   versionamento — não é um componente exclusivo da Fiscal. */
+/* Inline por design (não é mais um card cheio) — vive ao lado do título da
+   página, como um dado de contexto do cabeçalho (mesma ideia do badge de
+   módulo em Empresas), não como uma seção própria abaixo dele. */
+.vigencia-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  flex-wrap: wrap;
+  color: var(--muted-foreground);
+}
+.vigencia-indicator-text { display: flex; flex-direction: column; gap: 1px; }
+.vigencia-indicator-label { font-size: 11.5px; font-weight: 600; color: var(--foreground); }
+.vigencia-indicator-period { font-size: 11.5px; color: var(--muted-foreground); }
+
+.vigencia-timeline { display: flex; flex-direction: column; gap: 8px; }
+.vigencia-timeline-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  padding: 12px 14px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+.vigencia-timeline-item:hover { background: var(--muted); }
+.vigencia-timeline-item.is-selected { border-color: var(--ring); background: var(--accent); box-shadow: inset 3px 0 0 var(--primary); }
+.vigencia-timeline-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); margin-top: 5px; flex-shrink: 0; }
+.vigencia-timeline-item.is-current .vigencia-timeline-dot { background: var(--success-text); }
+.vigencia-timeline-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.vigencia-timeline-header { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.vigencia-timeline-period { font-size: 13px; font-weight: 500; color: var(--foreground); }
+.vigencia-timeline-meta { font-size: 11.5px; color: var(--muted-foreground); }
+
+/* ===== Implantação de Empresas (cadastros auxiliares > implantação) —
+   conciliação de colaboradores entre o Lake (Domínio) e a Ficha Financeira.
+   Sem componente React de origem — exclusivo deste fluxo (mesma situação do
+   Import Wizard acima); badge/dialog/sheet/stat-card/alert já existentes
+   cobrem o resto da tela, só os itens abaixo não tinham equivalente. */
+
+/* Iniciais de colaborador no cabeçalho do drawer de conferência — primitivo
+   genérico (sem relação com a sidebar), reaproveitável por qualquer tela
+   que precise de um "avatar" textual sem foto. */
+.avatar-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--muted);
+  color: var(--muted-foreground);
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* Contador de campos divergentes sob o badge de status, na listagem
+   (ex.: "3 campos divergentes") — mesma cor de --warning-text do badge que
+   ele complementa. */
+.status-cell-hint { font-size: 11px; font-weight: 500; color: var(--warning-text); margin-top: 2px; }
+
+/* Etapas sequenciais de processamento assíncrono (tela de Processamento da
+   importação de Ficha Financeira) — diferente do .stepper acima (navegação
+   horizontal de wizard): aqui cada etapa é uma linha vertical com estado
+   independente (pending/active/done) e um sub-texto de progresso opcional,
+   sem navegação entre elas. */
+.proc-steps { display: flex; flex-direction: column; }
+.proc-step { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.proc-step:last-child { border-bottom: none; }
+.proc-step-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+.proc-step.is-active .proc-step-icon { background: var(--info-subtle); color: var(--info-text); }
+.proc-step.is-done .proc-step-icon { background: var(--success-subtle); color: var(--success-text); }
+.proc-step-label { font-size: 13.5px; font-weight: 600; }
+.proc-step:not(.is-active):not(.is-done) .proc-step-label { color: var(--muted-foreground); font-weight: 500; }
+.proc-step-sub { font-size: 12px; color: var(--muted-foreground); margin-top: 1px; }
+
+/* Card de estatística "crítico" (ex.: arquivos não importados) — evolução
+   aditiva de .stat-card (só existiam -success/-warning), mesmo nível de
+   --destructive-text já usado em .alert-destructive/.badge-destructive. */
+.stat-card-danger .stat-card-value { color: var(--destructive-text); }
+
+/* Comparação de campo divergente (Drawer de Conferência) — duas opções lado
+   a lado (Lake × Ficha Financeira), seleção por clique com indicador de
+   check. Sem equivalente no restante do protótipo (nenhuma outra tela pede
+   "escolher entre dois valores concorrentes para o mesmo campo"). */
+.field-compare { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.field-compare-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--muted);
+  border-bottom: 1px solid var(--border);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.field-compare.is-resolved .field-compare-head { background: var(--success-subtle); color: var(--success-text); }
+.field-compare-options { display: grid; grid-template-columns: 1fr 1fr; }
+.field-compare-option {
+  position: relative;
+  padding: 12px 14px;
+  border-right: 1px solid var(--border);
+  cursor: pointer;
+}
+.field-compare-option:last-child { border-right: none; }
+.field-compare-option:hover { background: var(--outline-hover); }
+.field-compare-option.is-selected { background: var(--info-subtle); }
+.field-compare-option-src { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted-foreground); margin-bottom: 4px; }
+.field-compare-option-val { font-size: 13.5px; font-weight: 600; }
+.field-compare-option-val.is-missing { font-style: italic; font-weight: 500; color: var(--muted-foreground); }
+.field-compare-check {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.field-compare-check svg { width: 10px; height: 10px; visibility: hidden; color: var(--primary-foreground); }
+.field-compare-option.is-selected .field-compare-check { background: var(--primary); border-color: var(--primary); }
+.field-compare-option.is-selected .field-compare-check svg { visibility: visible; }
+
+/* Terceiro caminho do field-compare: nem o Lake nem a Ficha Financeira têm o
+   valor correto (ex.: os dois estão desatualizados) — a pessoa digita o
+   valor manualmente. A opção escolhida reaproveita o mesmo cartão
+   "selecionado" acima, só ocupando a largura inteira (abaixo das duas
+   colunas Lake/Ficha, não uma terceira coluna). */
+.field-compare-option-wide { grid-column: 1 / -1; cursor: default; }
+.field-compare-option-wide:hover { background: var(--info-subtle); }
+.field-compare-manual-toggle { padding: 10px 14px; border-top: 1px solid var(--border); }
+.field-compare-manual-edit { display: flex; gap: 8px; align-items: center; padding: 10px 14px; border-top: 1px solid var(--border); }
+.field-compare-manual-edit .field-input { flex: 1; }

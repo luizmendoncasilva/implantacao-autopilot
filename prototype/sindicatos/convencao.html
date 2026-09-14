@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
+  <title>Convenção Coletiva — DP — AutoPilot</title>
+  <link rel="stylesheet" href="../shared/css/tokens.css" />
+  <link rel="stylesheet" href="../shared/css/base.css" />
+  <link rel="stylesheet" href="../shared/css/components.css" />
+  <link rel="stylesheet" href="../shared/css/layout.css" />
+</head>
+<body>
+  <div id="shell-root"></div>
+
+  <template id="page-content">
+    <section class="max-w-7xl flex flex-col gap-4" id="convencao-root"></section>
+  </template>
+
+  <!-- Sheet: Adicionar/editar piso salarial -->
+  <div class="sheet-overlay" id="piso-overlay"></div>
+  <div class="sheet-panel" id="piso-panel" role="dialog" aria-modal="true" aria-labelledby="piso-title">
+    <button type="button" class="sheet-close" id="piso-close"></button>
+    <div class="sheet-header">
+      <div class="sheet-title" id="piso-title">Adicionar piso salarial</div>
+      <div class="sheet-description">Valor mínimo garantido pela convenção para o cargo/nível descrito.</div>
+    </div>
+    <div class="sheet-body">
+      <div class="sheet-field">
+        <label class="field-label">Descrição <span class="text-muted">*</span></label>
+        <input id="piso-descricao" class="field-input" placeholder="Ex.: Balconista" />
+      </div>
+      <div class="sheet-field">
+        <label class="field-label">Valor <span class="text-muted">*</span></label>
+        <input id="piso-valor" class="field-input" placeholder="Ex.: 1.750,00" />
+      </div>
+    </div>
+    <div class="sheet-footer">
+      <button type="button" class="btn btn-outline" id="piso-cancelar">Cancelar</button>
+      <button type="button" class="btn" id="piso-salvar" disabled>Salvar</button>
+    </div>
+  </div>
+  <div class="dialog-overlay" id="piso-delete-overlay">
+    <div class="dialog-content" role="dialog" aria-modal="true" aria-labelledby="piso-delete-title">
+      <button type="button" class="dialog-close" id="piso-delete-close" aria-label="Fechar"></button>
+      <div class="flex flex-col gap-1">
+        <h2 class="dialog-title" id="piso-delete-title">Remover piso salarial?</h2>
+        <p class="dialog-description" id="piso-delete-description"></p>
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-outline" id="piso-delete-cancel">Cancelar</button>
+        <button type="button" class="btn btn-destructive" id="piso-delete-confirm">Remover</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sheet: Registrar/editar alteração salarial (histórico) -->
+  <div class="sheet-overlay" id="hist-overlay"></div>
+  <div class="sheet-panel" id="hist-panel" role="dialog" aria-modal="true" aria-labelledby="hist-title">
+    <button type="button" class="sheet-close" id="hist-close"></button>
+    <div class="sheet-header">
+      <div class="sheet-title" id="hist-title">Registrar alteração salarial</div>
+      <div class="sheet-description">Histórico de convenções aplicadas à categoria — origem e percentual de reajuste.</div>
+    </div>
+    <div class="sheet-body">
+      <div class="sheet-field">
+        <label class="field-label">Data do registro <span class="text-muted">*</span></label>
+        <div class="date-picker" id="hist-data-picker">
+          <button type="button" class="date-picker-trigger"><span class="date-picker-icon"></span><span class="date-picker-label">Selecione uma data</span></button>
+          <div class="date-picker-panel">
+            <div class="date-picker-header">
+              <button type="button" class="date-picker-nav-btn" data-nav="prev" aria-label="Mês anterior"></button>
+              <span class="date-picker-caption"></span>
+              <button type="button" class="date-picker-nav-btn" data-nav="next" aria-label="Próximo mês"></button>
+            </div>
+            <div class="date-picker-weekdays"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+            <div class="date-picker-grid"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sheet-field">
+        <label class="field-label">Descrição <span class="text-muted">*</span></label>
+        <input id="hist-descricao" class="field-input" placeholder="Ex.: Reajuste anual — data-base 2026" />
+      </div>
+      <div class="sheet-field">
+        <label class="field-label">Tipo <span class="text-muted">*</span></label>
+        <div class="field-select-wrap"><select id="hist-tipo" class="field-select"><option value="">Selecione...</option></select><span class="chev"></span></div>
+      </div>
+      <div class="sheet-field" id="hist-processo-field" style="display:none;">
+        <label class="field-label">Número do processo</label>
+        <input id="hist-processo" class="field-input" placeholder="0000000-00.0000.0.00.0000" />
+      </div>
+      <div class="sheet-field">
+        <label class="field-label">Percentual CCT</label>
+        <input id="hist-percentual" class="field-input" placeholder="Ex.: 5,20" />
+      </div>
+    </div>
+    <div class="sheet-footer">
+      <button type="button" class="btn btn-outline" id="hist-cancelar">Cancelar</button>
+      <button type="button" class="btn" id="hist-salvar" disabled>Salvar</button>
+    </div>
+  </div>
+  <div class="dialog-overlay" id="hist-delete-overlay">
+    <div class="dialog-content" role="dialog" aria-modal="true" aria-labelledby="hist-delete-title">
+      <button type="button" class="dialog-close" id="hist-delete-close" aria-label="Fechar"></button>
+      <div class="flex flex-col gap-1">
+        <h2 class="dialog-title" id="hist-delete-title">Remover registro do histórico?</h2>
+        <p class="dialog-description" id="hist-delete-description"></p>
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-outline" id="hist-delete-cancel">Cancelar</button>
+        <button type="button" class="btn btn-destructive" id="hist-delete-confirm">Remover</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Refinamento pontual — Convenção, item 4: confirmação ao cancelar uma
+       nova Convenção. Mesmo padrão de Dialog já usado acima (remoção de piso
+       salarial/histórico) — só overlay/content/title/description/footer,
+       sem componente novo. -->
+  <div class="dialog-overlay" id="cancelar-convencao-overlay">
+    <div class="dialog-content" role="dialog" aria-modal="true" aria-labelledby="cancelar-convencao-title">
+      <button type="button" class="dialog-close" id="cancelar-convencao-close" aria-label="Fechar"></button>
+      <div class="flex flex-col gap-1">
+        <h2 class="dialog-title" id="cancelar-convencao-title">Cancelar cadastro da Convenção?</h2>
+        <p class="dialog-description">As informações preenchidas serão perdidas. Deseja realmente sair?</p>
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-outline" id="cancelar-convencao-continuar">Continuar editando</button>
+        <button type="button" class="btn btn-destructive" id="cancelar-convencao-confirmar">Cancelar cadastro</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../shared/js/icons.js"></script>
+  <script src="../shared/js/shell.js"></script>
+  <script src="../shared/js/ui.js"></script>
+  <script src="../shared/js/fab-tools.js"></script>
+  <script src="js/data.js"></script>
+  <script src="../empresas/js/data.js"></script>
+  <script src="js/convencao-detail.js"></script>
+</body>
+</html>

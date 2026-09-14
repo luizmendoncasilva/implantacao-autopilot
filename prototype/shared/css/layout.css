@@ -1,0 +1,277 @@
+/* Esqueleto de página do AutoPilot — portado de RegrasGeraisPage.jsx (sidebar +
+   header + área de conteúdo). Usado por toda trilha de protótipo, não só Empresas. */
+
+.app-shell {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  font-size: 13px;
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* ===== Sidebar ===== */
+.app-sidebar {
+  width: 256px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  overflow-y: auto;
+  background: var(--sidebar);
+  border-right: 1px solid var(--sidebar-border);
+}
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px 12px;
+}
+.sidebar-brand-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-md);
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--sidebar-primary);
+  color: var(--background);
+}
+.sidebar-brand-title { font-size: 13px; font-weight: 600; }
+.sidebar-brand-sub { font-size: 11px; color: var(--sidebar-muted); }
+
+.sidebar-group-label {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--sidebar-muted);
+}
+.sidebar-separator { margin: 8px 8px; height: 1px; background: var(--sidebar-border); }
+.sidebar-menu { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+.sidebar-menu-item { position: relative; }
+
+.sidebar-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: var(--radius-lg);
+  border: none;
+  background: transparent;
+  color: var(--sidebar-foreground);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+}
+/* Sem isso, o ícone encolhe até width:0 (e "desaparece") em itens cujo texto +
+   badge some a largura disponível — ex.: "Cadastros Auxiliares" + badge
+   "em refinamento", mais largo que "Empresas" + o mesmo badge. Todo item da
+   sidebar precisa deste `flex-shrink: 0` no ícone, não só os mais longos. */
+.sidebar-btn svg { flex-shrink: 0; }
+.sidebar-btn:hover:not(.is-active):not([aria-disabled="true"]) { background: var(--outline-hover); }
+.sidebar-btn.is-active {
+  background: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
+  font-weight: 500;
+  box-shadow: inset 2px 0 0 var(--sidebar-primary);
+}
+.sidebar-btn[aria-disabled="true"] { color: var(--sidebar-muted); cursor: default; pointer-events: none; }
+.sidebar-btn .chev {
+  margin-left: auto;
+  transition: transform 0.15s;
+}
+.sidebar-btn[aria-expanded="true"] .chev { transform: rotate(90deg); }
+
+.sidebar-badge {
+  pointer-events: none;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  height: 20px;
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: var(--radius-lg);
+  font-size: 10px;
+  font-weight: 500;
+  background: var(--secondary);
+  color: var(--muted-foreground);
+  border: 1px solid var(--sidebar-border);
+}
+.sidebar-btn[aria-disabled="true"] .sidebar-badge { margin-left: 8px; }
+
+.sidebar-badge-construction {
+  background: var(--warning-subtle);
+  color: var(--warning-text);
+  border-color: var(--warning-border);
+}
+
+.sidebar-badge-success {
+  background: var(--success-subtle);
+  color: var(--success-text);
+  border-color: var(--success-border);
+}
+
+.sidebar-badge-info {
+  background: var(--info-subtle);
+  color: var(--info-text);
+  border-color: var(--info-border);
+}
+
+.sidebar-btn-trailing {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sidebar-btn-trailing .sidebar-badge { margin-left: 0; }
+.sidebar-btn-trailing .chev { margin-left: 0; }
+
+.sidebar-submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 4px 0 0 14px;
+  padding: 2px 0 2px 10px;
+  border-left: 1px solid var(--sidebar-border);
+}
+.sidebar-sub-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  padding: 5px 8px;
+  border-radius: var(--radius-lg);
+  border: none;
+  background: transparent;
+  color: var(--sidebar-foreground);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+}
+/* Mesma razão do .sidebar-btn svg acima: sem flex-shrink:0 o ícone encolhe
+   para abrir espaço quando o label + badge não cabem — o que passou a
+   acontecer com labels mais longos (ex.: "Folha de Pagamento") num terceiro
+   nível de indentação (menos largura disponível que a prevista quando este
+   componente só tinha um nível de aninhamento, ex.: "Fiscal"/"Contábil").
+   .sidebar-sub-btn trocou height fixo por min-height + padding vertical, e o
+   label (.sidebar-sub-btn-label) pode quebrar em 2 linhas em vez de truncar
+   com "…" — testado com "Folha de Pagamento" e "Sindicato / Convenção", os
+   dois labels mais longos da hierarquia hoje, sem sobrepor o item seguinte. */
+.sidebar-sub-btn svg { flex-shrink: 0; }
+.sidebar-sub-btn-label { flex: 1 1 auto; min-width: 0; line-height: 1.3; }
+.sidebar-sub-btn:hover:not(.is-active):not([aria-disabled="true"]) { background: var(--outline-hover); }
+.sidebar-sub-btn.is-active {
+  background: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
+  font-weight: 500;
+  box-shadow: inset 2px 0 0 var(--sidebar-primary);
+}
+.sidebar-sub-btn[aria-disabled="true"] { color: var(--sidebar-muted); cursor: default; pointer-events: none; }
+
+/* Modificador exclusivo do submenu de DP (Folha de Pagamento, Sindicato /
+   Convenção) — nada aqui se aplica ao submenu de "Parâmetros" (Fiscal,
+   Contábil), que continua com a aparência original de item único de
+   linha. Foi necessário porque DP vive um nível mais indentado que
+   qualquer outro submenu hoje, e seus dois filhos têm os labels mais
+   longos já usados neste componente — sem este recuo/composição próprios,
+   o label quebrava em 3 linhas e o badge competia por espaço com o texto. */
+.sidebar-submenu[data-submenu="dp"] {
+  margin-left: 6px;
+  padding-left: 8px;
+}
+.sidebar-submenu[data-submenu="dp"] .sidebar-sub-btn {
+  flex-wrap: wrap;
+  align-items: flex-start;
+  align-content: center;
+  min-height: 30px;
+  padding: 6px 8px;
+}
+.sidebar-submenu[data-submenu="dp"] .sidebar-sub-btn svg { margin-top: 2px; }
+/* Sem isso o badge herda `margin-left: auto` (regra geral de .sidebar-badge)
+   e reserva uma coluna com a altura inteira da linha, tirando espaço do
+   label em TODAS as linhas do texto quebrado, não só na primeira — por
+   isso o label quebrava em 3 linhas mesmo depois de o item já poder
+   crescer em altura. Com `flex-wrap` + margin-left:0, o badge passa a fluir
+   como o "último item" da linha de texto: fica ao lado do label quando
+   cabe, e desce como parte do bloco (não como coluna à parte) quando não
+   cabe — dando ao label a largura inteira da linha para quebrar melhor
+   (ex.: "Folha de" / "Pagamento" em vez de "Folha" / "de" / "Pagamento"). */
+.sidebar-submenu[data-submenu="dp"] .sidebar-badge { margin-left: 0; }
+
+.sidebar-footer { margin-top: auto; padding: 8px 0; }
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  width: 100%;
+  padding: 8px;
+  border-radius: var(--radius-lg);
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.sidebar-user:hover { background: var(--sidebar-accent); }
+
+/* Foco acessível (offset negativo — ver nota equivalente em components.css
+   para .row-clickable) compartilhado pelos três controles de linha inteira
+   da sidebar. */
+.sidebar-btn:focus-visible,
+.sidebar-sub-btn:focus-visible,
+.sidebar-user:focus-visible {
+  outline: 2px solid var(--info-text);
+  outline-offset: -2px;
+}
+.sidebar-user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--muted);
+  color: var(--foreground);
+  font-size: 11.5px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.sidebar-user-name { font-size: 13px; font-weight: 600; }
+.sidebar-user-email { font-size: 11.5px; color: var(--muted-foreground); }
+
+/* ===== Main / header ===== */
+.app-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 24px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+.app-breadcrumb { font-size: 11.5px; font-family: "SFMono-Regular", Consolas, monospace; color: var(--muted-foreground); }
+.app-breadcrumb b { color: var(--foreground); font-weight: 500; }
+.app-breadcrumb a.breadcrumb-link { color: var(--muted-foreground); cursor: pointer; }
+.app-breadcrumb a.breadcrumb-link:hover { color: var(--foreground); text-decoration: underline; }
+.app-breadcrumb a.breadcrumb-link:focus-visible { outline: 2px solid var(--info-text); outline-offset: 2px; }
+.app-header-actions { display: flex; align-items: center; gap: 8px; }
+.app-header-actions .label { font-size: 11px; color: var(--muted-foreground); }
+
+.app-content { flex: 1; overflow-y: auto; padding: 24px; }
+.app-content-inner { max-width: 1280px; }

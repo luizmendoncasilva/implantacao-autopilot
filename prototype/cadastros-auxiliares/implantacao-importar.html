@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
+  <title>Nova Implantação — Implantação de Empresas — AutoPilot</title>
+  <link rel="stylesheet" href="../shared/css/tokens.css" />
+  <link rel="stylesheet" href="../shared/css/base.css" />
+  <link rel="stylesheet" href="../shared/css/components.css?v=2" />
+  <link rel="stylesheet" href="../shared/css/layout.css" />
+</head>
+<body>
+  <div id="shell-root"></div>
+
+  <template id="page-content">
+    <section class="max-w-7xl flex flex-col gap-4">
+      <div id="importacao-crumb-extra"></div>
+      <div id="importacao-step-mount"></div>
+    </section>
+
+    <!-- Modal — Confirmar importação (Tela 3). Só leitura + confirmação, sem
+         campo editável: dialog centralizado, não drawer. -->
+    <div class="dialog-overlay" id="dialog-confirmar-importacao">
+      <div class="dialog-content" role="dialog" aria-modal="true" aria-labelledby="dialog-confirmar-titulo">
+        <button type="button" class="dialog-close" data-close-dialog="dialog-confirmar-importacao" aria-label="Fechar"><span id="icon-close-confirmar"></span></button>
+        <div class="flex flex-col gap-1">
+          <h2 class="dialog-title" id="dialog-confirmar-titulo">Importar arquivos?</h2>
+          <p class="dialog-description" id="dialog-confirmar-desc"></p>
+        </div>
+        <div id="dialog-confirmar-extra"></div>
+        <div class="dialog-footer">
+          <button type="button" class="btn btn-outline" data-close-dialog="dialog-confirmar-importacao">Cancelar</button>
+          <button type="button" class="btn" id="btn-confirmar-importacao">Confirmar importação</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal — Inconsistência / CNPJ não identificado (Tela 6). -->
+    <div class="dialog-overlay" id="dialog-inconsistencia">
+      <div class="dialog-content" role="dialog" aria-modal="true" aria-labelledby="dialog-inconsistencia-titulo">
+        <button type="button" class="dialog-close" data-close-dialog="dialog-inconsistencia" aria-label="Fechar"><span id="icon-close-inconsistencia"></span></button>
+        <div class="flex flex-col gap-1">
+          <h2 class="dialog-title" id="dialog-inconsistencia-titulo">CNPJ não identificado</h2>
+          <p class="dialog-description">Não conseguimos ler o CNPJ automaticamente neste arquivo. Selecione a empresa correta para associar e reprocessar.</p>
+        </div>
+        <div class="flex flex-col gap-3">
+          <div class="sheet-field-locked-value font-mono" id="dialog-inconsistencia-arquivo" style="font-size:12.5px;"></div>
+          <div class="flex flex-col gap-1">
+            <label class="field-label" for="dialog-inconsistencia-empresa">Empresa</label>
+            <div class="field-select-wrap">
+              <select id="dialog-inconsistencia-empresa" class="field-select">
+                <option value="">Selecione a empresa...</option>
+              </select>
+              <span class="chev" id="icon-chev-inconsistencia"></span>
+            </div>
+          </div>
+        </div>
+        <div class="dialog-footer">
+          <button type="button" class="btn btn-outline" data-close-dialog="dialog-inconsistencia">Fechar</button>
+          <button type="button" class="btn" id="btn-reprocessar-arquivo" disabled>Reprocessar arquivo</button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script src="../shared/js/icons.js"></script>
+  <script src="../shared/js/shell.js?v=2"></script>
+  <script src="../shared/js/ui.js?v=2"></script>
+  <script src="../shared/js/fab-tools.js"></script>
+  <script src="../empresas/js/data.js"></script>
+  <script src="js/implantacao/data.js?v=5"></script>
+  <script src="js/implantacao/empresas-data.js?v=7"></script>
+  <script>
+    Shell.mount(document.getElementById("shell-root"), {
+      base: "../",
+      active: "implantacao-dp",
+      crumbs: [{ label: "implantação de empresas", href: "implantacao-geral.html" }, { label: "DP", href: "implantacao-empresas.html" }, { label: "nova implantação" }],
+    });
+    document.getElementById("icon-close-confirmar").innerHTML = Icon("x", "size-4");
+    document.getElementById("icon-close-inconsistencia").innerHTML = Icon("x", "size-4");
+    document.getElementById("icon-chev-inconsistencia").innerHTML = Icon("chevron-down", "size-4");
+    document.querySelectorAll(".dialog-close").forEach((el) => {
+      if (!el.innerHTML) el.innerHTML = Icon("x", "size-4");
+    });
+  </script>
+  <script src="js/implantacao/importar.js?v=3"></script>
+</body>
+</html>

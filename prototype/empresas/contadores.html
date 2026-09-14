@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
+  <title>Contadores — Empresas — AutoPilot</title>
+  <link rel="stylesheet" href="../shared/css/tokens.css" />
+  <link rel="stylesheet" href="../shared/css/base.css" />
+  <link rel="stylesheet" href="../shared/css/components.css" />
+  <link rel="stylesheet" href="../shared/css/layout.css" />
+</head>
+<body>
+  <div id="shell-root"></div>
+
+  <template id="page-content">
+    <div id="detail-shell-mount"></div>
+  </template>
+
+  <!-- Sheet (drawer) de Vincular contador — combobox simples, sem campos de
+       participação (contador só é vinculado/desvinculado, nunca cadastrado
+       aqui). Mesmo padrão do Sheet de Adicionar sócio em empresas/socios.html,
+       mas sem percentual/quotas/tipo/datas, que não se aplicam a contador. -->
+  <div class="sheet-overlay" id="ct-overlay"></div>
+  <div class="sheet-panel" id="ct-panel" role="dialog" aria-modal="true" aria-labelledby="ct-title">
+    <button type="button" class="sheet-close" id="ct-close"></button>
+    <div class="sheet-header">
+      <div class="sheet-title" id="ct-title">Vincular contador</div>
+      <div class="sheet-description">Vincula um contador já cadastrado no Registro de Contadores a esta empresa.</div>
+    </div>
+    <div class="sheet-body">
+      <div class="sheet-field">
+        <label class="field-label">Contador</label>
+        <div class="combobox" id="ct-combobox" data-empty-text="Todos os contadores do registro já estão vinculados a esta empresa.">
+          <button type="button" class="combobox-trigger">
+            <span class="combobox-label truncate">Selecione um contador</span>
+            <span class="chev"></span>
+          </button>
+          <div class="combobox-panel">
+            <div class="combobox-search">
+              <span class="search-icon"></span>
+              <input type="text" placeholder="Buscar por nome ou CPF..." />
+            </div>
+            <div class="combobox-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sheet-footer">
+      <button type="button" class="btn btn-outline" id="ct-cancelar">Cancelar</button>
+      <button type="button" class="btn" id="ct-salvar" disabled>Vincular</button>
+    </div>
+  </div>
+
+  <!-- Dialog de confirmação de desvínculo (remoção do vínculo com a empresa,
+       não do cadastro do contador) — mesmo padrão do dialog de desvínculo de
+       sócio em empresas/socios.html. -->
+  <div class="dialog-overlay" id="ct-delete-overlay">
+    <div class="dialog-content" role="dialog" aria-modal="true" aria-labelledby="ct-delete-title">
+      <button type="button" class="dialog-close" id="ct-delete-close" aria-label="Fechar"></button>
+      <div class="flex flex-col gap-1">
+        <h2 class="dialog-title" id="ct-delete-title">Remover vínculo do contador?</h2>
+        <p class="dialog-description" id="ct-delete-description"></p>
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-outline" id="ct-delete-cancel">Cancelar</button>
+        <button type="button" class="btn btn-destructive" id="ct-delete-confirm">Remover vínculo</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../shared/js/icons.js"></script>
+  <script src="../shared/js/shell.js"></script>
+  <script src="../shared/js/ui.js"></script>
+  <script src="../shared/js/fab-tools.js"></script>
+  <script src="js/data.js"></script>
+  <script src="../cadastros-auxiliares/js/contadores/data.js"></script>
+  <script src="js/detail-common.js"></script>
+  <script src="js/contadores.js"></script>
+  <script>window.ACTIVE_TAB = "contadores";</script>
+  <script src="js/boot-detail.js"></script>
+</body>
+</html>

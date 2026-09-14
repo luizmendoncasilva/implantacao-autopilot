@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
+  <title>Parâmetros / DP — AutoPilot</title>
+  <link rel="stylesheet" href="../shared/css/tokens.css" />
+  <link rel="stylesheet" href="../shared/css/base.css" />
+  <link rel="stylesheet" href="../shared/css/components.css" />
+  <link rel="stylesheet" href="../shared/css/layout.css" />
+</head>
+<body>
+  <div id="shell-root"></div>
+  <template id="page-content"><div id="content-mount"></div></template>
+
+  <script src="../shared/js/icons.js"></script>
+  <script src="../shared/js/shell.js"></script>
+  <script src="../shared/js/ui.js"></script>
+  <script src="../shared/js/fab-tools.js"></script>
+  <script src="../shared/js/coming-soon.js"></script>
+  <script>
+    Shell.mount(document.getElementById("shell-root"), { base: "../", active: "dp", crumb: "parâmetros / dp" });
+    document.getElementById("content-mount").innerHTML = ComingSoon.render(
+      "Departamento Pessoal",
+      "Esta trilha está em evolução e será disponibilizada nas próximas entregas. Estamos refinando as funcionalidades juntamente com Produto e Operação para garantir a melhor experiência."
+    );
+  </script>
+</body>
+</html>

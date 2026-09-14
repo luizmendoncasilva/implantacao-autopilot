@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
+  <title>Implantação de Empresas — AutoPilot</title>
+  <link rel="stylesheet" href="../shared/css/tokens.css" />
+  <link rel="stylesheet" href="../shared/css/base.css" />
+  <link rel="stylesheet" href="../shared/css/components.css?v=2" />
+  <link rel="stylesheet" href="../shared/css/layout.css" />
+</head>
+<body>
+  <div id="shell-root"></div>
+
+  <!-- Dash geral de Implantação — as 3 frentes (DP/Fiscal/Contábil) lado a
+       lado por empresa, pedido pela Andressa (10/09/2026): "eu acho que tem
+       que ser o controle uma para cada, mas seria interessante a gente ter
+       uma aba geral... com percentual concluído". Hoje só DP tem console
+       próprio (implantacao-empresas.html) — Fiscal e Contábil aparecem como
+       "em breve", sem link, até terem o mesmo tratamento. -->
+  <template id="page-content">
+    <section class="max-w-7xl flex flex-col gap-4">
+      <div>
+        <h1 class="text-xl font-semibold mb-1">Implantação de Empresas</h1>
+        <p class="text-sm text-muted max-w-2xl">Visão geral por empresa, nas três frentes de implantação — DP, Fiscal e Contábil. Clique numa empresa para abrir a implantação de DP.</p>
+      </div>
+
+      <div class="flex flex-wrap items-end justify-between gap-3">
+        <div class="flex flex-col gap-1">
+          <label class="field-label">Empresa</label>
+          <input id="f-busca-empresa-geral" class="field-input w-72" placeholder="Pesquisar por nome ou CNPJ" />
+        </div>
+        <a href="implantacao-importar.html" class="btn btn-sm w-fit" id="btn-nova-implantacao-geral"><span id="icon-upload-geral"></span> Nova Implantação</a>
+      </div>
+
+      <div class="table-wrap">
+        <table class="dtable dtable-fixed" id="tabela-implantacao-geral">
+          <colgroup>
+            <col style="width:180px" />
+            <col style="width:150px" />
+            <col style="width:150px" />
+            <col style="width:150px" />
+            <col style="width:40px" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Empresa</th>
+              <th class="col-pad-md">DP</th>
+              <th class="col-pad-md">Fiscal</th>
+              <th class="col-pad-md">Contábil</th>
+              <th class="col-pad-end"></th>
+            </tr>
+          </thead>
+          <tbody id="tabela-implantacao-geral-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </template>
+
+  <script src="../shared/js/icons.js"></script>
+  <script src="../shared/js/shell.js?v=2"></script>
+  <script src="../shared/js/ui.js?v=2"></script>
+  <script src="../shared/js/fab-tools.js"></script>
+  <script src="../empresas/js/data.js"></script>
+  <script src="js/implantacao/data.js?v=5"></script>
+  <script src="js/implantacao/empresas-data.js?v=7"></script>
+  <script>
+    Shell.mount(document.getElementById("shell-root"), {
+      base: "../",
+      active: "implantacao",
+      crumb: "implantação de empresas",
+    });
+    document.getElementById("icon-upload-geral").innerHTML = Icon("upload", "size-4");
+  </script>
+  <script src="js/implantacao/geral-list.js?v=3"></script>
+</body>
+</html>

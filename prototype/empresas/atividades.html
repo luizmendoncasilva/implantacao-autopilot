@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
+  <title>Atividades — Empresas — AutoPilot</title>
+  <link rel="stylesheet" href="../shared/css/tokens.css" />
+  <link rel="stylesheet" href="../shared/css/base.css" />
+  <link rel="stylesheet" href="../shared/css/components.css" />
+  <link rel="stylesheet" href="../shared/css/layout.css" />
+</head>
+<body>
+  <div id="shell-root"></div>
+
+  <template id="page-content">
+    <div id="detail-shell-mount"></div>
+  </template>
+
+  <!-- Sheet (drawer) de edição das atividades — dado hoje espelhado do
+       Cockpit; sem campos bloqueados nesta aba. -->
+  <div class="sheet-overlay" id="edit-empresa-overlay"></div>
+  <div class="sheet-panel" id="edit-empresa-panel" role="dialog" aria-modal="true" aria-labelledby="edit-empresa-title">
+    <button type="button" class="sheet-close" id="edit-empresa-close"></button>
+    <div class="sheet-header">
+      <div class="sheet-title" id="edit-empresa-title">Editar atividades</div>
+      <div class="sheet-description">Altere a classificação de atividade econômica (CNAE) da empresa.</div>
+    </div>
+    <div class="sheet-body">
+      <div class="sheet-field"><label class="field-label" for="edit-cnae-principal">CNAE principal</label><input class="field-input" id="edit-cnae-principal" placeholder="Ex.: 1091-1/00" /></div>
+      <div class="sheet-field">
+        <label class="field-label" for="edit-cnaes-secundarios">CNAEs secundários</label>
+        <input class="field-input" id="edit-cnaes-secundarios" placeholder="Separe múltiplos CNAEs por vírgula" />
+        <span class="text-xs text-muted">Ex.: 4721-1/02, 5611-2/01</span>
+      </div>
+    </div>
+    <div class="sheet-footer">
+      <span class="text-xs text-muted" style="margin-right:auto;">As alterações serão refletidas no Cockpit.</span>
+      <button type="button" class="btn btn-outline" id="edit-empresa-cancelar">Cancelar</button>
+      <button type="button" class="btn" id="edit-empresa-salvar">Salvar alterações</button>
+    </div>
+  </div>
+
+  <script src="../shared/js/icons.js"></script>
+  <script src="../shared/js/shell.js"></script>
+  <script src="../shared/js/ui.js"></script>
+  <script src="../shared/js/fab-tools.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/detail-common.js"></script>
+  <script src="js/atividades.js"></script>
+  <script>window.ACTIVE_TAB = "atividades";</script>
+  <script src="js/boot-detail.js"></script>
+</body>
+</html>

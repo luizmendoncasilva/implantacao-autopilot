@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
+  <title>Sindicatos — DP — AutoPilot</title>
+  <link rel="stylesheet" href="../shared/css/tokens.css" />
+  <link rel="stylesheet" href="../shared/css/base.css" />
+  <link rel="stylesheet" href="../shared/css/components.css" />
+  <link rel="stylesheet" href="../shared/css/layout.css" />
+</head>
+<body>
+  <div id="shell-root"></div>
+
+  <template id="page-content">
+    <section class="max-w-7xl flex flex-col gap-4">
+      <div class="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h1 class="text-xl font-semibold mb-1">Sindicatos</h1>
+          <p class="text-sm text-muted max-w-xl">
+            Cadastro das entidades sindicais e das convenções coletivas de trabalho vinculadas a cada uma.
+          </p>
+        </div>
+        <button type="button" class="btn btn-sm w-fit" id="btn-novo-sindicato">::icon-plus:: Novo sindicato</button>
+      </div>
+
+      <div class="flex flex-wrap items-end gap-3">
+        <div class="flex flex-col gap-1">
+          <label class="field-label">Pesquisar</label>
+          <input id="f-busca" class="field-input w-72" placeholder="Pesquisar por nome" />
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="dtable dtable-fixed" id="tabela-sindicatos">
+          <colgroup>
+            <col style="width:110px" />
+            <col />
+            <col style="width:180px" />
+            <col style="width:150px" />
+            <col style="width:130px" />
+            <col style="width:40px" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="col-pad-sm">Código</th>
+              <th>Sindicato</th>
+              <th class="col-pad-md">CNPJ</th>
+              <th class="col-pad-md">Tipo da entidade</th>
+              <th class="col-pad-md">Cidade/UF</th>
+              <th class="col-pad-end"></th>
+            </tr>
+          </thead>
+          <tbody id="tabela-sindicatos-body"></tbody>
+        </table>
+      </div>
+
+      <button type="button" class="btn btn-ghost btn-sm w-fit" id="btn-mostrar-mais" style="display:none;">Mostrar mais</button>
+    </section>
+  </template>
+
+  <!-- O Drawer de cadastro de Sindicato (Novo/Editar) é injetado por
+       js/sindicato-form.js — compartilhado com sindicato.html ("Editar"),
+       mesmo princípio de dados editáveis em Drawer já usado em Empresas. -->
+
+  <script src="../shared/js/icons.js"></script>
+  <script src="../shared/js/shell.js"></script>
+  <script src="../shared/js/ui.js"></script>
+  <script src="../shared/js/fab-tools.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/sindicato-form.js"></script>
+  <script>
+    Shell.mount(document.getElementById("shell-root"), { base: "../", active: "sindicato", crumb: "sindicatos" });
+    document.getElementById("btn-novo-sindicato").innerHTML = Icon("plus", "size-3-5") + " Novo sindicato";
+  </script>
+  <script src="js/list.js"></script>
+</body>
+</html>

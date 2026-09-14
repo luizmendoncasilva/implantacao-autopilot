@@ -1,0 +1,84 @@
+/*
+  Design tokens — portados verbatim de src/components/ui/index.jsx (objeto T),
+  a mesma fonte de verdade usada pela trilha Empresas em React. Qualquer nova
+  trilha de protótipo deve consumir estas variáveis, nunca hex direto.
+*/
+:root {
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+
+  --card: #ffffff;
+  --card-foreground: #0a0a0a;
+
+  --primary: #171717;
+  --primary-foreground: #fafafa;
+  --primary-hover: #404040;
+
+  --secondary: #f5f5f5;
+  --secondary-foreground: #171717;
+  --secondary-hover: #fafafa;
+
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
+
+  --accent: #f5f5f5;
+  --accent-foreground: #171717;
+
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --destructive-text: #dc2626;
+  --destructive-border: #f87171;
+  --destructive-subtle: #fef2f2;
+
+  --success: #16a34a;
+  --success-foreground: #ffffff;
+  --success-text: #16a34a;
+  --success-border: #22c55e;
+  --success-subtle: #f0fdf4;
+
+  --warning: #f59e0b;
+  --warning-foreground: #ffffff;
+  --warning-text: #d97706;
+  --warning-border: #f59e0b;
+  --warning-subtle: #fffbeb;
+
+  --info: #2563eb;
+  --info-foreground: #ffffff;
+  --info-text: #2563eb;
+  --info-border: #3b82f6;
+  --info-subtle: #eff6ff;
+
+  --border: #e5e5e5;
+  --input: #e5e5e5;
+  --ring: #d4d4d4;
+
+  --ghost-foreground: #404040;
+  --ghost-hover: rgba(0, 0, 0, 0.047);
+  --outline-hover: rgba(0, 0, 0, 0.031);
+
+  --sidebar: #fafafa;
+  --sidebar-foreground: #404040;
+  --sidebar-primary: #171717;
+  --sidebar-accent: #f5f5f5;
+  --sidebar-accent-foreground: #171717;
+  --sidebar-border: #e5e5e5;
+  --sidebar-muted: #737373;
+
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.047);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.098), 0 1px 2px -1px rgba(0, 0, 0, 0.098);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.098), 0 2px 4px -2px rgba(0, 0, 0, 0.098);
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-full: 9999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+}

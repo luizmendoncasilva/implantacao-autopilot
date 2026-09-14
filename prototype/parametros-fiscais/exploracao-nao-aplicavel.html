@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exploração — Estado Não Aplicável (Fiscal)</title>
+
+  <!-- Reaproveita tokens/base/components tal como estão — nenhuma das três
+       folhas é alterada por esta página. shared/js/origem.js e
+       indicador-calculado.js são usados sem modificação para renderizar os
+       estados oficiais (loading/available/unavailable); o estado "não
+       aplicável" ainda não existe no componente oficial, então as três
+       alternativas abaixo são compostas localmente, com prefixo "xp-". -->
+  <link rel="stylesheet" href="../shared/css/tokens.css" />
+  <link rel="stylesheet" href="../shared/css/base.css" />
+  <link rel="stylesheet" href="../shared/css/components.css" />
+  <style>
+    /* =====================================================================
+       ESTILOS EXCLUSIVOS DESTA PÁGINA — prefixo "xp-". Cuidam só do layout
+       de comparação e das 3 alternativas de "não aplicável" (ainda não
+       oficiais). Loading/Available/Unavailable vêm do componente real
+       (IndicadorCalculado), sem nenhuma alteração.
+       ===================================================================== */
+    body { background: var(--muted); padding: 32px 24px 96px; }
+    .xp-page { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+    .xp-title { font-size: 22px; font-weight: 600; }
+    .xp-subtitle { font-size: 13px; color: var(--muted-foreground); margin-top: 4px; }
+
+    .xp-section { display: flex; flex-direction: column; gap: 14px; }
+    .xp-section-title { font-size: 17px; font-weight: 600; }
+    .xp-section-desc { font-size: 13px; color: var(--muted-foreground); max-width: 760px; }
+
+    .xp-alt-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted-foreground);
+    }
+    .xp-alt-desc { font-size: 12px; color: var(--muted-foreground); max-width: 480px; }
+
+    .xp-state-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+    .xp-state-label { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-foreground); margin-bottom: 8px; display: block; }
+
+    .xp-note { font-size: 12px; color: var(--muted-foreground); border-left: 2px solid var(--border); padding-left: 10px; }
+
+    /* Alternativa A — texto secundário discreto: mesmo peso do valor comum
+       (não itálico, ao contrário de .detail-field-unavailable) — a
+       diferença deliberada de estilo é o próprio ponto: itálico já significa
+       "estado atípico" no restante do app (unavailable, "Nenhuma observação
+       cadastrada" em Empresas); "não aplicável" é um estado esperado/normal,
+       não um problema, então não deveria emprestar o mesmo itálico. */
+    .xp-na-text-a { color: var(--muted-foreground); font-weight: 400; font-style: normal; }
+
+    /* Alternativa B — badge neutro. Usa .badge-secondary (preenchido, cinza
+       claro) em vez de .badge-outline (contorno) — a mesma distinção visual
+       já existe no projeto (ex.: badge de módulo "DP"/"Contábil" em Empresas
+       usa secondary; o badge de origem já usa outline) — reaproveitada aqui
+       só para separar visualmente "isto é um estado" de "isto é uma origem",
+       sem inventar cor nova. O valor em si vira um traço, no mesmo padrão já
+       usado em tabelas do protótipo (historico.js: `alt.de || "—"`). */
+    .xp-na-dash-b { color: var(--muted-foreground); font-size: 13.5px; }
+
+    /* Alternativa C — estado integrado ao valor: o próprio texto do valor É
+       o estado, com o traço de "sem valor" na frente (mesma convenção de
+       tabela citada acima), e a origem aparece com menos ênfase (tamanho
+       menor, sem badge) já que a frase already deixa claro que não há
+       cálculo a exibir. */
+    .xp-na-value-c { color: var(--muted-foreground); font-weight: 500; font-size: 13.5px; }
+    .xp-na-origin-c { font-size: 11px; color: var(--muted-foreground); margin-top: 2px; }
+  </style>
+</head>
+<body>
+  <div class="xp-page">
+
+    <div class="alert alert-info gap-2">
+      <span>ⓘ</span>
+      <div class="alert-desc">
+        <b>Exploração visual temporária.</b> Não faz parte do fluxo real da Fiscal, não está linkada em nenhum menu. Loading/Available/Unavailable vêm do componente oficial (<code>IndicadorCalculado.render()</code>), sem alteração. As 3 alternativas de "não aplicável" são composições locais (prefixo <code>xp-</code>) — nenhuma foi incorporada ao componente compartilhado.
+      </div>
+    </div>
+
+    <div>
+      <div class="xp-title">Exploração — Estado Não Aplicável</div>
+      <div class="xp-subtitle">Alternativas visuais para o quarto estado do Indicador Calculado — trilha Fiscal, aba Federais (INSS patronal fora do DAS).</div>
+    </div>
+
+    <!-- =================================================================
+         AUDITORIA — RESUMO (detalhado no relatório da tarefa)
+         ================================================================= -->
+    <div class="xp-section">
+      <div class="xp-section-title">Auditoria dos padrões existentes</div>
+      <div class="xp-section-desc">
+        Nenhum componente do Design System ou do protótipo representa hoje "não aplicável" para um campo individual. <code>Empty</code> (Design System) é dimensionado para telas/seções inteiras vazias — descartado. O precedente mais próximo já em uso no protótipo é o traço <code>—</code> para "sem valor" em células de tabela (<code>prototype/empresas/js/historico.js</code>: <code>alt.de || "—"</code>) e o texto itálico "Nenhuma observação cadastrada"/"Nenhum grupo definido" em Empresas — mas ambos comunicam ausência, não "não se aplica por regra de negócio", que é semanticamente diferente (ver seção 7 do relatório).
+      </div>
+    </div>
+
+    <!-- =================================================================
+         ALTERNATIVA A
+         ================================================================= -->
+    <div class="xp-section">
+      <div>
+        <div class="xp-section-title">Alternativa A — Texto secundário discreto</div>
+        <div class="xp-alt-desc">O valor vira um texto simples, peso normal (não itálico — itálico já significa "atípico/vazio" no resto do app). A origem continua visível, no mesmo lugar de sempre.</div>
+      </div>
+      <div class="card">
+        <div class="card-content">
+          <div class="detail-grid">
+            <div class="detail-field">
+              <span class="detail-field-label">INSS patronal fora do DAS</span>
+              <div class="xp-na-text-a">Não aplicável ao enquadramento</div>
+              <span class="badge badge-outline">Motor de cálculo</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================================================================
+         ALTERNATIVA B
+         ================================================================= -->
+    <div class="xp-section">
+      <div>
+        <div class="xp-section-title">Alternativa B — Badge neutro "Não aplicável"</div>
+        <div class="xp-alt-desc">O valor vira um traço (mesma convenção já usada em tabelas do protótipo para "sem valor"), e um badge <em>preenchido</em> (<code>.badge-secondary</code>, não <code>.badge-outline</code>) comunica o estado — visualmente distinto do badge de origem (contorno), para não parecerem a mesma coisa.</div>
+      </div>
+      <div class="card">
+        <div class="card-content">
+          <div class="detail-grid">
+            <div class="detail-field">
+              <span class="detail-field-label">INSS patronal fora do DAS</span>
+              <div class="flex items-center gap-2">
+                <span class="xp-na-dash-b">—</span>
+                <span class="badge badge-secondary">Não aplicável</span>
+              </div>
+              <span class="badge badge-outline">Motor de cálculo</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================================================================
+         ALTERNATIVA C
+         ================================================================= -->
+    <div class="xp-section">
+      <div>
+        <div class="xp-section-title">Alternativa C — Estado textual integrado ao valor</div>
+        <div class="xp-alt-desc">A frase "não aplicável" ocupa diretamente o lugar do valor (com o traço de "sem valor" à frente, mesma convenção de tabela). A origem aparece menor, sem badge, já que a frase por si só deixa claro que não há cálculo a exibir — evita repetir a informação com o mesmo peso visual de um campo com valor real.</div>
+      </div>
+      <div class="card">
+        <div class="card-content">
+          <div class="detail-grid">
+            <div class="detail-field">
+              <span class="detail-field-label">INSS patronal fora do DAS</span>
+              <div class="xp-na-value-c">— Não aplicável ao enquadramento</div>
+              <span class="xp-na-origin-c">Motor de cálculo</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================================================================
+         COMPARAÇÃO DOS QUATRO ESTADOS — por alternativa
+         ================================================================= -->
+    <div class="xp-section">
+      <div>
+        <div class="xp-section-title">Comparação dos quatro estados</div>
+        <div class="xp-section-desc">Loading, Available e Unavailable são renderizados pelo componente oficial (<code>IndicadorCalculado.render()</code>), idênticos nas três linhas — só "Não aplicável" muda conforme a alternativa.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-content flex flex-col gap-6">
+
+          <div>
+            <span class="xp-alt-label">Alternativa A</span>
+            <div class="xp-state-row" style="margin-top:10px;">
+              <div><span class="xp-state-label">Loading</span><div id="mount-a-loading"></div></div>
+              <div><span class="xp-state-label">Available</span><div id="mount-a-available"></div></div>
+              <div><span class="xp-state-label">Unavailable</span><div id="mount-a-unavailable"></div></div>
+              <div>
+                <span class="xp-state-label">Not applicable</span>
+                <div class="detail-field">
+                  <span class="detail-field-label">INSS patronal fora do DAS</span>
+                  <div class="xp-na-text-a">Não aplicável ao enquadramento</div>
+                  <span class="badge badge-outline">Motor de cálculo</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="border-top:1px solid var(--border); padding-top:20px;">
+            <span class="xp-alt-label">Alternativa B</span>
+            <div class="xp-state-row" style="margin-top:10px;">
+              <div><span class="xp-state-label">Loading</span><div id="mount-b-loading"></div></div>
+              <div><span class="xp-state-label">Available</span><div id="mount-b-available"></div></div>
+              <div><span class="xp-state-label">Unavailable</span><div id="mount-b-unavailable"></div></div>
+              <div>
+                <span class="xp-state-label">Not applicable</span>
+                <div class="detail-field">
+                  <span class="detail-field-label">INSS patronal fora do DAS</span>
+                  <div class="flex items-center gap-2">
+                    <span class="xp-na-dash-b">—</span>
+                    <span class="badge badge-secondary">Não aplicável</span>
+                  </div>
+                  <span class="badge badge-outline">Motor de cálculo</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="border-top:1px solid var(--border); padding-top:20px;">
+            <span class="xp-alt-label">Alternativa C</span>
+            <div class="xp-state-row" style="margin-top:10px;">
+              <div><span class="xp-state-label">Loading</span><div id="mount-c-loading"></div></div>
+              <div><span class="xp-state-label">Available</span><div id="mount-c-available"></div></div>
+              <div><span class="xp-state-label">Unavailable</span><div id="mount-c-unavailable"></div></div>
+              <div>
+                <span class="xp-state-label">Not applicable</span>
+                <div class="detail-field">
+                  <span class="detail-field-label">INSS patronal fora do DAS</span>
+                  <div class="xp-na-value-c">— Não aplicável ao enquadramento</div>
+                  <span class="xp-na-origin-c">Motor de cálculo</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="xp-note">
+        Teste rápido de leitura: cubra o rótulo "Not applicable"/"Unavailable" acima de cada card e leia só o conteúdo — nas três alternativas, "não aplicável" nunca usa itálico nem cor de erro, então não deveria ser confundido com "unavailable" (itálico) nem com um alerta.
+      </div>
+    </div>
+
+  </div>
+
+  <script src="../shared/js/origem.js"></script>
+  <script src="../shared/js/indicador-calculado.js"></script>
+  <script>
+    ["a", "b", "c"].forEach((alt) => {
+      document.getElementById("mount-" + alt + "-loading").innerHTML = IndicadorCalculado.render({ label: "INSS patronal fora do DAS", state: "loading" });
+      document.getElementById("mount-" + alt + "-available").innerHTML = IndicadorCalculado.render({ label: "INSS patronal fora do DAS", value: "R$ 12.500,00", origem: OrigemBadge.ORIGENS.MOTOR_CALCULO, state: "available" });
+      document.getElementById("mount-" + alt + "-unavailable").innerHTML = IndicadorCalculado.render({ label: "INSS patronal fora do DAS", origem: OrigemBadge.ORIGENS.MOTOR_CALCULO, state: "unavailable" });
+    });
+  </script>
+</body>
+</html>

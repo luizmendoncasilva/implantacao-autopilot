@@ -1,0 +1,52 @@
+<!--
+  Documentação — leitura de apoio ao lado das telas do protótipo.
+
+  Não é o app real: é o mesmo protótipo estático em prototype/, servindo para
+  quem estiver navegando (PM, dev, revisão) ler a especificação de cada tela
+  sem sair do link do protótipo. Escolha de arquitetura: uma view interna só
+  (lista à esquerda + leitura à direita, ver docs.js) em vez de uma página por
+  documento — mais simples de manter dado que hoje são poucos documentos.
+
+  O markdown vem de content.js (window.DocsContent), não de docs/*.md direto
+  — ver comentário no topo de content.js para o motivo (build/Docker não
+  copiam .md) e como atualizar quando a doc de origem mudar.
+-->
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
+  <title>Documentação — AutoPilot</title>
+  <link rel="stylesheet" href="../shared/css/tokens.css" />
+  <link rel="stylesheet" href="../shared/css/base.css" />
+  <link rel="stylesheet" href="../shared/css/components.css" />
+  <link rel="stylesheet" href="../shared/css/layout.css" />
+  <link rel="stylesheet" href="docs.css" />
+</head>
+<body>
+  <div id="shell-root"></div>
+  <template id="page-content">
+    <div class="flex flex-col gap-1" style="margin-bottom: 20px;">
+      <h1 class="text-lg font-semibold">Documentação</h1>
+      <p class="card-description">Especificações funcionais das trilhas do AutoPilot — leitura de apoio para acompanhar o protótipo.</p>
+    </div>
+    <div class="docs-layout">
+      <div class="docs-list-col" id="docs-list"></div>
+      <div id="docs-reader"></div>
+    </div>
+  </template>
+
+  <script src="../shared/js/icons.js"></script>
+  <script src="../shared/js/shell.js"></script>
+  <script src="../shared/js/ui.js"></script>
+  <script src="../shared/js/fab-tools.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+  <script src="content.js"></script>
+  <script>
+    Shell.mount(document.getElementById("shell-root"), { base: "../", active: "docs", crumb: "documentação" });
+  </script>
+  <script src="docs.js"></script>
+</body>
+</html>

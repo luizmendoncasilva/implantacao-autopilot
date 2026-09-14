@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
+  <title>Importar empresas — Empresas — AutoPilot</title>
+  <link rel="stylesheet" href="../shared/css/tokens.css" />
+  <link rel="stylesheet" href="../shared/css/base.css" />
+  <link rel="stylesheet" href="../shared/css/components.css" />
+  <link rel="stylesheet" href="../shared/css/layout.css" />
+</head>
+<body>
+  <div id="shell-root"></div>
+
+  <template id="page-content">
+    <section class="max-w-7xl flex flex-col gap-4">
+      <div class="flex flex-col gap-2">
+        <a href="index.html" class="flex items-center gap-1 text-sm font-medium link-info w-fit">
+          ::icon-back:: voltar para a lista
+        </a>
+        <div>
+          <h1 class="text-xl font-semibold mb-1">Importação massiva de empresas</h1>
+          <p class="text-sm text-muted max-w-2xl">Cadastre várias empresas de uma só vez a partir de uma planilha com os dados do Cadastro Geral.</p>
+        </div>
+      </div>
+
+      <div class="stepper" id="import-stepper"></div>
+
+      <div id="import-step-mount"></div>
+    </section>
+
+    <div class="dialog-overlay" id="dialog-detalhe-erro">
+      <div class="dialog-content" role="dialog" aria-modal="true" aria-labelledby="dialog-detalhe-erro-title">
+        <button type="button" class="dialog-close" data-close-dialog="dialog-detalhe-erro" aria-label="Fechar">::icon-x::</button>
+        <div class="flex flex-col gap-1">
+          <h2 class="dialog-title" id="dialog-detalhe-erro-title">Inconsistência na linha</h2>
+          <p class="dialog-description">Corrija estes pontos na planilha e envie o arquivo novamente para importar este registro.</p>
+        </div>
+        <div id="dialog-detalhe-erro-content" class="flex flex-col gap-3"></div>
+        <div class="dialog-footer">
+          <button type="button" class="btn btn-outline" data-close-dialog="dialog-detalhe-erro">Fechar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="dialog-overlay" id="dialog-confirmar-importacao">
+      <div class="dialog-content" role="dialog" aria-modal="true" aria-labelledby="dialog-confirmar-title">
+        <button type="button" class="dialog-close" data-close-dialog="dialog-confirmar-importacao" aria-label="Fechar">::icon-x::</button>
+        <div class="flex flex-col gap-1">
+          <h2 class="dialog-title" id="dialog-confirmar-title">Importar empresas?</h2>
+          <p class="dialog-description" id="dialog-confirmar-desc"></p>
+        </div>
+        <div class="dialog-footer">
+          <button type="button" class="btn btn-outline" data-close-dialog="dialog-confirmar-importacao">Cancelar</button>
+          <button type="button" class="btn" id="btn-confirmar-importacao">Confirmar importação</button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script src="../shared/js/icons.js"></script>
+  <script src="../shared/js/shell.js"></script>
+  <script src="../shared/js/ui.js"></script>
+  <script src="../shared/js/fab-tools.js"></script>
+  <script src="js/data.js"></script>
+  <script src="../cadastros-auxiliares/js/contadores/data.js"></script>
+  <script src="js/importar-data.js"></script>
+  <script>
+    Shell.mount(document.getElementById("shell-root"), {
+      base: "../",
+      active: "empresas",
+      crumbs: [{ label: "empresas", href: "index.html" }, { label: "importar empresas" }],
+    });
+    document.querySelector('a[href="index.html"].link-info').innerHTML =
+      Icon("chevron-left", "size-3-5") + " voltar para a lista";
+    document.querySelectorAll(".dialog-close").forEach((el) => (el.innerHTML = Icon("x", "size-4")));
+  </script>
+  <script src="js/importar.js"></script>
+</body>
+</html>
