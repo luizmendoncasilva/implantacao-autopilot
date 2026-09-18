@@ -17,6 +17,7 @@
     - 03-cadastro-socios <- docs/03-cadastro-socios.md
     - 04-registro-contadores <- docs/04-registro-contadores.md
     - 05-importacao-massiva-empresas <- docs/05-importacao-massiva-empresas.md
+    - implantacao-spec <- docs/implantacao-spec.md
 */
 window.DocsContent = {
   // fonte: docs/cadastro-empresas-spec.md
@@ -62,7 +63,7 @@ Código, Empresa (nome, com indicação visual de "Matriz"/"Filial" e contagem d
 
 ### Regras de negócio implementadas
 - Uma filial só aparece agrupada sob sua matriz quando o filtro de tipo está em "Todas" ou "Matrizes"; no filtro "Filiais" ela aparece solta.
-- O contador responsável mostrado na listagem é o mesmo vinculado na aba Contadores do cadastro daquela empresa.
+- O contador responsável mostrado na listagem é resolvido da mesma forma que em Dados Gerais (ver seção 2, "Contador Responsável — seleção provisória"): prioriza a seleção explícita feita ali, e cai para o mesmo vínculo da aba Contadores quando nenhuma seleção explícita existe.
 
 ### Integrações
 Nenhuma integração externa nesta tela — os dados vêm da mesma base usada pelo cadastro individual de cada empresa.
@@ -90,19 +91,23 @@ Apresentar os dados cadastrais centrais da empresa (identificação, localizaç�
 ### Comportamento
 A aba é organizada em blocos temáticos: Identificação, Inscrições, Contato e localização, Contador responsável, Contrato e Complementares. Não há mais nenhum aviso permanente de "origem dos dados" na tela — o botão "Editar", no cabeçalho do cadastro, abre um drawer lateral no próprio Autopilot para alterar a maior parte desses campos (CNPJ, Certificado digital, a seção Contador responsável e a seção Contrato ficam bloqueados no drawer). A relação com o Cockpit é comunicada apenas de forma contextual, no momento da edição (ver "Decisões de UX adotadas" abaixo).
 
+**Contador Responsável — ação de seleção/alteração (adicionado nesta rodada):** a seção "Contador responsável" desta aba ganhou uma ação própria de "Selecionar contador"/"Alterar", com sheet + combobox sobre o mesmo Registro de Contadores (Cadastros Auxiliares) já usado pela aba Contadores — nenhum segundo cadastro de contador foi criado. É uma solução **provisória e genérica**, adotada porque a regra definitiva de vínculo entre "Contador Responsável" e o vínculo plural da aba Contadores (\`empresasAtendidas\`) ainda não foi fechada pelo Produto: a ação não exige que o contador selecionado já esteja vinculado via aba Contadores, não resolve prioridade entre múltiplos contadores vinculados, e não trata vigência — apenas permite demonstrar a experiência de definir/alterar quem é o responsável. A seleção fica salva por empresa (\`localStorage\`, mesmo padrão de "Grupo de empresas"); enquanto nenhuma seleção explícita existir, o campo continua mostrando o mesmo contador que já era exibido antes desta rodada (derivado implicitamente do vínculo da aba Contadores), preservando o comportamento anterior sem exigir seleção manual retroativa. Ao salvar, reutiliza o mesmo dialog de confirmação "Salvar e refletir no Cockpit" já usado pelo drawer "Editar empresa" — não existe integração real com o Cockpit para este vínculo, e isso permanece pendente (ver "Pendências" abaixo).
+
 ### Telas
 Uma única tela (aba "Dados Gerais" dentro do cadastro da empresa).
 
 ### Campos implementados
-- **Identificação**: Razão social, Nome fantasia, Natureza jurídica, CNPJ, Regime tributário federal.
+- **Identificação**: Razão social, Nome fantasia, Natureza jurídica, CNPJ, Regime tributário federal (Select — ver "Regras de negócio implementadas" abaixo).
 - **Inscrições**: Inscrição estadual, Inscrição municipal.
 - **Contato e localização**: Telefone, E-mail, Endereço completo (logradouro, número, complemento, bairro, município, UF e CEP, apresentados como uma única linha de texto).
-- **Relacionamento**: Contador responsável (nome + CRC, com atalho "Ver em Contadores"), Cliente desde, Status do cliente, Início de atividade, Data de inativação (só aparece quando o status é inativo), Duração do contrato.
+- **Relacionamento**: Contador responsável (nome + CRC, com atalho "Ver em Contadores" e ação "Alterar"/"Selecionar contador" — ver "Comportamento" acima), Cliente desde, Status do cliente, Início de atividade, Data de inativação (só aparece quando o status é inativo), Duração do contrato.
 - **Complementares**: Certificado digital, Observações gerais (com estado vazio "Nenhuma observação cadastrada." quando não há texto).
 
 ### Regras de negócio implementadas
+- **Regime tributário federal é um atributo cadastral da empresa, e o Cadastro de Empresas (esta aba) é o único ponto autorizado de edição.** O campo é um Select (\`EmpresasData.REGIME_TRIBUTARIO_FEDERAL_OPCOES\`, catálogo D01 de \`docs/02-parametros-fiscais.md\`, seção 14: Simples Nacional, Simples Nacional — MEI, Simples Nacional — excesso de sublimite, Lucro Presumido, Lucro Real, Imune, Isenta). No escopo atual do Autopilot, somente **Simples Nacional** está habilitado para seleção — os demais regimes permanecem visíveis no catálogo, porém \`disabled\`, sem poder ser selecionados. Parâmetros Fiscais (e, futuramente, Contábil) consomem esse mesmo dado (\`empresa.dadosGerais.regimeTributarioFederal\`) somente leitura — nenhuma cópia independente do regime existe em outra trilha.
 - "Data de inativação" só é exibida quando o status do cliente é "Inativo" — para clientes ativos, o campo não aparece.
-- O contador responsável exibido aqui é sempre o mesmo mostrado na aba Contadores; um atalho leva direto para lá.
+- O contador responsável exibido aqui prioriza uma seleção explícita feita pela ação "Alterar"/"Selecionar contador" desta aba; na ausência dela, cai para o mesmo contador mostrado na aba Contadores (primeiro contador do Registro cujo vínculo inclui esta empresa) — um atalho ("Ver em Contadores") leva direto para lá em ambos os casos.
+- Selecionar um contador responsável não exige que ele já esteja vinculado via aba Contadores, nem impede a seleção de mais de um contador ao longo do tempo (a seleção mais recente sempre substitui a anterior) — nenhuma regra de prioridade, múltiplos responsáveis ou vigência foi criada (ver "Pendências").
 
 ### Integrações
 Dados de origem do Cockpit (indicado explicitamente na tela). A edição acontece exclusivamente no Autopilot, dentro deste Cadastro de Empresas — o Cockpit não tem mais um botão de edição associado a esta tela; ele é apenas o destino conceitual das alterações, quando o usuário escolhe refletir a alteração nele. Ao salvar o drawer, um dialog de confirmação pergunta explicitamente se a alteração deve ser refletida no Cockpit ("Salvar e refletir no Cockpit") ou descartada ("Descartar alterações") — não existe salvamento silencioso.
@@ -110,12 +115,14 @@ Dados de origem do Cockpit (indicado explicitamente na tela). A edição acontec
 Também é a aba usada para demonstrar a sincronização da Importação Massiva de Empresas com o Cockpit: uma empresa importada em lote aparece aqui com os mesmos campos de qualquer outra empresa, sem nenhuma diferença de tratamento — nenhuma alteração de código nesta aba foi necessária. Ver \`docs/05-importacao-massiva-empresas.md\`, seção "Integração com Cadastro de Empresas e com o Cockpit".
 
 ### Pendências
-Não existe, em nenhuma tela do sistema, uma forma de alterar qual contador é o responsável por uma empresa — a aba mostra o vínculo, mas não permite geri-lo.
+- **Regra definitiva de vínculo do Contador Responsável — pendente de decisão do Produto.** A ação de seleção/alteração adicionada nesta rodada é deliberadamente genérica e não assume nenhuma das seguintes regras, todas em aberto: (a) se o contador responsável deve obrigatoriamente já estar vinculado via aba Contadores antes de poder ser selecionado como responsável; (b) se pode haver mais de um contador responsável (hoje só um, sem suporte a múltiplos); (c) prioridade/regra de desempate quando mais de um contador atende a mesma empresa; (d) vigência — se a definição de responsável pode/deve mudar ao longo do tempo com histórico próprio (hoje só existe o valor atual, sem versionamento). Nenhuma dessas decisões foi tomada por esta implementação — permanecem em aberto.
+- A sincronização deste vínculo com o Cockpit não é real: a ação reutiliza o mesmo dialog de confirmação "Salvar e refletir no Cockpit" já usado no drawer "Editar empresa", mas nenhuma chamada real a um sistema Cockpit existe neste protótipo (mesma limitação já registrada para os demais campos editáveis desta aba).
 
 ### Itens de Fase 2
 Nenhum previsto para esta aba.
 
 ### Decisões de UX adotadas
+- **Contador Responsável (adicionado nesta rodada):** ação de seleção/alteração via sheet + combobox sobre o Registro de Contadores, deliberadamente sem restringir as opções aos contadores já vinculados via aba Contadores — decisão neutra para não assumir, por conta própria, que "responsável" deve pressupor vínculo prévio (regra ainda não fechada pelo Produto). A seleção explícita é independente do vínculo plural (\`empresasAtendidas\`) já usado por Contadores; quando nenhuma seleção explícita existe, o campo cai para o mesmo valor que já era exibido antes desta rodada, preservando o comportamento anterior.
 - O botão "Editar" aparece nesta aba e nas abas Atividades e Responsável Legal — as três com conteúdo espelhado do Cockpit e efetivamente editável por aqui. Empresa Centralizadora também espelha o Cockpit, mas não tem botão de edição: a classificação Matriz/Filial é só exibida, sem campo próprio desta empresa para alterar. O badge "Somente leitura" foi removido do cabeçalho por ficar contraditório com a existência do botão de edição.
 - **Refinamento de UX (2026-08-21):** o rótulo fixo "Origem dos dados: Cockpit" — antes presente no cabeçalho do card em Dados Gerais, Atividades, Responsável Legal e Empresa Centralizadora — foi removido. Decisão de produto: o Autopilot é a superfície de edição e o Cockpit é só uma superfície de consulta; essa relação é arquitetural e não precisa ocupar espaço permanente na tela. Em vez de uma indicação fixa, a relação com o Cockpit passou a ser comunicada apenas no contexto da edição: (1) no rodapé do drawer "Editar", um texto discreto ("As alterações serão refletidas no Cockpit.") ao lado dos botões de ação; (2) no dialog de confirmação ao salvar, que já pergunta explicitamente se a alteração deve ser refletida no Cockpit; (3) no toast de sucesso ("Alterações salvas e sincronizadas com o Cockpit."). A mesma lógica foi aplicada à frase de abertura da Listagem de Empresas (\`empresas/index.html\`), que descrevia a tela como "somente para visualização" com os dados "lidos do Cockpit" — texto desatualizado desde que a edição passou a acontecer no Autopilot, e removido pelo mesmo motivo.
 - Optou-se por não duplicar a razão social da empresa dentro do card (ela já aparece uma vez no cabeçalho do cadastro) — o título do card é genérico ("Dados gerais").
@@ -136,24 +143,31 @@ Mesmo aviso de origem e o mesmo botão "Editar" da aba Dados Gerais — abre um 
 - Drawer lateral "Editar atividades" (CNAE principal, CNAEs secundários).
 
 ### Campos implementados
-CNAE principal, CNAEs secundários (lista; quando vazia, mostra "Nenhum CNAE secundário cadastrado.").
+CNAE principal (estado vazio "Nenhum CNAE principal informado." quando não preenchido — ver "Auditoria" abaixo), CNAEs secundários (lista; quando vazia, mostra "Nenhum CNAE secundário cadastrado.").
 
 ### Regras de negócio implementadas
-- Exibição condicional do estado vazio de CNAEs secundários.
+- Exibição condicional do estado vazio de CNAE principal e de CNAEs secundários — cada um independente do outro; nenhuma regra impede CNAEs secundários sem CNAE principal preenchido (nem o contrário).
 - No drawer, CNAEs secundários é digitado como uma lista separada por vírgula; itens em branco são descartados ao salvar.
 
 ### Integrações
 Dados de origem do Cockpit, com o mesmo botão "Editar" e o mesmo dialog de confirmação de reflexo no Cockpit descritos na aba Dados Gerais.
 
+### Auditoria — CNAE Principal (2026-08-28)
+
+Auditoria pontual da experiência do campo "CNAE principal" (preenchido, vazio, e em combinação com CNAEs secundários). Achado: o campo não tinha um estado vazio dedicado — ao contrário de "CNAEs secundários", ficava em branco (\`<span>\` vazio) quando \`cnaePrincipal\` não estava preenchido, o que já era visível na prática para toda empresa trazida pela Importação Massiva de Empresas (essa funcionalidade não importa CNAE, então toda empresa importada nasce com \`cnaePrincipal: ""\`). Um campo em branco sem nenhum texto é ambíguo — indistinguível de carregamento, erro ou falha de integração.
+
+**Correção aplicada** (\`empresas/js/atividades.js\`): quando \`cnaePrincipal\` está vazio, o campo agora mostra "Nenhum CNAE principal informado." em itálico/muted — mesmo padrão visual já usado por "CNAEs secundários", "Grupo de empresas", "Contador responsável" e "Observações gerais" nesta mesma trilha. Nenhum componente novo foi criado; nenhuma outra parte da aba, do drawer "Editar atividades" ou da edição foi alterada — o campo já era editável pelo fluxo existente (o input do drawer já aceitava string vazia corretamente). Validado com Playwright: preenchido, vazio (via empresa importada existente e via edição), combinação de CNAE principal vazio com CNAEs secundários preenchidos, cancelar, salvar, persistência após F5, histórico de alterações, e regressão das demais abas de Empresas e das trilhas Fiscal/DP/Regras Gerais — sem erros de console.
+
+Nenhuma regra de negócio foi criada ou alterada por esta correção — é puramente uma clarificação de UX de um estado que já existia na prática.
+
 ### Pendências
-- Os CNAEs são mostrados apenas pelo código (ex.: "2599-3/99"), sem a descrição textual da atividade — não há indicação de que essa descrição deva ou não existir.
-- O campo "CNAE principal" não tem um estado vazio dedicado (ao contrário de "CNAEs secundários", que mostra "Nenhum CNAE secundário cadastrado."). Isso ficou visível a partir da Importação Massiva de Empresas: como essa funcionalidade não importa CNAE, uma empresa importada mostra o campo "CNAE principal" sem valor nem texto de estado vazio. Ver \`docs/05-importacao-massiva-empresas.md\`, seção "Notas de implementação do protótipo".
+Os CNAEs são mostrados apenas pelo código (ex.: "2599-3/99"), sem a descrição textual da atividade — não há indicação de que essa descrição deva ou não existir.
 
 ### Itens de Fase 2
 Nenhum previsto para esta aba.
 
 ### Decisões de UX adotadas
-Mesmo padrão visual e de edição via drawer da aba Dados Gerais.
+Mesmo padrão visual e de edição via drawer da aba Dados Gerais. Estado vazio do CNAE principal segue a mesma convenção (itálico/muted) já usada pelos demais estados vazios desta trilha — ver "Auditoria" acima.
 
 ------------------------------------------------------------------------
 
@@ -265,7 +279,7 @@ Nenhuma integração externa — dado nativo do AutoPilot, compartilhado com o m
 
 ### Pendências
 - Não foram implementados os campos "Dados de acesso" e "Credenciais necessárias" previstos na especificação original — o significado exato desses campos ainda não está definido claramente o suficiente para implementar com segurança (em especial se envolvem ou não login/senha).
-- Não existe, em nenhuma tela, uma forma de definir qual dos contadores vinculados é o "Contador responsável" exibido em Dados Gerais — hoje esse campo é resolvido automaticamente (primeiro contador encontrado que atende a empresa), sem uma ação explícita de "definir como responsável".
+- Existe, desde esta rodada, uma ação de seleção/alteração de "Contador responsável" em Dados Gerais (ver seção 2) — mas ela é independente desta aba: não exige que o contador selecionado esteja vinculado aqui, e esta aba continua sem nenhuma ação de "definir como responsável" a partir de um vínculo já existente. A regra de precedência entre as duas (deve exigir vínculo aqui antes? deve haver um atalho "definir como responsável" nesta tabela?) permanece pendente de decisão do Produto.
 
 ### Itens de Fase 2
 Nenhum previsto para esta aba.
@@ -391,7 +405,7 @@ Nenhum previsto.
 Durante a implementação foram tomadas as seguintes decisões, que resultam em uma representação diferente (não necessariamente incompleta) do que estava descrito originalmente:
 
 - **Endereço Completo** foi implementado como uma única linha de texto formatada (logradouro, número, complemento, bairro, município, UF e CEP), em vez de campos separados e rotulados individualmente.
-- **Contador Responsável** (Dados Gerais) foi implementado apenas como exibição do vínculo atual + atalho de navegação para a aba Contadores — não como uma tela de gestão desse vínculo ("novo vínculo com cadastro de Contadores").
+- **Contador Responsável** (Dados Gerais): inicialmente implementado apenas como exibição do vínculo atual + atalho de navegação para a aba Contadores. Nesta rodada ganhou uma ação de seleção/alteração (sheet + combobox sobre o Registro de Contadores) — mas continua sendo uma solução provisória e genérica, não uma tela completa de gestão desse vínculo: não introduz regra de prioridade, múltiplos responsáveis ou vigência, e não decide se a seleção deve exigir vínculo prévio via aba Contadores (ver seção 2, "Pendências").
 - **Nome fantasia, Telefone e E-mail** foram incluídos na aba Dados Gerais, além dos campos originalmente listados para essa aba.
 - **Empresa é Centralizadora (Sim/Não)**: a decisão pendente na especificação original foi resolvida a favor do Cockpit, assim como Responsável Legal — a aba "Empresa Centralizadora" foi implementada como somente leitura (etiqueta Matriz/Filial/Não se aplica), sem campo binário editável nem seletor de vínculo dentro do AutoPilot.
 - **"+ Adicionar sócio"** vincula um sócio já existente no registro compartilhado — não abre um formulário de cadastro de um sócio novo.
@@ -409,6 +423,37 @@ Durante a implementação foram tomadas as seguintes decisões, que resultam em 
 
 - **Usuários e Permissões** (Cadastro de Usuários: Nome, E-mail, Perfil, com perfis Administrador/Usuário) — classificado como Essencial na especificação original, mas ainda sem nenhuma tela implementada em todo o Cadastro de Empresas.
 - **Dados de acesso / Credenciais necessárias** de Contadores — aguardando definição de produto.
+- **Limitação pré-existente identificada nesta rodada, não introduzida por ela:** \`UI.initCombobox\` (\`shared/js/ui.js\`) reanexa um novo listener de clique ao botão do combobox toda vez que é chamada, sem remover o anterior. Como as ações de sheet desta trilha (vincular contador em Contadores, selecionar contador responsável em Dados Gerais, entre outras) chamam \`initCombobox\` de novo a cada abertura do sheet sobre o mesmo elemento estático da página, abrir o mesmo sheet mais de uma vez por carregamento de página pode acumular listeners e fazer o clique no combobox alternar aberto/fechado sem efeito visível (permanece fechado) em aberturas pares. Não foi corrigido nesta rodada por afetar um componente compartilhado usado em múltiplas telas — correção recomendada: \`initCombobox\` remover/substituir o listener anterior do mesmo elemento antes de anexar um novo.
+
+------------------------------------------------------------------------
+
+## Auditoria final de consistência (2026-08-28)
+
+Auditoria de ponta a ponta da experiência do Cadastro de Empresas (Listagem → seleção de empresa → Dados Gerais → Atividades → Responsável Legal → Quadro Societário → Contadores → Sócios → Histórico → retorno à listagem), conduzida após o fechamento das rodadas anteriores (Contador Responsável, estado vazio de CNAE Principal). Objetivo: confirmar que a experiência está consistente e suficientemente fechada para esta fase — sem adicionar funcionalidade nova.
+
+**Resultado: nenhuma inconsistência real adicional foi encontrada.** Todas as áreas abaixo foram avaliadas e consideradas **OK**, sem alteração nesta rodada:
+
+- **Consistência de dados entre telas** — Contador Responsável (Dados Gerais ↔ listagem ↔ Contadores), Responsável Legal, Sócios, CNAEs, Matriz/Filial (listagem ↔ Empresa Centralizadora), Status da empresa e Módulos habilitados aparecem com o mesmo valor, mesma origem e mesmo comportamento em todos os pontos onde aparecem. Verificado concretamente: o grupo Matriz/Filial mostrado na listagem (matriz + 2 filiais expandidas) bate exatamente com o grupo mostrado em Empresa Centralizadora para a mesma matriz.
+- **Origem e editabilidade** — está claro, em toda aba, o que vem do Cockpit e é editável no Autopilot (Dados Gerais, Atividades, Responsável Legal, com o botão "Editar" e o dialog "Salvar e refletir no Cockpit"), o que é somente vínculo gerenciado no Autopilot (Quadro Societário, Contadores), e o que é somente leitura sem nenhum campo próprio para editar (Empresa Centralizadora, Histórico). Nenhum campo aparenta ser editável sem ser, e nenhum dado do Cockpit é tratado de forma diferente entre as três abas espelhadas.
+- **Estados vazios** — "Nenhum grupo definido", "Nenhum contador responsável definido", "Nenhum CNAE principal informado.", "Nenhum CNAE secundário cadastrado.", "Nenhum responsável legal cadastrado.", "Nenhum sócio/contador vinculado a esta empresa ainda.", "Nenhuma alteração registrada até o momento." — todos usam a mesma convenção visual (itálico/muted) e nenhum deles é ambíguo com carregamento, erro ou indisponibilidade.
+- **Edição e confirmação** — os três fluxos de drawer editável (Dados Gerais, Atividades, Responsável Legal) seguem exatamente o mesmo padrão: abre com valores pré-preenchidos, cancelar não altera nada, salvar aciona o dialog "Salvar e refletir no Cockpit"/"Descartar alterações", toast de confirmação, atualização imediata da tela e persistência após F5. Vincular/desvincular (Sócios, Contadores) e a seleção de Contador Responsável seguem o mesmo padrão de sheet + combobox, coerente entre si.
+- **Histórico** — alterações em Dados Gerais (testado nesta rodada com o campo Telefone), Atividades, Responsável Legal, Quadro Societário e Contadores continuam gerando evento no Histórico, com valor anterior/novo e persistência via \`localStorage\`. Confirmado que é simulação de protótipo, não auditoria real — nenhuma mudança de arquitetura feita.
+- **Navegação** — breadcrumb, abas, "voltar para a lista", abrir uma empresa a partir da listagem e navegar direto para outra empresa (troca de \`?empresa=\`) funcionam de forma consistente nas 7 abas.
+- **Consistência visual** — títulos, labels, badges, tabelas, drawers e mensagens de estado vazio seguem o mesmo padrão em todas as abas; nenhuma inconsistência visual concreta foi encontrada (nenhum ajuste subjetivo foi feito, por não ser o objetivo desta rodada).
+- **Responsabilidades entre Cadastro de Empresas e Cadastros Auxiliares** — confirmado que Sócios e Contadores têm cadastro mestre próprio em Cadastros Auxiliares, que o Cadastro de Empresas só estabelece vínculos, e que a seleção de Contador Responsável (rodada anterior) usa o mesmo Registro de Contadores, sem segundo cadastro.
+- **Módulos** — a remoção da aba própria "Módulos" está completa; a linha "Módulos:" aparece de forma consistente no cabeçalho em todas as 7 abas; nenhuma referência quebrada à antiga aba foi encontrada no código.
+
+**Pendências de negócio mantidas em aberto (não resolvidas nesta auditoria):**
+- Regra definitiva de vínculo do Contador Responsável (vínculo prévio obrigatório, múltiplos responsáveis, prioridade, vigência) — ver seção 2.
+- Regra "módulo habilitado → libera parâmetro" — não avaliada nem implementada nesta rodada.
+- Descrição textual do CNAE (código puro) — ver seção 3.
+- Campos "Dados de acesso"/"Credenciais necessárias" de Contadores — ver seção 6.
+- Trilha de auditoria real do Histórico de Alterações — ver seção 8.
+- Usuários e Permissões — ver "Pendências gerais" acima.
+
+**Limitação de protótipo (não de negócio) reafirmada:** o comportamento de reflexo no Cockpit continua sendo só a simulação da escolha do usuário (dialog de confirmação), sem chamada real a um sistema Cockpit — não existe integração real em nenhuma aba desta trilha.
+
+**Conclusão desta auditoria:** o Cadastro de Empresas está consistente e suficientemente fechado para esta fase do protótipo. As pendências listadas acima são de negócio (aguardando decisão do Produto) ou de limitação inerente ao protótipo (mock/simulação) — nenhuma delas impede o fechamento da experiência atual.
 
 ------------------------------------------------------------------------
 
@@ -2173,15 +2218,15 @@ Escopo: apenas itens marcados **Essencial** no documento de origem, mais a infra
 
 ## 10. Riscos de implementação
 
-1. **Abertura de vigência por excesso de sublimite: nível de severidade precisa de confirmação.** A tabela da seção 3 do documento de requisitos afirma que o excesso de sublimite "abre nova vigência e alerta", mas a nota de rodapé da mesma seção resume o mesmo evento como intermediário entre bloqueio total e simples alerta, sem reforçar explicitamente a abertura de vigência. Antes de desenhar a tela, validar com Produto se este evento de fato abre uma nova linha no histórico (como o campo indica) ou apenas alerta e pendência sem nova vigência (como a nota sugere ao "não parar nada").
-2. **Versionamento por vigência dos blocos Documentos Fiscais, Contábil × Fiscal e Obrigações Acessórias não está explícito.** O documento de requisitos afirma que "todos os blocos das seções 4 a 8 nascem versionados já no MVP" — mas não confirma se os blocos hoje agrupados na aba Obrigações e Documentos Fiscais e na aba Contábil × Fiscal também precisam de histórico por vigência ou se são estado atual único da empresa. Isso muda a estrutura de dados por trás dessas abas. Validar com Produto antes de implementar.
-3. **Fluxo de onboarding via SERPRO integralmente indefinido.** Seção 16 do documento de requisitos lista como decisão pendente: quais competências consultar, qual credencial usar, em que etapa do onboarding a consulta roda, e o que acontece se a consulta falhar ou vier incompleta. Sem essa definição, o bloco de Implantação só pode ser construído com fallback manual como contingência — não como fluxo automatizado real.
-4. **Escopo das guias avulsas de ICMS/ISS é uma decisão de produto, não só de tela.** A guia de ICMS varia por UF (GNRE, DARE, DAE, entre outras) e a de ISS por município. O documento explicitamente recomenda começar pelo cálculo do valor com emissão manual pelo operador, e não pela integração com emissores — mas isso precisa ser confirmado como decisão de escopo antes de estimar a funcionalidade, já que a diferença de esforço entre "calcular valor" e "integrar por UF/município" é de ordem de magnitude.
-5. **Três melhorias pendentes no Cockpit bloqueiam campos do MVP e da Fase 2.** Consulta à API pública de CNPJ (afeta data de opção pelo SN e início de atividade), inscrições estaduais em múltiplas UFs (afeta substituto tributário por UF) e evento de alteração cadastral (afeta o próprio mecanismo de bloqueio de vigência) dependem de evolução do Cockpit fora do controle desta trilha. Definir com Produto o que fazer enquanto essas melhorias não chegam — campo vazio, fallback manual, ou funcionalidade parcial.
-6. **V2 de alteração de regime tributário está fora do escopo desta rodada por decisão da PO**, mas o fluxo completo entre Cockpit e Autopilot nesse cenário ainda não existe. Se a trilha avançar sem esse desenho, há risco de o comportamento de "alteração cadastral bloqueia apuração" (item essencial do MVP) não cobrir corretamente o caso de troca de regime.
-7. **Perfil de parametrização por atividade (D35) precisa de definição de fluxo.** O campo aplica um conjunto pré-configurado de parâmetros por atividade no cadastro de nova empresa, mas o documento não detalha se isso ocorre antes, durante ou depois da abertura da primeira vigência, nem se os valores aplicados continuam editáveis campo a campo depois.
-8. **Dicionários fechados (D01–D35) são responsabilidade de conteúdo, não só de interface.** O documento é explícito: "o desenvolvimento não deve criar opções fora desta relação sem validação fiscal". É preciso definir com Produto onde essas listas vivem e como são atualizadas sem depender de deploy, já que decisões fiscais podem mudar essas listas com frequência maior do que releases de código.
-9. **Segmento de atividade especial (Fase 2) depende de um levantamento de carteira que ainda não começou.** O documento marca isso como próximo passo de Produto, não de desenvolvimento — não deve ser estimado como trabalho técnico enquanto esse levantamento não existir.
+1. **Versionamento por vigência dos blocos Documentos Fiscais, Contábil × Fiscal e Obrigações Acessórias não está explícito.** O documento de requisitos afirma que "todos os blocos das seções 4 a 8 nascem versionados já no MVP" — mas não confirma se os blocos hoje agrupados na aba Obrigações e Documentos Fiscais e na aba Contábil × Fiscal também precisam de histórico por vigência ou se são estado atual único da empresa. Isso muda a estrutura de dados por trás dessas abas. Validar com Produto antes de implementar.
+2. **Fluxo de onboarding via SERPRO integralmente indefinido.** Seção 16 do documento de requisitos lista como decisão pendente: quais competências consultar, qual credencial usar, em que etapa do onboarding a consulta roda, e o que acontece se a consulta falhar ou vier incompleta. Sem essa definição, o bloco de Implantação só pode ser construído com fallback manual como contingência — não como fluxo automatizado real.
+3. **Escopo das guias avulsas de ICMS/ISS é uma decisão de produto, não só de tela.** A abertura de nova vigência, o alerta e a pendência de ação humana por excesso de sublimite já estão decididos (seção 15 do documento de requisitos) — o que permanece em aberto é só o detalhamento operacional da entrega das guias avulsas. A guia de ICMS varia por UF (GNRE, DARE, DAE, entre outras) e a de ISS por município. O documento explicitamente recomenda começar pelo cálculo do valor com emissão manual pelo operador, e não pela integração com emissores — mas isso precisa ser confirmado como decisão de escopo antes de estimar a funcionalidade, já que a diferença de esforço entre "calcular valor" e "integrar por UF/município" é de ordem de magnitude.
+4. **Três melhorias pendentes no Cockpit bloqueiam campos do MVP e da Fase 2.** Consulta à API pública de CNPJ (afeta data de opção pelo SN e início de atividade), inscrições estaduais em múltiplas UFs (afeta substituto tributário por UF) e evento de alteração cadastral (afeta o próprio mecanismo de bloqueio de vigência) dependem de evolução do Cockpit fora do controle desta trilha. Definir com Produto o que fazer enquanto essas melhorias não chegam — campo vazio, fallback manual, ou funcionalidade parcial.
+5. **V2 de alteração de regime tributário está fora do escopo desta rodada por decisão da PO**, mas o fluxo completo entre Cockpit e Autopilot nesse cenário ainda não existe. Se a trilha avançar sem esse desenho, há risco de o comportamento de "alteração cadastral bloqueia apuração" (item essencial do MVP) não cobrir corretamente o caso de troca de regime.
+6. **Perfil de parametrização por atividade (D35) precisa de definição de fluxo.** O campo aplica um conjunto pré-configurado de parâmetros por atividade no cadastro de nova empresa, mas o documento não detalha se isso ocorre antes, durante ou depois da abertura da primeira vigência, nem se os valores aplicados continuam editáveis campo a campo depois.
+7. **Dicionários fechados (D01–D35) são responsabilidade de conteúdo, não só de interface.** O documento é explícito: "o desenvolvimento não deve criar opções fora desta relação sem validação fiscal". É preciso definir com Produto onde essas listas vivem e como são atualizadas sem depender de deploy, já que decisões fiscais podem mudar essas listas com frequência maior do que releases de código.
+8. **Segmento de atividade especial (Fase 2) depende de um levantamento de carteira que ainda não começou.** O documento marca isso como próximo passo de Produto, não de desenvolvimento — não deve ser estimado como trabalho técnico enquanto esse levantamento não existir.
+9. **Divergência de contagem de campos entre o documento de requisitos e os materiais derivados (98 × 102) precisa de confirmação com os especialistas.** \`docs/02-parametros-fiscais.md\` declara, na capa, "98 campos em 10 blocos". O mockup interativo V1 (\`parametros_fiscais_autopilot.html\`) e a Matriz de Cobertura da seção 12 deste documento somam, cada um, 102 linhas de funcionalidade. Nenhuma fonte disponível explica a diferença. Não se deve presumir qual número é o oficial nem tratar 102 como nova contagem — a origem da diferença precisa ser confirmada com Elizandra/Jeniffer antes de qualquer ajuste em qualquer um dos documentos.
 
 *O reaproveitamento de componentes entre a feature Empresas e a trilha Fiscal — antes listado aqui como risco aberto — já está resolvido como decisão de arquitetura na seção 13.7 (Arquitetura Global): componentes usados por mais de uma trilha vivem em \`src/components/shared\`.*
 
@@ -2215,8 +2260,8 @@ Escopo: apenas itens marcados **Essencial** no documento de origem, mais a infra
 | Tipo de estabelecimento | Essencial | Não | MVP — somente leitura, origem Cockpit |
 | Empresa em início de atividade | Essencial | Não | MVP — origem API gov./Cockpit |
 | Motivo da alteração | Desejável | Não | Fase 2 (6.1) |
-| Bloqueio da apuração por alteração cadastral | Essencial | Não | MVP — regra fixa; risco de severidade a confirmar (item 1) |
-| Pendência de ação humana por excesso de sublimite | Essencial | Não | MVP — regra fixa; risco de severidade a confirmar (item 1) |
+| Bloqueio da apuração por alteração cadastral | Essencial | Não | MVP — regra fixa; decisão fechada (seção 15 do documento de requisitos) |
+| Pendência de ação humana por excesso de sublimite | Essencial | Não | MVP — regra fixa; abertura de vigência já decidida (seção 15 do documento de requisitos); escopo operacional das guias avulsas segue pendente (item 3) |
 | Nova vigência por reenquadramento calculado | Essencial | Não | MVP — regra fixa |
 | Iniciar nova vigência (ação) | Essencial | Não | MVP |
 | Validação de continuidade de datas | Desejável | Não | Fase 2 (6.1) |
@@ -2225,7 +2270,7 @@ Escopo: apenas itens marcados **Essencial** no documento de origem, mais a infra
 | Anexo(s) e % de receita por atividade | Essencial | Não | MVP — somente leitura, motor de cálculo |
 | MEI | Essencial | Não | MVP — somente leitura, Cockpit |
 | Código de acesso ao PGDAS-D | Essencial | Não | MVP — único campo Texto do bloco |
-| Perfil de parametrização por atividade (D35) | Desejável | Não | Fase 2 (6.1); risco de fluxo a confirmar (item 7) |
+| Perfil de parametrização por atividade (D35) | Desejável | Não | Fase 2 (6.1); risco de fluxo a confirmar (item 6) |
 | Regime de reconhecimento de receita | Essencial | Não | MVP — decisão anual, onboarding via SERPRO |
 | RBT12 | Essencial | Não | MVP — somente consulta, motor de cálculo |
 | RBA / RBAA | Essencial | Não | MVP — somente consulta, motor de cálculo |
@@ -2236,7 +2281,7 @@ Escopo: apenas itens marcados **Essencial** no documento de origem, mais a infra
 | Aviso de proximidade do limite de enquadramento | Desejável | Não | Fase 2 (6.1) |
 | Aviso de proximidade do sublimite | Desejável | Não | Fase 2 (6.1) |
 | Aviso de troca de faixa de receita bruta | Desejável | Não | Fase 2 (6.1) — apenas alerta, sem nova vigência |
-| Segmento de atividade especial | Fase 2 | Não | Fase 2 (6.2); depende de mapeamento de carteira (item 9) |
+| Segmento de atividade especial | Fase 2 | Não | Fase 2 (6.2); depende de mapeamento de carteira (item 8) |
 | Forma de apuração de IRPJ/CSLL | Fora de escopo | Não | Fora do escopo — Lucro Presumido/Real |
 | Compensação de prejuízo fiscal | Fora de escopo | Não | Fora do escopo — Lucro Real |
 | **Federais** | | | |
@@ -2255,7 +2300,7 @@ Escopo: apenas itens marcados **Essencial** no documento de origem, mais a infra
 | **Estaduais e Municipais** | | | |
 | Condição de contribuinte de ICMS | Essencial | Não | MVP — derivada do Cockpit |
 | Substituto tributário | Desejável | Não | Fase 2 (6.1) |
-| Inscrição Estadual de Substituto por UF | Desejável | Não | Fase 2 (6.1); sem fonte enquanto melhoria do Cockpit não existir (item 5) |
+| Inscrição Estadual de Substituto por UF | Desejável | Não | Fase 2 (6.1); sem fonte enquanto melhoria do Cockpit não existir (item 4) |
 | Recolher ICMS/ISS com valor fixo | Desejável | Não | Fase 2 (6.1) |
 | Base de cálculo do FCP/FECP | Desejável | Não | Fase 2 (6.1) |
 | Reduções e deduções da base do SN | Desejável | Não | Fase 2 (6.1) |
@@ -2288,7 +2333,7 @@ Escopo: apenas itens marcados **Essencial** no documento de origem, mais a infra
 | Documentos fiscais emitidos | Essencial | Não | MVP — origem BHules |
 | Série e numeração | Essencial | Não | MVP — origem BHules |
 | PGDAS-D e DAS | Essencial | Não | MVP — origem motor de cálculo |
-| Guias avulsas de ICMS e ISS | Essencial | Não | MVP — regra fixa; escopo a confirmar (item 4) |
+| Guias avulsas de ICMS e ISS | Essencial | Não | MVP — regra fixa; escopo a confirmar (item 3) |
 | DEFIS | Essencial | Não | MVP — regra fixa, somente leitura |
 | DASN-SIMEI | Essencial | Não | MVP — regra fixa, somente leitura |
 | eSocial — parametrização básica | Essencial | Não | MVP |
@@ -2312,11 +2357,11 @@ Escopo: apenas itens marcados **Essencial** no documento de origem, mais a infra
 | Split payment | Em construção | Não | Fase 2 (6.3) — placeholder apenas |
 | Operador de plataforma digital | Em construção | Não | Fase 2 (6.3) — placeholder apenas |
 | **Implantação e Saldo Inicial — fluxo de onboarding, fora das abas de Parâmetros Fiscais** | | | |
-| Data de corte do saldo inicial | Essencial | Não | MVP — origem SERPRO, fluxo pendente (item 3) |
-| Saldo inicial por imposto (credor/devedor) | Essencial | Não | MVP — origem SERPRO, fluxo pendente (item 3) |
-| Receita bruta mensal dos 12 meses anteriores | Essencial | Não | MVP — origem SERPRO, fluxo pendente (item 3) |
-| Folha de salários dos 12 meses anteriores | Essencial | Não | MVP — origem SERPRO, fluxo pendente (item 3) |
-| Receita bruta acumulada do ano-calendário (RBA) | Essencial | Não | MVP — origem SERPRO, fluxo pendente (item 3) |
+| Data de corte do saldo inicial | Essencial | Não | MVP — origem SERPRO, fluxo pendente (item 2) |
+| Saldo inicial por imposto (credor/devedor) | Essencial | Não | MVP — origem SERPRO, fluxo pendente (item 2) |
+| Receita bruta mensal dos 12 meses anteriores | Essencial | Não | MVP — origem SERPRO, fluxo pendente (item 2) |
+| Folha de salários dos 12 meses anteriores | Essencial | Não | MVP — origem SERPRO, fluxo pendente (item 2) |
+| Receita bruta acumulada do ano-calendário (RBA) | Essencial | Não | MVP — origem SERPRO, fluxo pendente (item 2) |
 
 *Coluna "Existe tela?" reflete o estado atual (\`FiscalPage.jsx\` ainda é um placeholder vazio) — todas as linhas partem de "Não" e devem ser atualizadas conforme o desenvolvimento avança, servindo de checklist para garantir que nenhum item da especificação seja esquecido.*
 
@@ -2568,9 +2613,9 @@ flowchart TD
     B --> C[Etapa: Implantação e Saldo Inicial]
     C --> D{Consulta ao SERPRO}
     D -->|Sucesso| E[Saldo inicial, receita e folha dos 12 meses, RBA carregados]
-    D -->|Falha ou incompleto| F[Contingência manual - fluxo de tratamento ainda em definição]
+    D -->|Falha ou incompleto| F{Tratamento ainda em definição - ver item 2 da seção 10}
     E --> G[Primeira vigência criada em Parâmetros Fiscais]
-    F --> G
+    F -.->|Fluxo pendente de definição pela Produto| G
     G --> H[Empresa operacional]
     H --> I[Implantação some da navegação principal]
     I --> J[Acesso remanescente apenas via link de auditoria em Gerais - somente leitura]
@@ -2591,8 +2636,7 @@ flowchart LR
     AP -.consulta apenas, não altera.-> MC
 \`\`\`
 
-*Nenhum destes diagramas substitui a análise de riscos da seção 10 — em particular, o fluxo de Implantação (15.4) e a consulta ao SERPRO (15.5) seguem marcados como pendentes de definição, e o comportamento exato de "excesso de sublimite" em 15.3 segue sujeito à confirmação apontada no risco 1.*
-`,
+*Nenhum destes diagramas substitui a análise de riscos da seção 10 — em particular, o fluxo de Implantação (15.4) e a consulta ao SERPRO (15.5) seguem marcados como pendentes de definição. Em 15.3, a regra de excesso de sublimite já está fechada (abre nova vigência, gera alerta e mantém o DAS apurado sem ICMS/ISS); permanece pendente apenas o detalhamento operacional da geração das guias avulsas (item 3 da seção 10).*`,
   },
 
   // fonte: docs/03-cadastro-socios.md
@@ -3634,6 +3678,188 @@ Os dois componentes de upload do fluxo — o da Etapa 2 (planilha simplificada) 
 ## Navegação: página própria, fora da navegação por abas do cadastro
 
 Diferente das 6 abas de uma empresa (que são páginas HTML separadas, mas conceitualmente "uma aba do mesmo cadastro"), a Importação Massiva vive em uma página própria (\`empresas/importar.html\`), acessada a partir da Listagem, não de dentro do cadastro de uma empresa específica — faz sentido, já que o resultado da importação são várias empresas novas, não a edição de uma já aberta.
+`,
+  },
+
+  // fonte: docs/implantacao-spec.md
+  "implantacao-spec": {
+    title: `Implantação de Empresas — Especificação (as-built)`,
+    source: "docs/implantacao-spec.md",
+    markdown: `# Implantação de Empresas — Especificação (as-built)
+
+> Este documento descreve **o que existe hoje** no protótipo da trilha de Implantação do AutoPilot. Ele não é a especificação original de requisitos — é o retrato funcional da implementação, para que Product Managers validem o que foi construído e planejem as próximas evoluções. Boa parte das decisões aqui documentadas vem do alinhamento entre Andressa Teles Rodrigues, Jeniffer Dauricio e Luiz Felipe Mendonça Silva em 10/09/2026 ("Alinhamento Telas de Implantação — Parte 2").
+
+## Visão geral
+
+A Implantação cobre o processo de trazer uma empresa nova (ou uma migração de sistema) para dentro do Autopilot, módulo a módulo. Hoje só o módulo **DP** tem experiência completa; Fiscal e Contábil aparecem como "em breve" nas telas que já preveem as três frentes lado a lado.
+
+A trilha é composta por quatro telas:
+
+1. **Implantação de Empresas** (\`implantacao-geral.html\`) — dash geral com as três frentes (DP/Fiscal/Contábil) por empresa, a porta de entrada de nível mais alto.
+2. **Implantação DP** (\`implantacao-empresas.html\`) — lista de empresas em implantação de DP especificamente, com filtro e busca.
+3. **Console de Implantação** (\`implantacao-console.html?empresa=CODIGO\`) — uma tela por empresa, com 7 abas que cobrem cada frente do processo.
+4. **Nova Implantação** (\`implantacao-importar.html\`) — fluxo de upload do lote de relatórios do Domínio que inicia (ou alimenta) a implantação de uma empresa.
+
+Uma empresa só entra nesta trilha se estiver cadastrada no Cockpit com a tag Autopilot do módulo correspondente (ex.: tag Autopilot DP) — isso é validado no momento do upload (ver "Nova Implantação" abaixo), não há cadastro de empresa dentro da Implantação.
+
+------------------------------------------------------------------------
+
+## 1. Implantação de Empresas (dash geral — 3 frentes)
+
+### Objetivo
+Dar uma visão "termômetro" do progresso de implantação de cada empresa nos três módulos do Autopilot, antes de entrar na implantação específica de um deles.
+
+### Comportamento
+- Uma linha por empresa, com uma barra de progresso por módulo (DP / Fiscal / Contábil) lado a lado — não segmentada por frente interna (isso vive no console de cada módulo), só o percentual geral daquele módulo.
+- O percentual de cada módulo só aparece no hover da barra (tooltip) — o texto sempre visível é só o nome do módulo, para não competir visualmente com as três barras.
+- Fiscal e Contábil mostram um badge "Em breve", sem barra nem link, até ganharem o mesmo console que o DP já tem.
+- Clicar em qualquer parte da linha leva para o Console de Implantação (DP) daquela empresa.
+- Busca por nome ou CNPJ.
+- Botão "Nova Implantação" no cabeçalho, que abre o fluxo de upload (\`implantacao-importar.html\`).
+
+### Campos implementados
+Empresa, barra de progresso DP (com tooltip de percentual), Fiscal (em breve), Contábil (em breve).
+
+### Regras de negócio implementadas
+- O percentual de DP vem do mesmo cálculo usado no console e na lista de DP (ver seção 3).
+
+------------------------------------------------------------------------
+
+## 2. Implantação DP (lista por empresa)
+
+### Objetivo
+Listar as empresas em implantação de DP especificamente, com o essencial para o operador priorizar o que atacar.
+
+### Comportamento
+- Uma linha por empresa: nome, uma barra segmentada (uma cor por frente que bloqueia — ver seção 3.6), etapa atual em texto livre, badge de status (Em andamento / Implantada) e percentual de conclusão.
+- **Filtro de status é multi-select** (combobox com checkbox por opção: "Em andamento", "Implantadas") — nenhuma opção marcada ou as duas marcadas equivalem a "Todos os status". Por padrão só "Em andamento" vem marcado. Decisão explícita do alinhamento de 10/09/2026 (Luiz: *"talvez até colocar uma multi select aqui seria bom"*) — antes era um \`<select>\` de opção única.
+- Busca por nome ou CNPJ.
+- Clicar na linha leva ao Console de Implantação daquela empresa.
+- Botão "Nova Implantação" no cabeçalho.
+
+### Regras de negócio implementadas
+- Só 3 frentes contam para o percentual e para a barra segmentada: Colaboradores, Dados Financeiros (histórico de folha) e Cálculo em Paralelo. Rubricas **não** entra nessa conta — ver seção 3.3.
+
+------------------------------------------------------------------------
+
+## 3. Console de Implantação (por empresa)
+
+### Objetivo
+Concentrar as cinco frentes de trabalho da implantação de uma empresa numa tela só, navegável por abas sem perder o contexto (sem reload de página ao trocar de aba).
+
+### Cabeçalho
+- Nome da empresa, badge de status (Em andamento / Implantada), etapa atual em texto livre.
+- Data de início, competência inicial e, se concluída, data de conclusão.
+- Barra de progresso segmentada (uma cor por frente que bloqueia: Colaboradores / Dados Financeiros / Cálculo em Paralelo) com tooltip por segmento e o percentual geral ao lado.
+- Alerta quando as 3 frentes estão 100% mas os parâmetros DP ainda não foram confirmados — com link direto para a aba Parâmetros.
+- 4 cartões de resumo: Colaboradores prontos, Competências de folha carregadas, Rubricas utilizadas (12 meses), Competências validadas em paralelo.
+
+### 3.1 Aba "Dados do Colaborador"
+Fila de conciliação de colaboradores entre o Lake (Domínio) e a Ficha Financeira enviada pela empresa, já filtrada para esta empresa (mesma experiência que antes vivia numa fila global separada).
+
+- Busca por nome ou CPF; filtro de status (Todos, Divergência, Pendente conciliação, Não encontrado no Lake, Rejeitado, Aguardando eSocial, Pronto), cada opção com a contagem entre parênteses.
+- Cada status tem um significado e uma origem específicos:
+  - **Divergência** — campo com valor diferente ou ausente entre Lake e Ficha Financeira; resolvido no drawer de conferência, escolhendo Lake, Ficha ou digitando um valor manual.
+  - **Pendente conciliação** — está no Lake, a Ficha Financeira ainda não chegou/foi lida.
+  - **Não encontrado no Lake** — a Ficha trouxe um colaborador cujo CPF não existe no Lake para esta empresa (ex.: admissão recente ainda não sincronizada); mostra os dados extraídos da Ficha sem contraparte para comparar, e o operador decide entre criar o cadastro ou ignorar por enquanto.
+  - **Rejeitado** — a linha nem chegou a ser conciliada, falhou na validação antes de gravar (CPF inválido, categoria inexistente no eSocial, caractere especial); fica com motivo + número da linha, e dá para corrigir e reprocessar só aquela linha.
+  - **Aguardando eSocial** — a base Domínio não trouxe a categoria do trabalhador; o eSocial só é acionado nesse caminho de exceção. Depois do retorno, o colaborador volta ao fluxo normal como "Pendente conciliação".
+  - **Pronto** — conciliado nos dois lados, sem pendência bloqueante; só então conta como implantado.
+- Pendências cadastrais (campos que nem Lake nem Ficha trazem — PIS, título de eleitor, RG, nome dos pais, etc.) não bloqueiam o colaborador ficar "Pronto", mas ficam registradas e resolvíveis manualmente.
+- Dependentes têm sua própria lista de pendências, à parte do colaborador principal.
+- Drawer "Visualizar" (só leitura) mostra a ficha completa de um colaborador "Pronto": dados pessoais, documentos, admissão, dados bancários/FGTS, histórico de alterações salariais/férias e o resumo financeiro do ano — a mesma separação por bloco que existia antes de uma perda de dados identificada em revisão, e que foi restaurada.
+
+### 3.2 Aba "Dados Financeiros"
+Histórico de folha por competência — não só a Ficha Financeira, a janela completa de competências.
+
+- Janela necessária: dezembro/2025 até a última competência fechada, mínimo 12 competências — competências ausentes são reportadas, nunca estimadas.
+- Cada competência mostra status (Carregada / Divergência de total / Ausente), proventos, descontos e líquido.
+- "Divergência de total" significa que o valor gravado não bate com o total do relatório de origem — sempre reportado como falha, nunca como aviso silencioso.
+- Drawer "Visualizar" mostra proventos, descontos, líquido calculado pelo Autopilot e o total do relatório de origem lado a lado.
+
+### 3.3 Aba "Rubricas"
+Puramente informativa, **sem de-para manual** — decisão explícita do alinhamento de 10/09/2026: o Autopilot deixou de fazer de-para de rubrica; a aba só mostra o que a empresa usou nos últimos 12 meses.
+
+- Colunas: Código, Descrição, Rubrica padrão (ou "Específica da empresa" quando não for uma rubrica padrão do Autopilot), Natureza (Provento/Desconto), e as quatro incidências — IRRF, INSS, FGTS, PIS — todas vindas prontas do Lake.
+- Não tem coluna de status nem botão de ação: nenhuma rubrica bloqueia nada aqui, e por isso esta aba **não entra** no cálculo de percentual de conclusão nem na barra segmentada (só Colaboradores, Dados Financeiros e Cálculo em Paralelo bloqueiam).
+
+### 3.4 Aba "Cálculo em Paralelo"
+Roda **depois** que Colaboradores e Dados Financeiros já foram carregados — aciona o motor para recalcular a folha de cada competência com as regras atuais e concilia contra o relatório da Domínio já importado.
+
+- Não gera nenhum pacote de relatório — só diz se bateu ou não; quando não bate, aponta campo + colaborador + rubrica que divergiu (mesma lógica da conciliação de colaborador contra o Lake).
+- Sem efeito externo: modo paralelo não transmite nada nem envia e-mail.
+- Botão "Calcular e conciliar" simula a execução; drawer "Visualizar" mostra executor, data, resultado e o detalhe de cada divergência.
+- Status possíveis: Não executado, Bate com o Domínio, Com divergência.
+
+### 3.5 Aba "Parâmetros"
+Checklist dos campos obrigatórios de configuração específica da empresa (sindicato, regime de tributação, FAP, percentual de adiantamento, arredondamento), que vivem de fato na tela real de **Parâmetros DP** (\`parametros/dp.html\` — em construção por outra frente do time, hoje "em breve").
+
+- Link "Abrir Parâmetros DP" e uma lista de campos com badge Pendente/Preenchido.
+- Botão "Confirmar parâmetros" só fica habilitado quando não há pendências — precisa de confirmação manual do operador (não é automático mesmo com todos os campos preenchidos), e essa confirmação vira evento no Histórico.
+- **Não entra** no percentual de conclusão das 3 frentes, mas é pré-requisito para a empresa ser considerada implantada de fato: mesmo com as 3 frentes em 100%, um alerta no cabeçalho lembra que os parâmetros ainda precisam ser confirmados.
+- Como a Implantação de Sindicato não ganhou tela própria, ela foi incorporada aqui — é um dos campos do checklist, e a operação lida com sindicato configurando o parâmetro correspondente.
+
+### 3.6 Aba "Relatórios"
+Layout de cada processo de DP usado pela empresa — Admissão, Férias e Rescisão — dizendo se ela usa o **padrão Domínio** ou um **layout personalizado**. Aba própria, separada da Ficha Financeira: os relatórios personalizados aqui não são necessariamente os mesmos arquivos que a empresa sobe na Nova Implantação (podem ser um contrato de admissão específico, um recibo de férias próprio, etc.).
+
+- Uma linha por processo, com badge "Padrão Domínio" ou "Personalizado", o nome do arquivo quando houver, e as ações "Importar layout"/"Substituir" e "Voltar ao padrão" (quando já personalizado).
+- Importar layout abre um drawer com upload (arraste ou clique) e um botão "Salvar layout".
+- Não bloqueia a implantação nem entra no percentual de conclusão — é só informativo, para a operação saber o que gerar em cada processo.
+- Quando o operador sinaliza "relatório personalizado" no fluxo de Nova Implantação (seção 4), o resultado da importação linka direto para esta aba da empresa (\`implantacao-console.html?empresa=CODIGO&tab=relatorios\`).
+- Hoje só existe aqui, dentro da Implantação. A ideia de replicar esta mesma aba dentro de Parâmetros DP (para consulta contínua depois da implantação) é um item futuro — ver "Pendências e itens futuros".
+
+### 3.7 Aba "Histórico"
+Log de auditoria: cada etapa registra executor, data/hora, ação, detalhe e quem aprovou (quando aplicável) — inclui desde o início da implantação até a confirmação final dos parâmetros.
+
+------------------------------------------------------------------------
+
+## 4. Nova Implantação (upload do lote)
+
+### Objetivo
+Trazer o lote de relatórios do Domínio (Ficha de Registro, Ficha Financeira, Programação de Férias, Relatório de Médias, Extrato Mensal) para iniciar ou alimentar a implantação de uma ou várias empresas de uma vez.
+
+### Comportamento
+- Tela cheia (não modal), com dropzone de arquivos em PDF — até 100 arquivos por lote, 15MB por arquivo. Não é preciso selecionar uma empresa por vez: dá para soltar arquivos de várias empresas juntas, o sistema identifica cada uma pelo CNPJ.
+- **Tipo de implantação** — toggle "Novo cliente" / "Migração de empresa já em operação". "Novo cliente" (padrão) bloqueia arquivos de empresas que já operam no Autopilot; "Migração" permite prosseguir mesmo assim. Regra explícita do alinhamento (Andressa/Jeniffer): evita que alguém suba, sem querer, dados de uma empresa que já está em produção e sobrescreva cálculos existentes.
+- Cada arquivo da lista mostra um de quatro estados:
+  - **Identificado** — CNPJ lido com sucesso e associado a uma empresa cadastrada.
+  - **CNPJ não identificado** — não deu para ler o CNPJ automaticamente; resolvido depois, no modal de Inconsistência, associando manualmente a uma empresa.
+  - **Empresa sem Cockpit** — CNPJ identificado, mas a empresa não está cadastrada no Cockpit com a tag Autopilot do módulo; não é processado, é preciso pedir o cadastro antes.
+  - **Bloqueado por operação** — CNPJ de uma empresa que já opera no Autopilot, com "Novo cliente" selecionado; só passa marcando "Migração".
+- Ao clicar em "Importar lote", um dialog de confirmação resume quantos colaboradores/empresas serão processados e quantos arquivos ficaram de fora (e por quê), e pergunta: **"Esta empresa usa relatório personalizado (fora do layout padrão Domínio)?"** (Sim/Não) — a resposta não faz upload de nenhum layout aqui, só sinaliza a necessidade; o upload de fato acontece na aba Relatórios do console (seção 3.6).
+- Processamento assíncrono simulado em 4 passos (Lendo arquivos → Extraindo campos → Conciliando com o Lake → Gerando resultado).
+- Tela de resultado com estatísticas (processados, sem divergência, com divergência, não importados por CNPJ não identificado, não importados por falta de Cockpit, bloqueados por operação) e um alerta + atalho por cada exceção, incluindo o link direto para a aba Relatórios quando "relatório personalizado" foi marcado.
+
+------------------------------------------------------------------------
+
+## Regras de negócio principais (consolidado)
+
+- Uma empresa só aparece na Implantação se estiver cadastrada no Cockpit com a tag Autopilot do módulo correspondente.
+- Só 3 frentes bloqueiam a implantação e contam para o percentual: Colaboradores, Dados Financeiros (histórico de folha) e Cálculo em Paralelo. Rubricas e Relatórios são informativos, não bloqueiam.
+- O Cálculo em Paralelo só roda depois de Colaboradores e Dados Financeiros carregados, e nunca tem efeito externo (não transmite, não envia e-mail).
+- Confirmar os Parâmetros DP é uma ação manual e obrigatória à parte das 3 frentes — a implantação só é considerada de fato concluída depois dessa confirmação.
+- "Novo cliente" bloqueia por padrão empresas já em operação no Autopilot; só "Migração" permite prosseguir.
+- Rubricas não fazem mais de-para manual — a tela é só um espelho do que já vem pronto do Lake (natureza + incidências).
+
+------------------------------------------------------------------------
+
+## Pendências e itens futuros
+
+- **Fiscal e Contábil** — hoje só aparecem como "Em breve" no dash geral; ainda não têm console próprio equivalente ao de DP.
+- **Parâmetros DP** (\`parametros/dp.html\`) — tela real ainda "em construção" por outra frente do time (Elaine); o checklist da aba Parâmetros do console é uma simulação até essa tela existir de fato.
+- **Aba Relatórios espelhada em Parâmetros DP** — a ideia (Jeniffer, 10/09/2026) é que a mesma configuração de layout de admissão/férias/rescisão apareça também dentro de Parâmetros DP para consulta contínua após a implantação — hoje só existe no console de Implantação.
+- **Menu central de relatórios** — geração de relatórios sob demanda (não só os de implantação) discutida como possível evolução futura, sem tela prevista ainda.
+- **Anexo do relatório usado anteriormente pela empresa** (quando ela já usava outro sistema) — mencionado como visão de futuro, sem compromisso de implementação.
+- **Regras de bloqueio de migração mais refinadas** (ex.: qualquer cálculo já rodado pelo Autopilot trava novo upload) — a versão atual usa o status "Implantada" da empresa como proxy simplificado; regras mais específicas ficaram como próxima rodada.
+
+------------------------------------------------------------------------
+
+## Decisões de UX adotadas
+
+- A barra de progresso do dash geral (3 frentes) mostra só a barra + nome do módulo, com o percentual só no tooltip — para não competir visualmente com as três barras lado a lado.
+- O filtro de status da lista de Implantação DP virou multi-select (checkbox) em vez de opção única, para permitir combinar "Em andamento" + "Implantadas" sem precisar de um terceiro valor "Todos" redundante.
+- Toda interação com dados (visualizar detalhe, importar layout, resolver divergência) usa drawer lateral, nunca modal — modal fica reservado para confirmações pontuais (ex.: confirmar importação, CNPJ não identificado).
+- A aba Relatórios foi mantida separada da pergunta "relatório personalizado" do fluxo de upload — a pergunta só sinaliza a necessidade; o upload do layout em si acontece na aba, por processo (Admissão/Férias/Rescisão), porque nem sempre são os mesmos arquivos.
 `,
   },
 };

@@ -22,7 +22,16 @@
   overflow-y: auto;
   background: var(--sidebar);
   border-right: 1px solid var(--sidebar-border);
+  /* Scrollbar padrão do SO é grossa e "come" a largura fixa da sidebar,
+     cortando badge/texto quando o menu cresce mais que a viewport (ex.:
+     submenu de Implantação aberto num zoom de 100%+). Uma trilha fina
+     evita isso sem precisar esconder a barra por completo. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--sidebar-border) transparent;
 }
+.app-sidebar::-webkit-scrollbar { width: 6px; }
+.app-sidebar::-webkit-scrollbar-track { background: transparent; }
+.app-sidebar::-webkit-scrollbar-thumb { background: var(--sidebar-border); border-radius: var(--radius-full); }
 .sidebar-brand {
   display: flex;
   align-items: center;
@@ -58,6 +67,7 @@
 .sidebar-menu-item { position: relative; }
 
 .sidebar-btn {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -84,7 +94,20 @@
   background: var(--sidebar-accent);
   color: var(--sidebar-accent-foreground);
   font-weight: 500;
-  box-shadow: inset 2px 0 0 var(--sidebar-primary);
+}
+/* Faixa de "ativo" na borda esquerda — era `box-shadow: inset 2px 0 0`, mas
+   em alguns navegadores/zooms essa sombra inset rendeirizava como um
+   parêntese preto enorme cobrindo várias linhas da sidebar (bug reportado
+   14/09/2026), em vez do traço fino de 2px pretendido. Pseudo-elemento
+   posicionado é equivalente visualmente e não tem esse problema. */
+.sidebar-btn.is-active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--sidebar-primary);
 }
 .sidebar-btn[aria-disabled="true"] { color: var(--sidebar-muted); cursor: default; pointer-events: none; }
 .sidebar-btn .chev {
@@ -148,6 +171,7 @@
   border-left: 1px solid var(--sidebar-border);
 }
 .sidebar-sub-btn {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -178,7 +202,15 @@
   background: var(--sidebar-accent);
   color: var(--sidebar-accent-foreground);
   font-weight: 500;
-  box-shadow: inset 2px 0 0 var(--sidebar-primary);
+}
+.sidebar-sub-btn.is-active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--sidebar-primary);
 }
 .sidebar-sub-btn[aria-disabled="true"] { color: var(--sidebar-muted); cursor: default; pointer-events: none; }
 

@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="../shared/css/tokens.css" />
   <link rel="stylesheet" href="../shared/css/base.css" />
   <link rel="stylesheet" href="../shared/css/components.css?v=2" />
-  <link rel="stylesheet" href="../shared/css/layout.css" />
+  <link rel="stylesheet" href="../shared/css/layout.css?v=2" />
 </head>
 <body>
   <div id="shell-root"></div>
@@ -26,6 +26,8 @@
         <p class="text-sm text-muted max-w-2xl">Visão geral por empresa, nas três frentes de implantação — DP, Fiscal e Contábil. Clique numa empresa para abrir a implantação de DP.</p>
       </div>
 
+      <div class="flex flex-wrap gap-3" id="dash-implantacao-geral-mount"></div>
+
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div class="flex flex-col gap-1">
           <label class="field-label">Empresa</label>
@@ -38,14 +40,16 @@
         <table class="dtable dtable-fixed" id="tabela-implantacao-geral">
           <colgroup>
             <col style="width:180px" />
-            <col style="width:150px" />
-            <col style="width:150px" />
-            <col style="width:150px" />
+            <col style="width:220px" />
+            <col style="width:170px" />
+            <col style="width:170px" />
+            <col style="width:170px" />
             <col style="width:40px" />
           </colgroup>
           <thead>
             <tr>
               <th>Empresa</th>
+              <th class="col-pad-md">Etapa atual (DP)</th>
               <th class="col-pad-md">DP</th>
               <th class="col-pad-md">Fiscal</th>
               <th class="col-pad-md">Contábil</th>
@@ -59,12 +63,12 @@
   </template>
 
   <script src="../shared/js/icons.js"></script>
-  <script src="../shared/js/shell.js?v=2"></script>
-  <script src="../shared/js/ui.js?v=2"></script>
+  <script src="../shared/js/shell.js?v=3"></script>
+  <script src="../shared/js/ui.js?v=3"></script>
   <script src="../shared/js/fab-tools.js"></script>
   <script src="../empresas/js/data.js"></script>
   <script src="js/implantacao/data.js?v=5"></script>
-  <script src="js/implantacao/empresas-data.js?v=7"></script>
+  <script src="js/implantacao/empresas-data.js?v=8"></script>
   <script>
     Shell.mount(document.getElementById("shell-root"), {
       base: "../",
@@ -73,6 +77,6 @@
     });
     document.getElementById("icon-upload-geral").innerHTML = Icon("upload", "size-4");
   </script>
-  <script src="js/implantacao/geral-list.js?v=3"></script>
+  <script src="js/implantacao/geral-list.js?v=4"></script>
 </body>
 </html>

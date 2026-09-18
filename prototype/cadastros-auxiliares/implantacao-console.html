@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="../shared/css/tokens.css" />
   <link rel="stylesheet" href="../shared/css/base.css" />
   <link rel="stylesheet" href="../shared/css/components.css?v=2" />
-  <link rel="stylesheet" href="../shared/css/layout.css" />
+  <link rel="stylesheet" href="../shared/css/layout.css?v=2" />
 </head>
 <body>
   <div id="shell-root"></div>
@@ -130,13 +130,44 @@
     </div>
   </div>
 
+  <!-- Drawer — Importar layout de relatório personalizado (aba Relatórios).
+       Upload mock: um clique "seleciona" um arquivo determinístico — mesmo
+       espírito do dropzone-mock de js/implantacao/importar.js, sem input de
+       arquivo real. Alinhamento Andressa/Jeniffer 10/09/2026. -->
+  <div class="sheet-overlay" id="layout-relatorio-overlay"></div>
+  <div class="sheet-panel" id="layout-relatorio-panel" role="dialog" aria-modal="true" aria-labelledby="layout-relatorio-title">
+    <button type="button" class="sheet-close" id="layout-relatorio-close"></button>
+    <div class="sheet-header">
+      <div class="sheet-title" id="layout-relatorio-title">Importar layout</div>
+      <div class="sheet-description" id="layout-relatorio-sub"></div>
+    </div>
+    <div class="sheet-body">
+      <div class="upload-dropzone" id="layout-relatorio-dropzone" tabindex="0" role="button" aria-label="Selecionar arquivo do layout">
+        <div class="upload-dropzone-icon" id="icon-upload-layout"></div>
+        <div class="text-sm font-medium">Arraste o arquivo aqui ou clique para selecionar</div>
+        <div class="text-xs text-muted">PDF ou Word · até 15MB</div>
+      </div>
+      <div class="upload-file-row" id="layout-relatorio-arquivo-row" style="display:none;">
+        <span class="upload-file-icon" id="icon-file-layout"></span>
+        <div class="flex flex-col min-w-0 flex-1 gap-0-5">
+          <span class="text-sm font-medium truncate" id="layout-relatorio-arquivo-nome"></span>
+          <span class="text-xs text-muted">Pronto para salvar</span>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" id="layout-relatorio-arquivo-remover" aria-label="Remover arquivo"></button>
+      </div>
+    </div>
+    <div class="sheet-footer">
+      <button type="button" class="btn" id="btn-salvar-layout-relatorio" disabled>Salvar layout</button>
+    </div>
+  </div>
+
   <script src="../shared/js/icons.js"></script>
-  <script src="../shared/js/shell.js?v=2"></script>
-  <script src="../shared/js/ui.js?v=2"></script>
+  <script src="../shared/js/shell.js?v=3"></script>
+  <script src="../shared/js/ui.js?v=3"></script>
   <script src="../shared/js/fab-tools.js"></script>
   <script src="../empresas/js/data.js"></script>
   <script src="js/implantacao/data.js?v=5"></script>
-  <script src="js/implantacao/empresas-data.js?v=7"></script>
+  <script src="js/implantacao/empresas-data.js?v=8"></script>
   <script src="js/implantacao/visualizar-colaborador.js?v=2"></script>
   <script src="js/implantacao/fila-colaborador.js?v=1"></script>
   <script>
@@ -146,6 +177,6 @@
     document.getElementById("icon-alert-rejeitado").innerHTML = Icon("circle-x", "size-4");
     document.getElementById("icon-concil-resumo").innerHTML = Icon("alert-triangle", "size-4");
   </script>
-  <script src="js/implantacao/console.js?v=13"></script>
+  <script src="js/implantacao/console.js?v=14"></script>
 </body>
 </html>

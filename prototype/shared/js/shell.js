@@ -6,13 +6,18 @@
   base  = prefixo relativo até a pasta prototype/ (ex.: "../" quando a página
           está em prototype/empresas/index.html).
   active = chave da seção ativa no menu: "empresas" | "cadastros-auxiliares" |
-           "implantacao" | "regras" | "fiscal" | "dp" | "folha" | "sindicato" |
-           "contabil" | "docs". "dp" identifica a trilha/menu agrupador de
-           Departamento Pessoal (não corresponde a uma página própria hoje);
-           "folha" e "sindicato" são os componentes reais dessa trilha, cada
-           um com sua própria rota. "implantacao" é item de topo próprio,
-           fora de "Cadastros Auxiliares" (mesmo fluxo de dados/telas,
-           navegação separada — grupo "Implantação" logo antes de "Apoio").
+           "implantacao" | "implantacao-dp" | "implantacao-fiscal" |
+           "implantacao-contabil" | "regras" | "fiscal" | "dp" | "folha" |
+           "sindicato" | "contabil" | "docs". "dp" e "implantacao" são
+           trilhas/menu agrupador sem página própria — só abrem/fecham o
+           acordeão no clique (mesmo padrão pros dois); "implantacao"
+           também é o `active` da dash geral (implantacao-geral.html), que
+           continua existindo e é o alvo dos breadcrumbs "implantação de
+           empresas", só não tem mais item de menu próprio (igual
+           "Parâmetros" também não tem). "folha"/"sindicato" e
+           "implantacao-dp"/"implantacao-fiscal"/"implantacao-contabil" são
+           os componentes reais de cada trilha, cada um com sua própria
+           rota.
   crumb  = texto exibido no breadcrumb do cabeçalho, sem link (ex.: "empresas").
   crumbs = alternativa navegável ao `crumb`: [{label, href?}]. O último item
            é a página atual (sem link); os demais só viram <a> quando `href`
@@ -45,6 +50,9 @@
     // só expande quando a página ativa é a própria DP (se um dia tiver rota
     // própria) ou um de seus filhos (Folha de Pagamento, Sindicato/Convenção).
     const dpOpen = active === "dp" || SUBMENU_OF[active] === "dp";
+    // Mesmo padrão do DP acima — "Implantação de Empresas" é agrupador
+    // (acordeão, abre/fecha no clique, igual "Parâmetros"), não link direto.
+    const implantacaoOpen = active === "implantacao" || SUBMENU_OF[active] === "implantacao";
 
     function badgeHtml(disabled, badge) {
       if (badge) {
@@ -161,20 +169,27 @@
          operacional à parte (fila de conciliação, não um cadastro mestre) —
          por isso vive na sua própria seção, mais abaixo no menu.
 
-         Diferente do submenu de Parâmetros (que é só um agrupador — "dp" lá
-         não tem página própria): aqui o item pai É uma página de verdade, o
-         dash geral com as 3 frentes (DP/Fiscal/Contábil) lado a lado por
-         empresa. Por isso é um link normal (como Empresas/Cadastros
-         Auxiliares acima), com o submenu sempre visível logo abaixo — só 3
-         itens curtos, não precisa de recolher/expandir. Hoje só DP tem tela
-         construída (alinhamento Andressa/Jeniffer, 10/09/2026); Fiscal e
-         Contábil ficam "em breve" até terem o mesmo tratamento. -->
+         Mesmo padrão de acordeão do submenu de Parâmetros (pedido de
+         revisão, 14/09/2026: "clico em implantação de empresas e ele deve
+         abrir os três abaixo ou fechar, assim como é em parâmetros") — o
+         item pai é só agrupador (abre/fecha no clique), não link direto; o
+         dash geral com as 3 frentes ainda existe (implantacao-geral.html),
+         só não tem mais um item de menu próprio, igual "Parâmetros" também
+         não tem página própria. Hoje só DP tem tela construída
+         (alinhamento Andressa/Jeniffer, 10/09/2026); Fiscal e Contábil
+         ficam "em breve" até terem o mesmo tratamento. -->
     <div>
       <div class="sidebar-group-label">Implantação</div>
       <ul class="sidebar-menu">
-        ${btn("implantacao", base + "cadastros-auxiliares/implantacao-geral.html", "Implantação de Empresas", "list-checks", false, { label: "novo", variant: "info" })}
-        <li>
-          <ul class="sidebar-submenu">
+        <li class="sidebar-menu-item">
+          <button type="button" class="sidebar-btn" data-toggle-submenu="implantacao" aria-expanded="${implantacaoOpen}">
+            ${Icon("list-checks", "size-4")} Implantação de Empresas
+            <span class="sidebar-btn-trailing">
+              <span class="sidebar-badge sidebar-badge-info">novo</span>
+              <span class="chev">${Icon("chevron-right", "size-4")}</span>
+            </span>
+          </button>
+          <ul class="sidebar-submenu" data-submenu="implantacao" style="${implantacaoOpen ? "" : "display:none;"}">
             ${subBtn("implantacao-dp", base + "cadastros-auxiliares/implantacao-empresas.html", "DP", "users", false, { label: "novo", variant: "info" })}
             ${subBtn("implantacao-fiscal", base + "cadastros-auxiliares/implantacao-empresas.html", "Fiscal", "receipt", true, { label: "em breve" })}
             ${subBtn("implantacao-contabil", base + "cadastros-auxiliares/implantacao-empresas.html", "Contábil", "landmark", true, { label: "em breve" })}

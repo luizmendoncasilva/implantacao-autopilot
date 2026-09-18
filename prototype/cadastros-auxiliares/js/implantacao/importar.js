@@ -388,8 +388,15 @@
               '<div class="alert-desc"><b>' + a.nomeArquivo + " não foi importado.</b><br/>" + empresaNome(a.empresaCodigo) + " já está em operação no Autopilot. Se for mesmo uma migração, volte e marque \"Migração de empresa já em operação\".</div></div>"
             ).join("")
           : "") +
+        (state.relatorioPersonalizado && prontos.length
+          ? '<div class="alert alert-info">' + Icon("file-text", "size-4") +
+            '<div class="alert-desc">Relatório personalizado sinalizado. Importe o(s) layout(s) usados (admissão, férias, rescisão) na aba <b>Relatórios</b> de cada empresa antes de considerar a implantação concluída.</div></div>'
+          : "") +
         '<div class="flex gap-2 flex-wrap">' +
         '<a href="implantacao-empresas.html" class="btn">' + Icon("list", "size-3-5") + " Ver os " + r.comDivergencia + " com divergência</a>" +
+        (state.relatorioPersonalizado && prontos.length
+          ? '<a href="implantacao-console.html?empresa=' + encodeURIComponent(prontos[0].empresaCodigo) + '&tab=relatorios" class="btn btn-outline">' + Icon("upload", "size-3-5") + " Importar layouts de relatório</a>"
+          : "") +
         (naoIdentificados.length
           ? '<button type="button" class="btn btn-outline" id="btn-associar-manualmente" data-arquivo="' + naoIdentificados[0].nomeArquivo + '">Associar ' + naoIdentificados[0].nomeArquivo + " manualmente</button>"
           : "") +

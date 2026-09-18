@@ -246,6 +246,68 @@
     }
   }
 
+  // ===== Relatórios personalizados (layouts) — alinhamento Andressa/
+  // Jeniffer, 10/09/2026: "pode ser separado, pode ser numa aba separada...
+  // não necessariamente são esses relatórios que ele subiu" na Ficha
+  // Financeira. Aba própria, por tipo de relatório usado no processo de DP
+  // (admissão, férias, rescisão), dizendo se a empresa usa o layout padrão
+  // da Domínio ou um personalizado — e, se personalizado, o arquivo do
+  // layout importado. "Isso ficar depois dentro da tela de parâmetros DP...
+  // a gente tem lá admissão é esse relatório, férias é esse relatório" —
+  // por ora só existe aqui, na implantação (Parâmetros DP é da Elaine e
+  // segue "em breve").
+  const TIPOS_RELATORIO = ["Admissão", "Férias", "Rescisão"];
+
+  const RELATORIOS_LAYOUT_SEED = {
+    "MS-0027": { Admissão: { arquivo: "Contrato_Admissao_MetalurgicaSigma.pdf", importadoEm: "12/08/2026" } },
+    "PA-0011": {
+      Admissão: { arquivo: "Contrato_Admissao_ComercioAurora.pdf", importadoEm: "20/03/2026" },
+      Férias: { arquivo: "Recibo_Ferias_ComercioAurora.pdf", importadoEm: "20/03/2026" },
+      Rescisão: { arquivo: "Termo_Rescisao_ComercioAurora.pdf", importadoEm: "20/03/2026" },
+    },
+  };
+
+  const RELATORIOS_LAYOUT_KEY = "autopilot_prototype_implantacao_relatorios_layout_v1";
+  function loadRelatoriosLayout() {
+    try {
+      const raw = window.localStorage.getItem(RELATORIOS_LAYOUT_KEY);
+      return raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(RELATORIOS_LAYOUT_SEED));
+    } catch (e) {
+      return JSON.parse(JSON.stringify(RELATORIOS_LAYOUT_SEED));
+    }
+  }
+  function saveRelatoriosLayout(dados) {
+    try {
+      window.localStorage.setItem(RELATORIOS_LAYOUT_KEY, JSON.stringify(dados));
+    } catch (e) {
+      /* localStorage indisponível — mudança vale só nesta renderização */
+    }
+  }
+
+  // Sem layout salvo = usa o padrão Domínio (comportamento atual, nenhuma
+  // ação necessária do operador) — mesma convenção de "ausência é o
+  // default" usada em parametrosConfirmados/camposPendentesParametros acima.
+  function layoutsRelatorios(empresaCodigo) {
+    const empresaDados = loadRelatoriosLayout()[empresaCodigo] || {};
+    return TIPOS_RELATORIO.map((tipo) => {
+      const l = empresaDados[tipo];
+      return { tipo: tipo, personalizado: !!l, arquivo: l ? l.arquivo : null, importadoEm: l ? l.importadoEm : null };
+    });
+  }
+
+  function importarLayoutRelatorio(empresaCodigo, tipo, nomeArquivo, dataImportacao) {
+    const dados = loadRelatoriosLayout();
+    if (!dados[empresaCodigo]) dados[empresaCodigo] = {};
+    dados[empresaCodigo][tipo] = { arquivo: nomeArquivo, importadoEm: dataImportacao };
+    saveRelatoriosLayout(dados);
+  }
+
+  function removerLayoutRelatorio(empresaCodigo, tipo) {
+    const dados = loadRelatoriosLayout();
+    if (dados[empresaCodigo]) delete dados[empresaCodigo][tipo];
+    saveRelatoriosLayout(dados);
+  }
+
   global.EmpresasImplantacaoData = {
     EMPRESAS_IMPLANTACAO,
     empresaImplantacao,
@@ -260,5 +322,9 @@
     camposPendentesParametros,
     parametrosConfirmados,
     confirmarParametros,
+    TIPOS_RELATORIO,
+    layoutsRelatorios,
+    importarLayoutRelatorio,
+    removerLayoutRelatorio,
   };
 })(window);
