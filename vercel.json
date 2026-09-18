@@ -1,0 +1,6 @@
+{
+  "framework": null,
+  "buildCommand": "echo 'Prototipo estatico - sem build necessario'",
+  "installCommand": "echo 'Sem dependencias'",
+  "outputDirectory": "prototype"
+}
