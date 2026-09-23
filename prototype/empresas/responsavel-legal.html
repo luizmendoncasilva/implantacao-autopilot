@@ -1,51 +1,150 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
-  <title>Responsável legal — Empresas — AutoPilot</title>
-  <link rel="stylesheet" href="../shared/css/tokens.css" />
-  <link rel="stylesheet" href="../shared/css/base.css" />
-  <link rel="stylesheet" href="../shared/css/components.css" />
-  <link rel="stylesheet" href="../shared/css/layout.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Responsável legal · Empresas · Autopilot Configs</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body { margin: 0; }
+.ap-crumb{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-tertiary);}
+.ap-crumb a{color:var(--text-tertiary);text-decoration:none;}
+.ap-crumb a:hover{color:var(--brand-pink);}
+.ap-page{padding:20px 28px 48px;max-width:1200px;margin:0 auto;width:100%;}
+.ap-detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px 24px;}
+.ap-detail-field-wide{grid-column:1/-1;}
+.ap-toast{position:fixed;bottom:24px;right:24px;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 14px 30px rgba(0,0,0,.14);padding:14px 16px;display:flex;gap:10px;align-items:flex-start;max-width:360px;z-index:400;transform:translateY(12px);opacity:0;pointer-events:none;transition:all .2s;}
+.ap-toast.show{transform:translateY(0);opacity:1;}
+.ap-toast-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--success-soft);color:var(--success);}
+.ap-toast.info .ap-toast-icon{background:var(--info-soft);color:var(--info);}
+.ap-toast-title{font-size:13px;font-weight:600;color:var(--text-primary);}
+.ap-toast-desc{font-size:12px;color:var(--text-secondary);margin-top:2px;}
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:140;opacity:0;pointer-events:none;transition:opacity .2s;}
+.drawer-overlay.open{opacity:1;pointer-events:auto;}
+.drawer{position:fixed;top:0;right:0;height:100%;width:480px;background:var(--surface);border-left:1px solid var(--border);z-index:150;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s cubic-bezier(.25,.46,.45,.94);}
+.drawer.open{transform:translateX(0);}
+.drawer-header{padding:18px 22px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:flex-start;gap:12px;}
+.drawer-title{font-size:15px;font-weight:700;color:var(--text-primary);line-height:1.3;}
+.drawer-desc{font-size:12.5px;color:var(--text-secondary);margin-top:4px;}
+.drawer-body{flex:1;overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:16px;}
+.drawer-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;background:var(--surface);}
+.ap-topbar-inner{display:flex;align-items:center;height:56px;padding:0 28px;border-bottom:1px solid var(--border);background:#fff;}
+</style>
 </head>
 <body>
-  <div id="shell-root"></div>
 
-  <template id="page-content">
-    <div id="detail-shell-mount"></div>
-  </template>
+<div class="sidebar"></div>
+<div class="main">
+  <div class="ap-topbar-inner" id="ap-crumb"></div>
+  <div class="ap-page" id="ap-empresa-shell"></div>
+</div>
 
-  <!-- Sheet (drawer) de edição do responsável legal — dado hoje espelhado do
-       Cockpit; sem campos bloqueados nesta aba. -->
-  <div class="sheet-overlay" id="edit-empresa-overlay"></div>
-  <div class="sheet-panel" id="edit-empresa-panel" role="dialog" aria-modal="true" aria-labelledby="edit-empresa-title">
-    <button type="button" class="sheet-close" id="edit-empresa-close"></button>
-    <div class="sheet-header">
-      <div class="sheet-title" id="edit-empresa-title">Editar responsável legal</div>
-      <div class="sheet-description">Altere os dados da pessoa física legalmente responsável pela empresa.</div>
+<!-- Drawer: Editar responsável legal — sem ponto de entrada na tela em v1
+     (somente leitura, RN-01/RF-201 atualizados 15/09/2026; ver
+     js/empresa-shell-cockpit.js e docs/RN-RF_CadastroEmpresasAuxiliares.md,
+     seção 4-A). Markup e script mantidos de propósito, não removidos. -->
+<div class="drawer-overlay" id="edit-empresa-overlay"></div>
+<div class="drawer" id="edit-empresa-panel">
+  <div class="drawer-header">
+    <div style="flex:1;">
+      <div class="drawer-title">Editar responsável legal</div>
+      <div class="drawer-desc">Altere os dados da pessoa física legalmente responsável pela empresa.</div>
     </div>
-    <div class="sheet-body">
-      <div class="sheet-field"><label class="field-label" for="edit-rl-nome">Nome</label><input class="field-input" id="edit-rl-nome" /></div>
-      <div class="sheet-field"><label class="field-label" for="edit-rl-cpf">CPF</label><input class="field-input" id="edit-rl-cpf" /></div>
-      <div class="sheet-field"><label class="field-label" for="edit-rl-cargo">Cargo / Qualificação</label><input class="field-input" id="edit-rl-cargo" /></div>
-    </div>
-    <div class="sheet-footer">
-      <span class="text-xs text-muted" style="margin-right:auto;">As alterações serão refletidas no Cockpit.</span>
-      <button type="button" class="btn btn-outline" id="edit-empresa-cancelar">Cancelar</button>
-      <button type="button" class="btn" id="edit-empresa-salvar">Salvar alterações</button>
-    </div>
+    <button type="button" class="btn btn-ghost" id="edit-empresa-close"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
   </div>
+  <div class="drawer-body">
+    <div class="ef-field"><label class="ef-label">Nome</label><input class="ef-input" id="edit-rl-nome" /></div>
+    <div class="ef-field"><label class="ef-label">CPF</label><input class="ef-input" id="edit-rl-cpf" /></div>
+    <div class="ef-field"><label class="ef-label">Cargo / Qualificação</label><input class="ef-input" id="edit-rl-cargo" /></div>
+  </div>
+  <div class="drawer-footer">
+    <span style="font-size:11px;color:var(--text-tertiary);margin-right:auto;">As alterações serão refletidas no Cockpit.</span>
+    <button type="button" class="btn btn-secondary" id="edit-empresa-cancelar">Cancelar</button>
+    <button type="button" class="btn btn-primary" id="edit-empresa-salvar">Salvar alterações</button>
+  </div>
+</div>
 
-  <script src="../shared/js/icons.js"></script>
-  <script src="../shared/js/shell.js"></script>
-  <script src="../shared/js/ui.js"></script>
-  <script src="../shared/js/fab-tools.js"></script>
-  <script src="js/data.js"></script>
-  <script src="js/detail-common.js"></script>
-  <script src="js/responsavel-legal.js"></script>
-  <script>window.ACTIVE_TAB = "responsavelLegal";</script>
-  <script src="js/boot-detail.js"></script>
+<div id="ap-toast" class="ap-toast">
+  <span class="ap-toast-icon"><i data-lucide="check" style="width:12px;height:12px;"></i></span>
+  <div><div class="ap-toast-title"></div><div class="ap-toast-desc"></div></div>
+</div>
+
+<script>window.FLOW_CONFIG = { standalone: true };</script>
+<script src="js/data.js"></script>
+<script src="../cadastros-auxiliares/js/contadores/data.js"></script>
+<script src="../assets/core/cockpit-01-shell.js"></script>
+<script src="../assets/core/cockpit-02-state-helpers.js"></script>
+<script src="../assets/core/cockpit-05-timeline-actions.js"></script>
+<script src="../assets/core/cockpit-08-datatable.js"></script>
+<script src="../assets/core/cockpit-07-modals-init.js"></script>
+<script src="../assets/core/cockpit-09-cx-sidebar.js"></script>
+<script src="js/empresa-shell-cockpit.js"></script>
+<script>
+(function () {
+  const D = window.EmpresasData;
+  let empresaAtual = null;
+  let drawerWired = false;
+
+  function abrirEdicaoEmpresa(empresa) {
+    empresaAtual = empresa;
+    const rl = empresa.responsavelLegal || {};
+    document.getElementById("edit-rl-nome").value = rl.nome || "";
+    document.getElementById("edit-rl-cpf").value = rl.cpf || "";
+    document.getElementById("edit-rl-cargo").value = rl.cargo || "";
+    ApEmpresaShell.abrirDrawer("edit-empresa-overlay", "edit-empresa-panel");
+  }
+  function fecharDrawerEdicao() { ApEmpresaShell.fecharDrawer("edit-empresa-overlay", "edit-empresa-panel"); }
+
+  function salvarEdicaoEmpresa() {
+    const novosValores = {
+      nome: document.getElementById("edit-rl-nome").value.trim(),
+      cpf: document.getElementById("edit-rl-cpf").value.trim(),
+      cargo: document.getElementById("edit-rl-cargo").value.trim(),
+    };
+    ApEmpresaShell.confirmarReflexoCockpit(
+      () => {
+        D.setResponsavelLegalEmpresa(empresaAtual.codigo, novosValores);
+        fecharDrawerEdicao();
+        window.renderTabContent(empresaAtual);
+        ApEmpresaShell.toast("Alterações salvas e sincronizadas com o Cockpit", "O responsável legal de " + empresaAtual.nome + " foi atualizado.");
+      },
+      () => { fecharDrawerEdicao(); ApEmpresaShell.toast("Alterações descartadas", "Nenhuma alteração foi salva para " + empresaAtual.nome + ".", "info"); }
+    );
+  }
+
+  function wireDrawerEdicao() {
+    if (drawerWired) return;
+    drawerWired = true;
+    document.getElementById("edit-empresa-overlay").addEventListener("click", fecharDrawerEdicao);
+    document.getElementById("edit-empresa-close").addEventListener("click", fecharDrawerEdicao);
+    document.getElementById("edit-empresa-cancelar").addEventListener("click", fecharDrawerEdicao);
+    document.getElementById("edit-empresa-salvar").addEventListener("click", salvarEdicaoEmpresa);
+  }
+
+  window.abrirEdicaoEmpresa = abrirEdicaoEmpresa;
+
+  function campo(label, value, wide) {
+    return '<div class="' + (wide ? "ap-detail-field-wide" : "") + '"><div class="field-label">' + label + '</div><div class="field-value">' + value + "</div></div>";
+  }
+
+  window.renderTabContent = function (empresa) {
+    wireDrawerEdicao();
+    const rl = empresa.responsavelLegal;
+    const conteudo = rl
+      ? campo("Nome", esc(rl.nome), true) + campo("CPF", esc(rl.cpf)) + campo("Cargo / Qualificação", esc(rl.cargo))
+      : '<div class="ap-detail-field-wide"><span style="font-size:13px;font-style:italic;color:var(--text-tertiary);">Nenhum responsável legal cadastrado.</span></div>';
+
+    document.getElementById("tab-content").innerHTML =
+      '<div class="section-card"><div class="subsection-title" style="margin-top:0;">Responsável legal</div><div class="ap-detail-grid">' + conteudo + "</div></div>";
+    refreshIcons();
+  };
+
+  ApEmpresaShell.boot("responsavelLegal");
+})();
+</script>
 </body>
 </html>

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1280" />
+<title>{{TITULO}} · Protótipo</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* CSS específico desta tela vai aqui. Reaproveite classes de
+     design-tokens-and-components.md antes de criar algo novo. */
+</style>
+</head>
+<body>
+<script>
+window.FLOW_CONFIG = {
+  // Módulo deste protótipo: 'dp' | 'fiscal' | 'contabil' | 'bpo' | 'autopilot_configs'
+  // Pergunte ao usuário qual é, sempre — não assuma 'dp' por padrão.
+  module: '{{MODULO}}',
+
+  // Tela por onde o protótipo deve abrir. 'queue' é a fila (comportamento
+  // antigo/legado) — só use se o pedido for de fato sobre a fila de tarefas.
+  // Na dúvida, prefira 'task' ou 'execution' e aponte pra tela específica
+  // pedida, ou use standalone:true (ver flow-config-contract.md) se for uma
+  // tela adaptada de um layout/print que não segue o shell do Cockpit.
+  entryScreen: '{{ENTRY_SCREEN}}', // 'queue' | 'task' | 'execution' | 'success'
+
+  operacaoLabel: '{{OPERACAO_LABEL}}',
+  typeCode: '{{TYPE_CODE}}',
+  TYPE_METADATA: {
+    '{{TYPE_CODE}}': {
+      icon: 'file-text',
+      label: '{{TIPO_LABEL}}',
+      desc: '{{TIPO_DESC}}',
+      color: '#f25461',
+    },
+  },
+  EXEC_STEPS: 'geral',
+  FORM_TABS_BY_TYPE: {
+    '{{TYPE_CODE}}': [{ id: 'resumo', label: 'Resumo' }],
+  },
+  getInitialState() {
+    return {
+      queue: [
+        // Adicionar 2-3 tarefas mock realistas aqui.
+        // Ver flow-config-contract.md para o formato completo de cada item.
+      ],
+    };
+  },
+};
+
+/* ═══════════════════════════════════════════════════════════
+   Funções e estado específicos deste fluxo.
+   Sufixe nomes novos (ex: MinhaFuncaoNovoFluxo) pra não colidir
+   com os globais do core.
+   ═══════════════════════════════════════════════════════════ */
+
+</script>
+<!-- Ordem fixa, sempre a mesma, cockpit-07 (init) sempre por último -->
+<script src="core/cockpit-01-shell.js"></script>
+<script src="core/cockpit-02-state-helpers.js"></script>
+<script src="core/cockpit-03-queue-home.js"></script>
+<script src="core/cockpit-04-task-detail.js"></script>
+<script src="core/cockpit-05-timeline-actions.js"></script>
+<script src="core/cockpit-06-execution.js"></script>
+<script src="core/cockpit-08-datatable.js"></script>
+<script src="core/cockpit-07-modals-init.js"></script>
+</body>
+</html>

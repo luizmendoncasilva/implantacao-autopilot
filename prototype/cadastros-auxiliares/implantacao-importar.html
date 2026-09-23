@@ -1,89 +1,616 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
-  <title>Nova Implantação — Implantação de Empresas — AutoPilot</title>
-  <link rel="stylesheet" href="../shared/css/tokens.css" />
-  <link rel="stylesheet" href="../shared/css/base.css" />
-  <link rel="stylesheet" href="../shared/css/components.css?v=2" />
-  <link rel="stylesheet" href="../shared/css/layout.css?v=2" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1280" />
+<title>Nova Implantação · Protótipo</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Adaptação visual (não reinvenção de conteúdo) de
+     prototype/cadastros-auxiliares/implantacao-importar.html para o design
+     system Cockpit — modo standalone: este fluxo é uma tela cheia de
+     wizard de importação (upload → confirmação → processamento →
+     resultado), sem shell de sidebar/fila em volta. Toda a lógica em
+     importar.js original foi preservada; só a camada visual mudou. */
+  body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: var(--surface-muted); color: var(--text-primary); }
+  .imp-page { max-width: 900px; margin: 0 auto; padding: 28px 24px 64px; display: flex; flex-direction: column; gap: 16px; }
+  .imp-crumb { font-size: 12px; color: var(--text-tertiary); margin-bottom: 4px; }
+  .imp-crumb a { color: var(--text-tertiary); text-decoration: none; }
+  .imp-crumb a:hover { color: var(--brand-pink); }
+  .imp-title { font-size: 20px; font-weight: 700; color: var(--text-primary); margin: 0 0 4px; }
+  .imp-sub { font-size: 13px; color: var(--text-secondary); line-height: 1.55; max-width: 680px; margin: 0; }
+
+  /* Toggle segmentado (tipo de implantação / relatório personalizado) —
+     não existe pronto no core; construído seguindo os tokens de botão. */
+  .imp-toggle-group { display: inline-flex; border: 1px solid var(--border-strong); border-radius: 999px; padding: 3px; background: var(--surface); width: fit-content; }
+  .imp-toggle-item { border: none; background: transparent; padding: 7px 16px; border-radius: 999px; font-size: 12.5px; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: all .15s; white-space: nowrap; }
+  .imp-toggle-item.is-on { background: var(--brand-pink); color: #fff; }
+  .imp-toggle-item:hover:not(.is-on) { color: var(--text-primary); }
+
+  /* Linha de arquivo enviado — mais rica que renderFileItem do core (traz
+     CNPJ, empresa, colaboradores, ou motivo do alerta), então customizada
+     seguindo o mesmo visual de .file-item do core. */
+  .imp-file-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+  .imp-file-row + .imp-file-row { margin-top: 8px; }
+  .imp-file-icon { width: 34px; height: 34px; border-radius: 8px; background: var(--surface-muted); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .imp-file-icon.warn { background: var(--warning-soft); color: var(--warning); }
+  .imp-file-icon.danger { background: var(--danger-soft); color: var(--danger); }
+  .imp-file-name { font-size: 13.5px; font-weight: 600; color: var(--text-primary); }
+  .imp-file-detail { font-size: 12px; color: var(--text-secondary); margin-top: 2px; line-height: 1.5; }
+  .imp-file-detail.warn { color: var(--warning); }
+  .imp-file-detail.danger { color: var(--danger); }
+  .imp-file-remove { flex-shrink: 0; width: 28px; height: 28px; border-radius: 8px; border: none; background: transparent; color: var(--text-tertiary); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .imp-file-remove:hover { background: var(--surface-muted); color: var(--danger); }
+
+  /* Alertas coloridos — alert-banner do core é só rosa; aqui precisamos de
+     variantes success/warning/danger/info, construídas com os mesmos
+     tokens de cor já usados nos badges. */
+  .imp-alert { display: flex; gap: 10px; align-items: flex-start; padding: 12px 16px; border-radius: 10px; font-size: 12.5px; line-height: 1.55; border: 1px solid transparent; }
+  .imp-alert i[data-lucide] { flex-shrink: 0; margin-top: 1px; }
+  .imp-alert.danger { background: var(--danger-soft); color: #991b1b; border-color: #fecaca; }
+  .imp-alert.danger i { color: var(--danger); }
+  .imp-alert.warning { background: var(--warning-soft); color: #92400e; border-color: #fde68a; }
+  .imp-alert.warning i { color: var(--warning); }
+  .imp-alert.info { background: var(--info-soft); color: #1e40af; border-color: #bfdbfe; }
+  .imp-alert.info i { color: var(--info); }
+
+  /* Cartões de estatística do resultado — variação de .section-card. */
+  .imp-stats { display: flex; flex-wrap: wrap; gap: 12px; }
+  .imp-stat-card { flex: 1 1 150px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+  .imp-stat-value { font-size: 26px; font-weight: 700; color: var(--text-primary); line-height: 1; }
+  .imp-stat-card.success .imp-stat-value { color: var(--success); }
+  .imp-stat-card.warning .imp-stat-value { color: var(--warning); }
+  .imp-stat-card.danger .imp-stat-value { color: var(--danger); }
+  .imp-stat-label { font-size: 11.5px; color: var(--text-secondary); margin-top: 4px; }
+
+  /* Spinner simples para a tela de processamento (Tela 4). */
+  .imp-spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border-strong); border-top-color: var(--brand-pink); animation: imp-spin .7s linear infinite; }
+  .imp-spinner-lg { width: 34px; height: 34px; border-width: 3px; }
+  @keyframes imp-spin { to { transform: rotate(360deg); } }
+
+  .btn[disabled] { opacity: .45; cursor: not-allowed; pointer-events: none; }
+
+  /* Toast — replicado no mesmo padrão descrito no catálogo (o core não tem
+     um toast global). */
+  .imp-toast { position: fixed; bottom: 24px; right: 24px; display: flex; gap: 10px; align-items: flex-start; background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--success); border-radius: 10px; padding: 14px 16px; box-shadow: 0 12px 30px rgba(0,0,0,0.14); min-width: 280px; max-width: 360px; z-index: 200; opacity: 0; transform: translateY(8px); transition: all .2s; pointer-events: none; }
+  .imp-toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .imp-toast-icon { color: var(--success); flex-shrink: 0; margin-top: 1px; }
+  .imp-toast-title { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .imp-toast-desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+  /* Modal "Confirmar importação" / "CNPJ não identificado" — decisão de UX
+     documentada no resumo da migração: ambos ficam como modal centrado
+     (.modal-backdrop/.modal-panel), replicando a decisão já tomada no
+     protótipo original (Tela 3 é só leitura+confirmação; Tela 6, apesar de
+     ter um <select>, é uma correção pontual de 1 campo dentro de um modal
+     já existente, não um formulário extenso — não force drawer lateral
+     para uma correção rápida de campo único). */
+  #imp-modal-confirmar .modal-panel, #imp-modal-inconsistencia .modal-panel { max-width: 520px; }
+  .imp-modal-file { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--surface-subtle); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: var(--text-secondary); word-break: break-all; }
+</style>
 </head>
 <body>
-  <div id="shell-root"></div>
 
-  <template id="page-content">
-    <section class="max-w-7xl flex flex-col gap-4">
-      <div id="importacao-crumb-extra"></div>
-      <div id="importacao-step-mount"></div>
-    </section>
+<div class="imp-page">
+  <div class="imp-crumb" id="imp-crumb">Implantação de Empresas / DP / Nova Implantação</div>
+  <div id="imp-mount"></div>
+</div>
 
-    <!-- Modal — Confirmar importação (Tela 3). Só leitura + confirmação, sem
-         campo editável: dialog centralizado, não drawer. -->
-    <div class="dialog-overlay" id="dialog-confirmar-importacao">
-      <div class="dialog-content" role="dialog" aria-modal="true" aria-labelledby="dialog-confirmar-titulo">
-        <button type="button" class="dialog-close" data-close-dialog="dialog-confirmar-importacao" aria-label="Fechar"><span id="icon-close-confirmar"></span></button>
-        <div class="flex flex-col gap-1">
-          <h2 class="dialog-title" id="dialog-confirmar-titulo">Importar arquivos?</h2>
-          <p class="dialog-description" id="dialog-confirmar-desc"></p>
-        </div>
-        <div id="dialog-confirmar-extra"></div>
-        <div class="dialog-footer">
-          <button type="button" class="btn btn-outline" data-close-dialog="dialog-confirmar-importacao">Cancelar</button>
-          <button type="button" class="btn" id="btn-confirmar-importacao">Confirmar importação</button>
-        </div>
+<!-- Modal — Confirmar importação (Tela 3 do original). Só leitura + uma
+     pergunta binária (relatório personalizado?) — conteúdo mais rico que um
+     showConfirmModal genérico, por isso estrutura manual. -->
+<div class="modal-backdrop hidden" id="imp-modal-confirmar">
+  <div class="modal-panel" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div style="font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500;">Nova implantação</div>
+        <div style="font-size: 16px; font-weight: 600; margin-top: 2px;" id="imp-confirmar-titulo">Importar arquivos?</div>
+      </div>
+      <button class="btn btn-ghost" onclick="fecharConfirmarImportar()" style="padding:6px;" aria-label="Fechar"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin: 0 0 4px;" id="imp-confirmar-desc"></p>
+      <div id="imp-confirmar-extra"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="fecharConfirmarImportar()">Cancelar</button>
+      <button class="btn btn-primary" id="imp-btn-confirmar">Confirmar importação</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal — Inconsistência / CNPJ não identificado (Tela 6 do original).
+     Mantido como modal centrado, não drawer: é uma correção pontual de um
+     único campo (empresa) dentro de um arquivo que já foi enviado, com uma
+     ação de confirmação — não um formulário de edição extenso. Se o time
+     preferir seguir a regra "interação → drawer" à risca, este é o
+     candidato mais próximo do limite entre os dois padrões; optamos por
+     modal aqui pela simplicidade do conteúdo (1 campo). -->
+<div class="modal-backdrop hidden" id="imp-modal-inconsistencia">
+  <div class="modal-panel" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div style="font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500;">Associação manual</div>
+        <div style="font-size: 16px; font-weight: 600; margin-top: 2px;">CNPJ não identificado</div>
+      </div>
+      <button class="btn btn-ghost" onclick="fecharInconsistenciaImportar()" style="padding:6px;" aria-label="Fechar"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
+    </div>
+    <div class="modal-body" style="display:flex; flex-direction:column; gap:14px;">
+      <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin:0;">Não conseguimos ler o CNPJ automaticamente neste arquivo. Selecione a empresa correta para associar e reprocessar.</p>
+      <div class="imp-modal-file" id="imp-inconsistencia-arquivo"></div>
+      <div class="ef-field">
+        <div class="ef-label">Empresa</div>
+        <select class="ef-select" id="imp-inconsistencia-empresa">
+          <option value="">Selecione a empresa...</option>
+        </select>
       </div>
     </div>
-
-    <!-- Modal — Inconsistência / CNPJ não identificado (Tela 6). -->
-    <div class="dialog-overlay" id="dialog-inconsistencia">
-      <div class="dialog-content" role="dialog" aria-modal="true" aria-labelledby="dialog-inconsistencia-titulo">
-        <button type="button" class="dialog-close" data-close-dialog="dialog-inconsistencia" aria-label="Fechar"><span id="icon-close-inconsistencia"></span></button>
-        <div class="flex flex-col gap-1">
-          <h2 class="dialog-title" id="dialog-inconsistencia-titulo">CNPJ não identificado</h2>
-          <p class="dialog-description">Não conseguimos ler o CNPJ automaticamente neste arquivo. Selecione a empresa correta para associar e reprocessar.</p>
-        </div>
-        <div class="flex flex-col gap-3">
-          <div class="sheet-field-locked-value font-mono" id="dialog-inconsistencia-arquivo" style="font-size:12.5px;"></div>
-          <div class="flex flex-col gap-1">
-            <label class="field-label" for="dialog-inconsistencia-empresa">Empresa</label>
-            <div class="field-select-wrap">
-              <select id="dialog-inconsistencia-empresa" class="field-select">
-                <option value="">Selecione a empresa...</option>
-              </select>
-              <span class="chev" id="icon-chev-inconsistencia"></span>
-            </div>
-          </div>
-        </div>
-        <div class="dialog-footer">
-          <button type="button" class="btn btn-outline" data-close-dialog="dialog-inconsistencia">Fechar</button>
-          <button type="button" class="btn" id="btn-reprocessar-arquivo" disabled>Reprocessar arquivo</button>
-        </div>
-      </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="fecharInconsistenciaImportar()">Fechar</button>
+      <button class="btn btn-primary" id="imp-btn-reprocessar" disabled>Reprocessar arquivo</button>
     </div>
-  </template>
+  </div>
+</div>
 
-  <script src="../shared/js/icons.js"></script>
-  <script src="../shared/js/shell.js?v=3"></script>
-  <script src="../shared/js/ui.js?v=3"></script>
-  <script src="../shared/js/fab-tools.js"></script>
-  <script src="../empresas/js/data.js"></script>
-  <script src="js/implantacao/data.js?v=5"></script>
-  <script src="js/implantacao/empresas-data.js?v=8"></script>
-  <script>
-    Shell.mount(document.getElementById("shell-root"), {
-      base: "../",
-      active: "implantacao-dp",
-      crumbs: [{ label: "implantação de empresas", href: "implantacao-geral.html" }, { label: "DP", href: "implantacao-empresas.html" }, { label: "nova implantação" }],
+<div class="imp-toast" id="imp-toast">
+  <i data-lucide="check-circle-2" class="imp-toast-icon" style="width:18px;height:18px;"></i>
+  <div>
+    <div class="imp-toast-title" id="imp-toast-title"></div>
+    <div class="imp-toast-desc" id="imp-toast-desc"></div>
+  </div>
+</div>
+
+<script>
+window.FLOW_CONFIG = { standalone: true };
+
+/* =========================================================================
+   Wizard de Nova Implantação — porte 1:1 da lógica de
+   prototype/cadastros-auxiliares/js/implantacao/importar.js para o visual
+   Cockpit. Mesmas 3 telas navegáveis (upload → processamento → resultado)
+   + os 2 modais (confirmar importação / CNPJ não identificado). Nomes
+   sufixados "Importar" para não colidir com os globais do core
+   (showScreen, openDrawer, state, etc.).
+   ========================================================================= */
+(function () {
+  // ===== Dados mock (recorte de empresas-data.js / empresas/js/data.js do
+  // protótipo original — mesmas 3 empresas reais usadas em todo o resto do
+  // protótipo, mesmos CNPJs). ==============================================
+  var EMPRESAS_IMPORTAR = [
+    { codigo: "PA-0011", nome: "Padaria Aurora", cnpj: "12.345.678/0001-90" },
+    { codigo: "MS-0027", nome: "Metalúrgica Sigma", cnpj: "06.265.226/0001-09" },
+    { codigo: "CH-0042", nome: "Comércio Horizonte", cnpj: "22.333.444/0001-55" },
+  ];
+  // Padaria Aurora já está "implantada" (em operação) — usada para exercitar
+  // o bloqueio de empresa já em operação sem esgotar o pool de arquivos.
+  var EMPRESAS_EM_OPERACAO_IMPORTAR = ["PA-0011"];
+
+  function empresaNomeImportar(codigo) {
+    var e = EMPRESAS_IMPORTAR.filter(function (x) { return x.codigo === codigo; })[0];
+    return e ? e.nome : codigo;
+  }
+  function formatarKbImportar(kb) {
+    return kb >= 1024 ? (kb / 1024).toFixed(1) + " MB" : kb + " KB";
+  }
+
+  // Lote inicial — mesmos 5 arquivos-mock do original (data.js:
+  // ARQUIVOS_LOTE_INICIAL), inclusive os CNPJs e status de cada caso de
+  // exceção (não identificado / sem Cockpit / já em operação).
+  var ARQUIVOS_LOTE_INICIAL_IMPORTAR = [
+    { nomeArquivo: "Ficha_Financeira_Metalurgica_Sigma.pdf", tamanhoKb: 2380, cnpj: "06.265.226/0001-09", empresaCodigo: "MS-0027", status: "identificado", colaboradoresDetectados: 18 },
+    { nomeArquivo: "Ficha_Financeira_Comercio_Horizonte.pdf", tamanhoKb: 1790, cnpj: "22.333.444/0001-55", empresaCodigo: "CH-0042", status: "identificado", colaboradoresDetectados: 9 },
+    { nomeArquivo: "Ficha_Padaria_Aurora_v2.pdf", tamanhoKb: 1120, cnpj: null, empresaCodigo: null, status: "nao_identificado", colaboradoresDetectados: 0 },
+    { nomeArquivo: "Ficha_Financeira_Industria_Nova.pdf", tamanhoKb: 980, cnpj: "88.554.221/0001-77", empresaCodigo: null, status: "cnpj_nao_cadastrado", colaboradoresDetectados: 0 },
+    { nomeArquivo: "Ficha_Financeira_Padaria_Aurora.pdf", tamanhoKb: 1340, cnpj: "12.345.678/0001-90", empresaCodigo: "PA-0011", status: "identificado", colaboradoresDetectados: 6 },
+  ];
+  var POOL_ARQUIVOS_MOCK_IMPORTAR = ARQUIVOS_LOTE_INICIAL_IMPORTAR;
+
+  var stateImportar = {
+    step: "upload",
+    arquivos: JSON.parse(JSON.stringify(ARQUIVOS_LOTE_INICIAL_IMPORTAR)),
+    procIndex: 0,
+    resultado: null,
+    tipoImplantacao: "novo", // "novo" | "migracao"
+    relatorioPersonalizado: false,
+  };
+
+  function empresaJaEmOperacaoImportar(empresaCodigo) {
+    if (!empresaCodigo) return false;
+    return stateImportar.tipoImplantacao !== "migracao" && EMPRESAS_EM_OPERACAO_IMPORTAR.indexOf(empresaCodigo) !== -1;
+  }
+  function arquivoBloqueadoPorOperacaoImportar(arquivo) {
+    return arquivo.status === "identificado" && empresaJaEmOperacaoImportar(arquivo.empresaCodigo);
+  }
+  function arquivosIdentificadosImportar() {
+    return stateImportar.arquivos.filter(function (a) { return a.status === "identificado"; });
+  }
+  function arquivosNaoIdentificadosImportar() {
+    return stateImportar.arquivos.filter(function (a) { return a.status === "nao_identificado"; });
+  }
+  function arquivosSemCockpitImportar() {
+    return stateImportar.arquivos.filter(function (a) { return a.status === "cnpj_nao_cadastrado"; });
+  }
+  function arquivosBloqueadosPorOperacaoImportar() {
+    return arquivosIdentificadosImportar().filter(arquivoBloqueadoPorOperacaoImportar);
+  }
+  function arquivosProntosParaProcessarImportar() {
+    return arquivosIdentificadosImportar().filter(function (a) { return !arquivoBloqueadoPorOperacaoImportar(a); });
+  }
+  function colaboradoresEstimadosImportar() {
+    return arquivosProntosParaProcessarImportar().reduce(function (soma, a) { return soma + (a.colaboradoresDetectados || 0); }, 0);
+  }
+
+  function mountImportar(html) {
+    document.getElementById("imp-mount").innerHTML = html;
+    refreshIcons();
+  }
+  function crumbImportar(texto) {
+    document.getElementById("imp-crumb").textContent = "Implantação de Empresas / DP / " + texto;
+  }
+  function irParaImportar(step) {
+    stateImportar.step = step;
+    RENDERERS_IMPORTAR[step]();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // ===== Toast (mesmo padrão descrito no catálogo — replicado por fluxo) ===
+  var toastTimerImportar = null;
+  function toastImportar(titulo, desc) {
+    var el = document.getElementById("imp-toast");
+    document.getElementById("imp-toast-title").textContent = titulo;
+    document.getElementById("imp-toast-desc").textContent = desc || "";
+    el.classList.add("show");
+    clearTimeout(toastTimerImportar);
+    toastTimerImportar = setTimeout(function () { el.classList.remove("show"); }, 5000);
+  }
+
+  // ===== Etapa — Upload (Tela 2) ===========================================
+  function fileItemHtmlImportar(arquivo, indice) {
+    var identificado = arquivo.status === "identificado";
+    var semCockpit = arquivo.status === "cnpj_nao_cadastrado";
+    var bloqueadoPorOperacao = identificado && arquivoBloqueadoPorOperacaoImportar(arquivo);
+    var emAlerta = !identificado || bloqueadoPorOperacao;
+    var iconCls = bloqueadoPorOperacao ? "warn" : semCockpit ? "danger" : !identificado ? "warn" : "";
+
+    var detalheHtml, detalheCls;
+    if (bloqueadoPorOperacao) {
+      detalheCls = "danger";
+      detalheHtml = esc(empresaNomeImportar(arquivo.empresaCodigo)) + ' já está em operação no Autopilot — marque "Migração" acima para prosseguir, ou remova este arquivo';
+    } else if (identificado) {
+      detalheCls = "";
+      detalheHtml = formatarKbImportar(arquivo.tamanhoKb) + " · CNPJ identificado: <span style=\"font-family:'JetBrains Mono',monospace;\">" + esc(arquivo.cnpj) + "</span> — " + esc(empresaNomeImportar(arquivo.empresaCodigo)) + " (" + arquivo.colaboradoresDetectados + (arquivo.colaboradoresDetectados === 1 ? " colaborador" : " colaboradores") + ")";
+    } else if (semCockpit) {
+      detalheCls = "danger";
+      detalheHtml = "CNPJ <span style=\"font-family:'JetBrains Mono',monospace;\">" + esc(arquivo.cnpj) + "</span> identificado, mas a empresa não está cadastrada no Cockpit com a tag Autopilot DP";
+    } else {
+      detalheCls = "warn";
+      detalheHtml = "CNPJ não identificado automaticamente — será perguntado na revisão";
+    }
+
+    return (
+      '<div class="imp-file-row">' +
+      '<div class="imp-file-icon' + (iconCls ? " " + iconCls : "") + '"><i data-lucide="file-text" style="width:17px;height:17px;"></i></div>' +
+      '<div style="flex:1;min-width:0;">' +
+      '<div class="imp-file-name">' + esc(arquivo.nomeArquivo) + "</div>" +
+      '<div class="imp-file-detail' + (detalheCls ? " " + detalheCls : "") + '">' + detalheHtml + "</div>" +
+      "</div>" +
+      '<button type="button" class="imp-file-remove" data-remover-arquivo="' + indice + '" aria-label="Remover arquivo"><i data-lucide="x" style="width:15px;height:15px;"></i></button>' +
+      "</div>"
+    );
+  }
+
+  function proximoArquivoMockImportar() {
+    var nomesJaNaLista = stateImportar.arquivos.map(function (a) { return a.nomeArquivo; });
+    var disponivel = null;
+    for (var i = 0; i < POOL_ARQUIVOS_MOCK_IMPORTAR.length; i++) {
+      if (nomesJaNaLista.indexOf(POOL_ARQUIVOS_MOCK_IMPORTAR[i].nomeArquivo) === -1) { disponivel = POOL_ARQUIVOS_MOCK_IMPORTAR[i]; break; }
+    }
+    if (disponivel) return JSON.parse(JSON.stringify(disponivel));
+    return {
+      nomeArquivo: "Ficha_Financeira_Extra_" + (stateImportar.arquivos.length + 1) + ".pdf",
+      tamanhoKb: 1450, cnpj: "45.112.887/0001-30", empresaCodigo: null, status: "cnpj_nao_cadastrado", colaboradoresDetectados: 0,
+    };
+  }
+
+  function renderUploadImportar() {
+    crumbImportar("Nova Implantação");
+    var temArquivos = stateImportar.arquivos.length > 0;
+    var bloqueados = arquivosBloqueadosPorOperacaoImportar();
+
+    mountImportar(
+      '<h1 class="imp-title">Nova Implantação</h1>' +
+      '<p class="imp-sub">Arraste o lote de relatórios do Domínio — Ficha de Registro, Ficha Financeira, Programação de Férias, Relatório de Médias e Extrato Mensal — em PDF ou Excel. O sistema identifica a empresa de cada arquivo automaticamente pelo CNPJ. Não é preciso selecionar uma empresa por vez: solte arquivos de várias empresas juntos.</p>' +
+      '<div style="margin-top:8px;">' +
+      '<div class="ef-label" style="margin-bottom:6px;">Tipo de implantação</div>' +
+      '<div class="imp-toggle-group" data-toggle="tipo-implantacao">' +
+      '<button type="button" class="imp-toggle-item' + (stateImportar.tipoImplantacao === "novo" ? " is-on" : "") + '" data-value="novo">Novo cliente</button>' +
+      '<button type="button" class="imp-toggle-item' + (stateImportar.tipoImplantacao === "migracao" ? " is-on" : "") + '" data-value="migracao">Migração de empresa já em operação</button>' +
+      "</div>" +
+      '<p style="font-size:11.5px;color:var(--text-tertiary);margin-top:6px;">"Novo cliente" bloqueia empresas que já operam no Autopilot — RN, alinhamento Andressa/Jeniffer 10/09/2026.</p>' +
+      "</div>" +
+      (bloqueados.length
+        ? '<div class="imp-alert danger"><i data-lucide="alert-triangle" style="width:16px;height:16px;"></i><div>' + bloqueados.length + (bloqueados.length === 1 ? " arquivo é de uma empresa que já opera" : " arquivos são de empresas que já operam") + ' no Autopilot. Marque "Migração" acima se for intencional, ou remova ' + (bloqueados.length === 1 ? "o arquivo" : "os arquivos") + ".</div></div>"
+        : "") +
+      '<div class="section-card">' +
+      '<div class="upload-area" id="imp-dropzone" tabindex="0" role="button" aria-label="Selecionar arquivos PDF">' +
+      '<div class="upload-area-icon"><i data-lucide="upload" style="width:18px;height:18px;"></i></div>' +
+      '<div class="upload-area-title">Arraste os arquivos aqui ou clique para selecionar</div>' +
+      '<div class="upload-area-hint">Apenas PDF · até 100 arquivos por lote · máx. 15MB por arquivo</div>' +
+      "</div>" +
+      (temArquivos ? '<div style="margin-top:16px;">' + stateImportar.arquivos.map(fileItemHtmlImportar).join("") + "</div>" : "") +
+      "</div>" +
+      (temArquivos
+        ? '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">' +
+          '<div style="font-size:12.5px;color:var(--text-secondary);">' + stateImportar.arquivos.length + (stateImportar.arquivos.length === 1 ? " arquivo selecionado" : " arquivos selecionados") + " · " + colaboradoresEstimadosImportar() + " colaboradores estimados</div>" +
+          '<div style="display:flex;gap:8px;">' +
+          '<a href="implantacao-geral.html" class="btn btn-secondary">Cancelar</a>' +
+          '<button type="button" class="btn btn-primary" id="imp-btn-importar-lote"' + (arquivosProntosParaProcessarImportar().length === 0 ? " disabled" : "") + '><i data-lucide="upload" style="width:14px;height:14px;"></i>Importar lote</button>' +
+          "</div></div>"
+        : "")
+    );
+
+    wireDropzoneImportar();
+    document.querySelectorAll("[data-remover-arquivo]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        stateImportar.arquivos.splice(Number(btn.getAttribute("data-remover-arquivo")), 1);
+        renderUploadImportar();
+      });
     });
-    document.getElementById("icon-close-confirmar").innerHTML = Icon("x", "size-4");
-    document.getElementById("icon-close-inconsistencia").innerHTML = Icon("x", "size-4");
-    document.getElementById("icon-chev-inconsistencia").innerHTML = Icon("chevron-down", "size-4");
-    document.querySelectorAll(".dialog-close").forEach((el) => {
-      if (!el.innerHTML) el.innerHTML = Icon("x", "size-4");
+    document.querySelectorAll('[data-toggle="tipo-implantacao"] .imp-toggle-item').forEach(function (item) {
+      item.addEventListener("click", function () {
+        stateImportar.tipoImplantacao = item.getAttribute("data-value");
+        renderUploadImportar();
+      });
     });
-  </script>
-  <script src="js/implantacao/importar.js?v=4"></script>
+    var btnImportar = document.getElementById("imp-btn-importar-lote");
+    if (btnImportar) btnImportar.addEventListener("click", abrirConfirmarImportar);
+  }
+
+  function wireDropzoneImportar() {
+    var dropzone = document.getElementById("imp-dropzone");
+    function adicionarArquivo() {
+      stateImportar.arquivos.push(proximoArquivoMockImportar());
+      renderUploadImportar();
+    }
+    // Mock: sem input real de arquivo — clique/drop sempre "seleciona" o
+    // próximo arquivo determinístico do pool, mesmo comportamento do
+    // protótipo original (sem Math.random).
+    dropzone.addEventListener("click", adicionarArquivo);
+    dropzone.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); adicionarArquivo(); }
+    });
+    ["dragenter", "dragover"].forEach(function (evt) {
+      dropzone.addEventListener(evt, function (e) { e.preventDefault(); dropzone.classList.add("dragover"); });
+    });
+    ["dragleave", "drop"].forEach(function (evt) {
+      dropzone.addEventListener(evt, function (e) { e.preventDefault(); dropzone.classList.remove("dragover"); });
+    });
+    dropzone.addEventListener("drop", adicionarArquivo);
+  }
+
+  // ===== Modal — Confirmar importação (Tela 3) =============================
+  function abrirConfirmarImportar() {
+    var prontos = arquivosProntosParaProcessarImportar();
+    var naoIdentificados = arquivosNaoIdentificadosImportar();
+    var semCockpit = arquivosSemCockpitImportar();
+    var bloqueados = arquivosBloqueadosPorOperacaoImportar();
+
+    document.getElementById("imp-confirmar-titulo").textContent = "Importar " + stateImportar.arquivos.length + (stateImportar.arquivos.length === 1 ? " arquivo?" : " arquivos?");
+    document.getElementById("imp-confirmar-desc").innerHTML =
+      "Serão processados <b>" + colaboradoresEstimadosImportar() + " colaboradores</b> em <b>" + prontos.length + (prontos.length === 1 ? " empresa</b> identificada automaticamente." : " empresas</b> identificadas automaticamente.") +
+      (naoIdentificados.length ? " " + naoIdentificados.length + (naoIdentificados.length === 1 ? " arquivo não teve" : " arquivos não tiveram") + " o CNPJ identificado e não será processado agora — dá para associar manualmente depois da importação." : "") +
+      (semCockpit.length ? " " + semCockpit.length + (semCockpit.length === 1 ? " arquivo é de empresa" : " arquivos são de empresas") + " sem cadastro no Cockpit e não " + (semCockpit.length === 1 ? "será processado" : "serão processados") + "." : "") +
+      (bloqueados.length ? " " + bloqueados.length + (bloqueados.length === 1 ? " arquivo é de empresa" : " arquivos são de empresas") + " já em operação e não " + (bloqueados.length === 1 ? "será processado" : "serão processados") + ' (marque "Migração" para incluir).' : "");
+
+    document.getElementById("imp-confirmar-extra").innerHTML =
+      '<div style="margin-top:14px;display:flex;flex-direction:column;gap:6px;">' +
+      '<div class="ef-label">Esta empresa usa relatório personalizado (fora do layout padrão Domínio)?</div>' +
+      '<div class="imp-toggle-group" data-toggle="relatorio-personalizado">' +
+      '<button type="button" class="imp-toggle-item' + (!stateImportar.relatorioPersonalizado ? " is-on" : "") + '" data-value="nao">Não</button>' +
+      '<button type="button" class="imp-toggle-item' + (stateImportar.relatorioPersonalizado ? " is-on" : "") + '" data-value="sim">Sim</button>' +
+      "</div></div>";
+    document.querySelectorAll('[data-toggle="relatorio-personalizado"] .imp-toggle-item').forEach(function (item) {
+      item.addEventListener("click", function () {
+        stateImportar.relatorioPersonalizado = item.getAttribute("data-value") === "sim";
+        document.querySelectorAll('[data-toggle="relatorio-personalizado"] .imp-toggle-item').forEach(function (i) { i.classList.remove("is-on"); });
+        item.classList.add("is-on");
+      });
+    });
+
+    document.getElementById("imp-modal-confirmar").classList.remove("hidden");
+    refreshIcons();
+  }
+  function fecharConfirmarImportar() {
+    document.getElementById("imp-modal-confirmar").classList.add("hidden");
+  }
+  window.fecharConfirmarImportar = fecharConfirmarImportar;
+
+  // ===== Etapa — Processamento (Tela 4), reaproveitando .exec-step do
+  // catálogo (mesmo formato visual: ícone + label + sub, done/active). =====
+  var PROC_STEPS_IMPORTAR = [
+    { key: "lendo", label: "Lendo arquivos", icon: "file-text", sub: function () { return stateImportar.arquivos.length + " de " + stateImportar.arquivos.length + " arquivos lidos"; } },
+    { key: "extraindo", label: "Extraindo campos", icon: "list-checks", sub: function () { return colaboradoresEstimadosImportar() + " de " + colaboradoresEstimadosImportar() + " colaboradores processados"; } },
+    { key: "conciliando", label: "Conciliando com o Lake (Domínio)", icon: "git-compare", sub: function () { return null; } },
+    { key: "gerando", label: "Gerando resultado", icon: "list-checks", sub: function () { return null; } },
+  ];
+
+  function renderProcStepsImportar() {
+    return PROC_STEPS_IMPORTAR.map(function (s, i) {
+      var done = i < stateImportar.procIndex;
+      var active = i === stateImportar.procIndex;
+      var icone = done ? '<i data-lucide="check" style="width:14px;height:14px;"></i>' : active ? '<div class="imp-spinner"></div>' : '<i data-lucide="' + s.icon + '" style="width:14px;height:14px;"></i>';
+      var sub = i <= stateImportar.procIndex ? s.sub() : null;
+      return (
+        '<div class="exec-step' + (done ? " done" : "") + (active ? " active" : "") + '" style="align-items:center;">' +
+        '<div class="step-num">' + icone + "</div>" +
+        '<div><div style="font-size:13.5px;font-weight:600;color:var(--text-primary);">' + s.label + "</div>" +
+        (sub ? '<div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">' + sub + "</div>" : "") +
+        "</div></div>"
+      );
+    }).join("");
+  }
+
+  function renderProcessingImportar() {
+    crumbImportar("processando o lote");
+    stateImportar.procIndex = 0;
+    mountImportar(
+      '<div class="section-card" style="max-width:620px;margin:32px auto;text-align:center;">' +
+      '<div class="imp-spinner imp-spinner-lg" style="margin:0 auto 12px;"></div>' +
+      '<h2 style="font-size:16px;font-weight:700;margin:0 0 4px;">Processando o lote</h2>' +
+      '<p style="font-size:12.5px;color:var(--text-secondary);margin:0 0 18px;">' + stateImportar.arquivos.length + (stateImportar.arquivos.length === 1 ? " arquivo · " : " arquivos · ") + colaboradoresEstimadosImportar() + " colaboradores estimados. Isso pode levar alguns minutos — não é preciso ficar nesta tela.</p>" +
+      '<div id="imp-proc-steps" style="text-align:left;">' + renderProcStepsImportar() + "</div>" +
+      "</div>"
+    );
+    avancarProcessamentoImportar();
+  }
+
+  function avancarProcessamentoImportar() {
+    setTimeout(function () {
+      stateImportar.procIndex++;
+      var mountEl = document.getElementById("imp-proc-steps");
+      if (mountEl) { mountEl.innerHTML = renderProcStepsImportar(); refreshIcons(); }
+      if (stateImportar.procIndex < PROC_STEPS_IMPORTAR.length) {
+        avancarProcessamentoImportar();
+      } else {
+        gerarResultadoImportar();
+        setTimeout(function () { irParaImportar("result"); }, 300);
+      }
+    }, 900);
+  }
+
+  // ===== Geração do resultado (mesma matemática do original: ~22% dos
+  // colaboradores de cada arquivo processado cai em divergência). =========
+  function gerarResultadoImportar() {
+    var prontos = arquivosProntosParaProcessarImportar();
+    var semDivergencia = 0, comDivergencia = 0;
+    prontos.forEach(function (arquivo) {
+      var qtdDivergencia = Math.max(1, Math.round(arquivo.colaboradoresDetectados * 0.22));
+      var qtdSemDivergencia = arquivo.colaboradoresDetectados - qtdDivergencia;
+      semDivergencia += qtdSemDivergencia;
+      comDivergencia += qtdDivergencia;
+    });
+    stateImportar.resultado = { processados: semDivergencia + comDivergencia, semDivergencia: semDivergencia, comDivergencia: comDivergencia };
+  }
+
+  // ===== Etapa — Resultado (Tela 5) ========================================
+  function renderResultImportar() {
+    crumbImportar("resultado da importação");
+    var naoIdentificados = arquivosNaoIdentificadosImportar();
+    var semCockpit = arquivosSemCockpitImportar();
+    var bloqueados = arquivosBloqueadosPorOperacaoImportar();
+    var prontos = arquivosProntosParaProcessarImportar();
+    var r = stateImportar.resultado;
+
+    mountImportar(
+      '<div>' +
+      '<h1 class="imp-title">Importação concluída</h1>' +
+      '<p class="imp-sub">' + stateImportar.arquivos.length + (stateImportar.arquivos.length === 1 ? " arquivo processado · " : " arquivos processados · ") + prontos.length + (prontos.length === 1 ? " empresa identificada automaticamente" : " empresas identificadas automaticamente") +
+      (naoIdentificados.length ? ", " + naoIdentificados.length + (naoIdentificados.length === 1 ? " pendente" : " pendentes") + " de confirmação manual" : "") +
+      (stateImportar.relatorioPersonalizado ? ". Relatório personalizado sinalizado para esta empresa." : ".") +
+      "</p></div>" +
+      '<div class="imp-stats">' +
+      '<div class="imp-stat-card"><div class="imp-stat-value">' + r.processados + '</div><div class="imp-stat-label">Colaboradores processados</div></div>' +
+      '<div class="imp-stat-card success"><div class="imp-stat-value">' + r.semDivergencia + '</div><div class="imp-stat-label">Conciliados sem divergência</div></div>' +
+      '<div class="imp-stat-card warning"><div class="imp-stat-value">' + r.comDivergencia + '</div><div class="imp-stat-label">Com divergência ou campo ausente</div></div>' +
+      '<div class="imp-stat-card danger"><div class="imp-stat-value">' + naoIdentificados.length + '</div><div class="imp-stat-label">Não importado (CNPJ não identificado)</div></div>' +
+      '<div class="imp-stat-card danger"><div class="imp-stat-value">' + semCockpit.length + '</div><div class="imp-stat-label">Não importado (fora do Cockpit)</div></div>' +
+      (bloqueados.length ? '<div class="imp-stat-card warning"><div class="imp-stat-value">' + bloqueados.length + '</div><div class="imp-stat-label">Bloqueado — empresa já em operação</div></div>' : "") +
+      "</div>" +
+      (naoIdentificados.length ? naoIdentificados.map(function (a) {
+        return '<div class="imp-alert danger"><i data-lucide="alert-triangle" style="width:16px;height:16px;"></i><div><b>' + esc(a.nomeArquivo) + " não foi importado.</b><br/>O CNPJ não pôde ser identificado automaticamente no arquivo. Associe manualmente a uma empresa para reprocessar.</div></div>";
+      }).join("") : "") +
+      (semCockpit.length ? semCockpit.map(function (a) {
+        return '<div class="imp-alert danger"><i data-lucide="alert-triangle" style="width:16px;height:16px;"></i><div><b>' + esc(a.nomeArquivo) + " não foi importado.</b><br/>CNPJ <span style=\"font-family:'JetBrains Mono',monospace;\">" + esc(a.cnpj) + "</span> identificado, mas a empresa não está cadastrada no Cockpit com a tag Autopilot DP. Peça o cadastro e reenvie o arquivo.</div></div>";
+      }).join("") : "") +
+      (bloqueados.length ? bloqueados.map(function (a) {
+        return '<div class="imp-alert warning"><i data-lucide="alert-triangle" style="width:16px;height:16px;"></i><div><b>' + esc(a.nomeArquivo) + " não foi importado.</b><br/>" + esc(empresaNomeImportar(a.empresaCodigo)) + ' já está em operação no Autopilot. Se for mesmo uma migração, volte e marque "Migração de empresa já em operação".</div></div>';
+      }).join("") : "") +
+      (stateImportar.relatorioPersonalizado && prontos.length
+        ? '<div class="imp-alert info"><i data-lucide="file-text" style="width:16px;height:16px;"></i><div>Relatório personalizado sinalizado. Importe o(s) layout(s) usados (admissão, férias, rescisão) na aba <b>Relatórios</b> de cada empresa antes de considerar a implantação concluída.</div></div>'
+        : "") +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+      '<a href="implantacao-geral.html" class="btn btn-primary"><i data-lucide="list" style="width:14px;height:14px;"></i>Ver os ' + r.comDivergencia + ' com divergência</a>' +
+      (stateImportar.relatorioPersonalizado && prontos.length
+        ? '<a href="implantacao-console.html?empresa=' + encodeURIComponent(prontos[0].empresaCodigo) + '&tab=relatorios" class="btn btn-secondary"><i data-lucide="upload" style="width:14px;height:14px;"></i>Importar layouts de relatório</a>'
+        : "") +
+      (naoIdentificados.length
+        ? '<button type="button" class="btn btn-secondary" id="imp-btn-associar" data-arquivo="' + esc(naoIdentificados[0].nomeArquivo) + '">Associar ' + esc(naoIdentificados[0].nomeArquivo) + " manualmente</button>"
+        : "") +
+      "</div>"
+    );
+
+    var btnAssociar = document.getElementById("imp-btn-associar");
+    if (btnAssociar) btnAssociar.addEventListener("click", function () { abrirInconsistenciaImportar(btnAssociar.getAttribute("data-arquivo")); });
+  }
+
+  // ===== Modal — Inconsistência / CNPJ não identificado (Tela 6) ==========
+  function abrirInconsistenciaImportar(nomeArquivo) {
+    document.getElementById("imp-inconsistencia-arquivo").textContent = nomeArquivo;
+    var select = document.getElementById("imp-inconsistencia-empresa");
+    select.innerHTML = '<option value="">Selecione a empresa...</option>' + EMPRESAS_IMPORTAR.map(function (e) { return '<option value="' + e.codigo + '">' + esc(e.nome) + "</option>"; }).join("");
+    select.value = "";
+    var btn = document.getElementById("imp-btn-reprocessar");
+    btn.disabled = true;
+    btn.setAttribute("data-arquivo", nomeArquivo);
+    document.getElementById("imp-modal-inconsistencia").classList.remove("hidden");
+    refreshIcons();
+  }
+  function fecharInconsistenciaImportar() {
+    document.getElementById("imp-modal-inconsistencia").classList.add("hidden");
+  }
+  window.fecharInconsistenciaImportar = fecharInconsistenciaImportar;
+
+  function reprocessarArquivoImportar() {
+    var nomeArquivo = document.getElementById("imp-btn-reprocessar").getAttribute("data-arquivo");
+    var empresaCodigo = document.getElementById("imp-inconsistencia-empresa").value;
+    if (!empresaCodigo) return;
+    var arquivo = stateImportar.arquivos.filter(function (a) { return a.nomeArquivo === nomeArquivo; })[0];
+    if (!arquivo) return;
+    var empresa = EMPRESAS_IMPORTAR.filter(function (e) { return e.codigo === empresaCodigo; })[0];
+
+    arquivo.status = "identificado";
+    arquivo.empresaCodigo = empresaCodigo;
+    arquivo.cnpj = (empresa && empresa.cnpj) || "—";
+    arquivo.colaboradoresDetectados = 5;
+
+    stateImportar.resultado.processados += 5;
+    stateImportar.resultado.semDivergencia += 4;
+    stateImportar.resultado.comDivergencia += 1;
+
+    fecharInconsistenciaImportar();
+    renderResultImportar();
+    toastImportar("Arquivo reprocessado", nomeArquivo + " foi associado a " + empresaNomeImportar(empresaCodigo) + ".");
+  }
+
+  var RENDERERS_IMPORTAR = { upload: renderUploadImportar, processing: renderProcessingImportar, result: renderResultImportar };
+
+  // ===== Wiring geral dos modais ===========================================
+  document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("imp-modal-confirmar").addEventListener("click", function (e) {
+      if (e.target === this) fecharConfirmarImportar();
+    });
+    document.getElementById("imp-modal-inconsistencia").addEventListener("click", function (e) {
+      if (e.target === this) fecharInconsistenciaImportar();
+    });
+    document.getElementById("imp-btn-confirmar").addEventListener("click", function () {
+      fecharConfirmarImportar();
+      irParaImportar("processing");
+    });
+    document.getElementById("imp-inconsistencia-empresa").addEventListener("change", function (e) {
+      document.getElementById("imp-btn-reprocessar").disabled = !e.target.value;
+    });
+    document.getElementById("imp-btn-reprocessar").addEventListener("click", reprocessarArquivoImportar);
+
+    irParaImportar("upload");
+  });
+})();
+</script>
+<script src="../assets/core/cockpit-01-shell.js"></script>
+<script src="../assets/core/cockpit-02-state-helpers.js"></script>
+<script src="../assets/core/cockpit-07-modals-init.js"></script>
+<script src="../assets/core/cockpit-09-cx-sidebar.js"></script>
 </body>
 </html>

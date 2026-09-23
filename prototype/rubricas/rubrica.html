@@ -1,28 +1,1002 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
-  <title>Rubrica — DP — AutoPilot</title>
-  <link rel="stylesheet" href="../shared/css/tokens.css" />
-  <link rel="stylesheet" href="../shared/css/base.css" />
-  <link rel="stylesheet" href="../shared/css/components.css" />
-  <link rel="stylesheet" href="../shared/css/layout.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1280" />
+<title>Rubrica · Cockpit</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: var(--surface-muted); }
+  .page-wrap { max-width: 1080px; margin: 0 auto; padding: 28px 24px 64px; }
+
+  /* ---- Cabeçalho ---- */
+  .back-link { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 500; color: var(--text-secondary); text-decoration: none; width: fit-content; margin-bottom: 12px; }
+  .back-link:hover { color: var(--brand-pink); }
+  .rub-header-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .rub-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .rub-title-row h1 { font-size: 19px; font-weight: 700; margin: 0; color: var(--text-primary); }
+  .rub-mock-picker { font-size: 12px; color: var(--text-tertiary); display: flex; align-items: center; gap: 6px; }
+  .rub-mock-picker select { font-size: 12.5px; border: 1px solid var(--border-strong); border-radius: 7px; padding: 5px 8px; background: #fff; color: var(--text-secondary); }
+
+  /* ---- Botões pequenos (não definidos no core) ---- */
+  .btn-xs { padding: 6px 12px; font-size: 12.5px; }
+
+  /* ---- Campos view/edit ---- */
+  .rf-group { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px 22px; }
+  .rf-group-2 { grid-template-columns: repeat(2, 1fr); }
+  .rf-field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .rf-field.wide { grid-column: span 2; }
+  .rf-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); display: flex; align-items: center; gap: 4px; }
+  .rf-label .req { color: var(--brand-pink); }
+  .rf-hint { font-size: 11.5px; color: var(--text-tertiary); }
+  .rf-error { font-size: 11.5px; color: var(--danger); }
+  .rf-na { font-size: 13.5px; color: var(--text-tertiary); font-style: italic; }
+
+  /* ---- Tab bar ---- */
+  .rub-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 20px; overflow-x: auto; }
+  .rub-tab-btn { border: none; background: transparent; padding: 10px 14px; font-size: 13px; font-weight: 500; color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: color .15s, border-color .15s; }
+  .rub-tab-btn:hover { color: var(--text-primary); }
+  .rub-tab-btn.active { color: var(--brand-pink); border-bottom-color: var(--brand-pink); font-weight: 600; }
+
+  /* ---- Accordion (Configurações) ---- */
+  .rub-accordion-item { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+  .rub-accordion-item:last-child { margin-bottom: 0; }
+  .rub-accordion-trigger { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; background: var(--surface-subtle); border: none; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-primary); text-align: left; }
+  .rub-accordion-trigger:hover { background: var(--surface-muted); }
+  .rub-accordion-trigger .chev { transition: transform .18s; color: var(--text-tertiary); display: flex; }
+  .rub-accordion-item.open .rub-accordion-trigger .chev { transform: rotate(180deg); }
+  .rub-accordion-content { max-height: 0; overflow: hidden; transition: max-height .2s ease; }
+  .rub-accordion-item.open .rub-accordion-content { max-height: 900px; }
+  .rub-accordion-body { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+
+  /* ---- Checkbox ---- */
+  .rub-check { display: flex; align-items: center; gap: 9px; font-size: 13.5px; color: var(--text-primary); cursor: pointer; user-select: none; }
+  .rub-check.is-disabled { cursor: not-allowed; opacity: .55; }
+  .rub-check-box { width: 17px; height: 17px; border-radius: 5px; border: 1.5px solid var(--border-strong); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; background: #fff; transition: all .12s; }
+  .rub-check-box.checked { background: var(--brand-pink); border-color: var(--brand-pink); }
+  .rub-check-box svg { width: 12px; height: 12px; }
+  .rub-check-view { display: flex; align-items: center; gap: 8px; font-size: 13.5px; }
+  .rub-check-view.off { color: var(--text-tertiary); }
+  .rub-check-hint { font-size: 11px; color: var(--text-tertiary); margin-left: 4px; }
+
+  /* ---- Radio ---- */
+  .rub-radio-group { display: flex; flex-direction: column; gap: 8px; }
+  .rub-radio { display: flex; align-items: flex-start; gap: 9px; font-size: 13px; color: var(--text-primary); cursor: pointer; }
+  .rub-radio.is-disabled { cursor: not-allowed; opacity: .55; }
+  .rub-radio-dot { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--border-strong); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .rub-radio-dot.checked { border-color: var(--brand-pink); }
+  .rub-radio-dot.checked::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--brand-pink); }
+
+  /* ---- Cond rule wrapper ---- */
+  .rub-condrule { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; background: var(--surface-subtle); }
+  .rub-condrule-dependent { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border-strong); display: flex; flex-direction: column; gap: 14px; }
+
+  /* ---- Subcard (tratamento de faltas) ---- */
+  .rub-subcard { border: 1px dashed var(--border-strong); border-radius: 9px; padding: 12px 14px; margin-top: 4px; }
+  .rub-subcard-title { font-size: 11.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
+
+  /* ---- Tabela simples ---- */
+  .rub-table-wrap { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .rub-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .rub-table thead th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-tertiary); font-weight: 600; padding: 10px 14px; background: var(--surface-subtle); border-bottom: 1px solid var(--border); }
+  .rub-table tbody td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .rub-table tbody tr:last-child td { border-bottom: none; }
+  .rub-table .empty-row td { text-align: center; color: var(--text-tertiary); padding: 22px; font-style: italic; }
+
+  /* ---- Combobox simples (Soma na base / referência de rubrica) ---- */
+  .rub-combo-select { font-size: 13.5px; border: 1px solid var(--border-strong); border-radius: 7px; padding: 7px 10px; background: #fff; width: 100%; max-width: 280px; }
+
+  /* ---- Vigência mini timeline ---- */
+  .rub-vigencia-bar { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+  .rub-vigencia-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+
+  /* ---- Modal Histórico (centrado) ---- */
+  .rub-hist-body { display: flex; flex-direction: column; gap: 14px; }
+  .rub-hist-event { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .rub-hist-event-head { display: flex; align-items: center; justify-content: between; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+  .rub-hist-meta-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .rub-hist-meta-table th { text-align: left; color: var(--text-tertiary); font-weight: 500; padding: 4px 6px 4px 0; }
+  .rub-hist-meta-table td { padding: 2px 6px 2px 0; color: var(--text-primary); }
+
+  /* ---- Toast simples ---- */
+  #rub-toast { position: fixed; bottom: 24px; right: 24px; z-index: 200; display: flex; flex-direction: column; gap: 8px; }
+  .rub-toast-item { background: #fff; border: 1px solid var(--border); box-shadow: 0 12px 30px rgba(0,0,0,.12); border-radius: 10px; padding: 12px 16px; display: flex; align-items: flex-start; gap: 10px; min-width: 260px; animation: rubToastIn .18s ease; }
+  @keyframes rubToastIn { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: translateY(0);} }
+  .rub-toast-title { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .rub-toast-desc { font-size: 12px; color: var(--text-secondary); }
+
+  @media (max-width: 720px) {
+    .rf-group, .rf-group-2 { grid-template-columns: repeat(2, 1fr); }
+    .rf-field.wide { grid-column: span 2; }
+  }
+</style>
 </head>
 <body>
-  <div id="shell-root"></div>
 
-  <template id="page-content">
-    <section class="max-w-7xl flex flex-col gap-4" id="rubrica-root"></section>
-  </template>
+<div class="page-wrap" id="rubrica-root"></div>
 
-  <script src="../shared/js/icons.js"></script>
-  <script src="../shared/js/shell.js"></script>
-  <script src="../shared/js/ui.js"></script>
-  <script src="../shared/js/fab-tools.js"></script>
-  <script src="../shared/js/vigencia.js"></script>
-  <script src="js/data.js"></script>
-  <script src="js/rubrica-detail.js"></script>
+<div id="rub-toast"></div>
+
+<script>
+window.FLOW_CONFIG = { standalone: true };
+</script>
+<script src="../assets/core/cockpit-01-shell.js"></script>
+<script src="../assets/core/cockpit-02-state-helpers.js"></script>
+<script src="../assets/core/cockpit-08-datatable.js"></script>
+<script src="../assets/core/cockpit-07-modals-init.js"></script>
+<script src="../assets/core/cockpit-09-cx-sidebar.js"></script>
+
+<script>
+/* ============================================================
+   Rubrica — adaptação visual para o design system Cockpit.
+   Dados mock embutidos (equivalentes a rubricas/js/data.js), sem
+   localStorage — protótipo puramente navegável. Toda a lógica de
+   campos condicionais, view/edit e validações do rubrica-detail.js
+   original foi preservada; só a "casca" visual mudou para os
+   tokens/classes do Cockpit (assets/core/).
+   Sufixo de fluxo: "Rub" — evita colidir com globais do core.
+   ============================================================ */
+(function () {
+
+  // ---- Ícone Lucide — o core não expõe um helper Icon() global (só
+  // refreshIcons()/lucide.createIcons()); replicando aqui o mesmo padrão
+  // já usado em cockpit-03-queue-home.js: <i data-lucide> + classes
+  // utilitárias Tailwind (CDN já carregado no <head>). ----
+  var ICON_SIZE_CLASS = { "size-3": "w-3 h-3", "size-3-5": "w-3.5 h-3.5", "size-4": "w-4 h-4", "size-5": "w-5 h-5", "size-6": "w-6 h-6" };
+  function Icon(name, size) {
+    return '<i data-lucide="' + name + '" class="' + (ICON_SIZE_CLASS[size] || "w-4 h-4") + '" style="display:inline-flex;"></i>';
+  }
+
+  // ---- Catálogos de opções (mesmos de rubricas/js/data.js) ----
+  var O = {
+    tipoRubrica: [
+      { value: "provento", label: "Provento" },
+      { value: "desconto", label: "Desconto" },
+      { value: "informativo", label: "Informativo" },
+    ],
+    tipoCalculo: [
+      { value: "lancado", label: "Lançado" },
+      { value: "formula", label: "Fórmula" },
+      { value: "automatico", label: "Automático" },
+    ],
+    unidade: [
+      { value: "horas", label: "Horas" },
+      { value: "dias", label: "Dias" },
+      { value: "valor", label: "Valor" },
+      { value: "percentual", label: "Percentual" },
+      { value: "quantidade", label: "Quantidade" },
+    ],
+    baseCalculo: [
+      { value: "nenhuma", label: "Nenhuma" },
+      { value: "salario-base", label: "Salário-base" },
+      { value: "salario-minimo", label: "Salário-mínimo" },
+    ],
+    classificacao: [
+      { value: "salario", label: "Salário" },
+      { value: "hora-extra", label: "Hora extra" },
+      { value: "adicional", label: "Adicional" },
+      { value: "beneficio", label: "Benefício" },
+      { value: "desconto-legal", label: "Desconto legal" },
+      { value: "desconto-convenio", label: "Desconto de convênio" },
+      { value: "outra", label: "Outra" },
+    ],
+    situacao: [
+      { value: "Ativo", label: "Ativo" },
+      { value: "Inativo", label: "Inativo" },
+    ],
+  };
+
+  var CAMPO23_OPCOES = [
+    { value: "mesAnteriorEProjecao", label: "Considerar para remuneração do mês anterior ao da rescisão e para projeção de 30 dias" },
+    { value: "somenteMesAnterior", label: "Considerar somente para remuneração do mês anterior ao da rescisão" },
+    { value: "somenteProjecao", label: "Considerar somente para projeção de 30 dias" },
+  ];
+
+  function blankConfiguracoes() {
+    return {
+      adicional: { avisoPrevio: false, decimoTerceiroFerias: false, licencaPremio: false, afastamentos: false },
+      medias: { avisoPrevio: false, decimoTerceiro: false, ferias: false, licencaPremio: false, afastamentos: false, saldoSalario: false, corrigeMedia: false, sobre: "" },
+      relatorios: { fichaFinanceira: false, dirfComprovante: false, rais: false },
+      lancamentosFixos: { calcularFerias: false, calcular13: false },
+      opcoes: {
+        componeHorasMes: false, refleteDSR: false, descontaDSR: false, calculaDuranteAfastamento: false,
+        componeLiquido: false, apareceRelatorios: false, apareceRecibos: false, componeAdiantamentoSalarial: false,
+        detalharLancamentosPorServico: false, calculaDiferencaPiso: false, calculaDiferencaRubrica: false,
+        pagaProporcional: false, naoConsiderarFaltasFerias: false, naoConsiderarFaltasRescisao: false,
+        naoConsiderarFaltasAfastamento: false, naoConsiderarFaltasOutras: false,
+      },
+    };
+  }
+  function blankRescisao() {
+    return { emitirTermoRescisao: false, campo: "", campo23: false, campo23Opcao: "", gerarHomolognet: false, homolognetRubricaCodigo: "", homolognetCodigoExterno: "", gerarSaldoSalarioRescisao: false, saldoSalarioRubricaCodigo: "" };
+  }
+  function blankEsocial() {
+    return { natureza: { codigo: "", descricao: "" }, incidencias: { irrf: { codigo: "", descricao: "" }, inss: { codigo: "", descricao: "" }, fgts: { codigo: "", descricao: "" }, pis: { codigo: "", descricao: "" } }, domestico: { ativo: false, codigo: "" } };
+  }
+
+  // ---- Mock: pelo menos 1 exemplo de cada estado pedido (com/sem soma na
+  // base, com/sem rescisão configurada, ativo/inativo) — mesmos 6 registros
+  // de rubricas/js/data.js, resumidos aqui. ----
+  var RUBRICAS = [
+    {
+      codigo: "1000", codigoEsocial: "1000", nome: "Salário Base", dataInicio: "01/01/2024", situacao: "Ativo", dataFim: null,
+      geral: { tipoRubrica: "provento", tipoCalculo: "lancado", unidade: "valor", baseCalculo: "", classificacao: "salario", taxa: "" },
+      configuracoes: { adicional: { avisoPrevio: false, decimoTerceiroFerias: false, licencaPremio: false, afastamentos: false }, medias: { avisoPrevio: false, decimoTerceiro: false, ferias: false, licencaPremio: false, afastamentos: false, saldoSalario: false, corrigeMedia: false, sobre: "" }, relatorios: { fichaFinanceira: true, dirfComprovante: true, rais: true }, lancamentosFixos: { calcularFerias: false, calcular13: false }, opcoes: { componeHorasMes: false, refleteDSR: false, descontaDSR: false, calculaDuranteAfastamento: false, componeLiquido: true, apareceRelatorios: true, apareceRecibos: true, componeAdiantamentoSalarial: true, detalharLancamentosPorServico: false, calculaDiferencaPiso: false, calculaDiferencaRubrica: false, pagaProporcional: false, naoConsiderarFaltasFerias: false, naoConsiderarFaltasRescisao: false, naoConsiderarFaltasAfastamento: false, naoConsiderarFaltasOutras: false } },
+      somaBaseCalculo: [],
+      rescisao: { emitirTermoRescisao: true, campo: "Campo 1 (exemplo)", campo23: true, campo23Opcao: "mesAnteriorEProjecao", gerarHomolognet: false, homolognetRubricaCodigo: "", homolognetCodigoExterno: "", gerarSaldoSalarioRescisao: false, saldoSalarioRubricaCodigo: "" },
+      esocial: { natureza: { codigo: "9001", descricao: "Natureza de exemplo (sem catálogo oficial)" }, incidencias: { irrf: { codigo: "1", descricao: "Código de exemplo (sem catálogo oficial)" }, inss: { codigo: "11", descricao: "Código de exemplo (sem catálogo oficial)" }, fgts: { codigo: "11", descricao: "Código de exemplo (sem catálogo oficial)" }, pis: { codigo: "00", descricao: "Código de exemplo (sem catálogo oficial)" } }, domestico: { ativo: false, codigo: "" } },
+      vigencias: [{ id: "rub-1000-v1", dataInicio: "01/01/2024", dataFim: null, tipoCalculo: "lancado", classificacao: "salario", taxa: "" }],
+    },
+    {
+      codigo: "1010", codigoEsocial: "1010", nome: "Hora Extra 50%", dataInicio: "01/01/2024", situacao: "Ativo", dataFim: null,
+      geral: { tipoRubrica: "provento", tipoCalculo: "automatico", unidade: "horas", baseCalculo: "salario-base", classificacao: "hora-extra", taxa: "50" },
+      configuracoes: { adicional: { avisoPrevio: false, decimoTerceiroFerias: true, licencaPremio: false, afastamentos: false }, medias: { avisoPrevio: false, decimoTerceiro: true, ferias: true, licencaPremio: false, afastamentos: false, saldoSalario: false, corrigeMedia: true, sobre: "salario-base" }, relatorios: { fichaFinanceira: true, dirfComprovante: true, rais: false }, lancamentosFixos: { calcularFerias: false, calcular13: false }, opcoes: { componeHorasMes: true, refleteDSR: true, descontaDSR: false, calculaDuranteAfastamento: false, componeLiquido: true, apareceRelatorios: true, apareceRecibos: true, componeAdiantamentoSalarial: false, detalharLancamentosPorServico: false, calculaDiferencaPiso: false, calculaDiferencaRubrica: false, pagaProporcional: true, naoConsiderarFaltasFerias: true, naoConsiderarFaltasRescisao: false, naoConsiderarFaltasAfastamento: true, naoConsiderarFaltasOutras: false } },
+      somaBaseCalculo: [],
+      rescisao: blankRescisao(),
+      esocial: blankEsocial(),
+      vigencias: [{ id: "rub-1010-v1", dataInicio: "01/01/2024", dataFim: null, tipoCalculo: "automatico", classificacao: "hora-extra", taxa: "50" }],
+    },
+    {
+      codigo: "1020", codigoEsocial: "1020", nome: "Adicional Noturno", dataInicio: "01/03/2024", situacao: "Ativo", dataFim: null,
+      geral: { tipoRubrica: "provento", tipoCalculo: "automatico", unidade: "percentual", baseCalculo: "salario-base", classificacao: "adicional", taxa: "20" },
+      configuracoes: { adicional: { avisoPrevio: false, decimoTerceiroFerias: false, licencaPremio: false, afastamentos: false }, medias: { avisoPrevio: true, decimoTerceiro: false, ferias: false, licencaPremio: false, afastamentos: false, saldoSalario: false, corrigeMedia: false, sobre: "salario-base" }, relatorios: { fichaFinanceira: true, dirfComprovante: false, rais: false }, lancamentosFixos: { calcularFerias: false, calcular13: false }, opcoes: { componeHorasMes: false, refleteDSR: false, descontaDSR: false, calculaDuranteAfastamento: false, componeLiquido: true, apareceRelatorios: true, apareceRecibos: true, componeAdiantamentoSalarial: false, detalharLancamentosPorServico: false, calculaDiferencaPiso: false, calculaDiferencaRubrica: false, pagaProporcional: false, naoConsiderarFaltasFerias: false, naoConsiderarFaltasRescisao: false, naoConsiderarFaltasAfastamento: false, naoConsiderarFaltasOutras: false } },
+      somaBaseCalculo: [{ codigoRubrica: "1000" }],
+      rescisao: { emitirTermoRescisao: false, campo: "", campo23: false, campo23Opcao: "", gerarHomolognet: true, homolognetRubricaCodigo: "1000", homolognetCodigoExterno: "EXT-1020", gerarSaldoSalarioRescisao: false, saldoSalarioRubricaCodigo: "" },
+      esocial: { natureza: { codigo: "9002", descricao: "Natureza de exemplo (sem catálogo oficial)" }, incidencias: { irrf: { codigo: "1", descricao: "Código de exemplo (sem catálogo oficial)" }, inss: { codigo: "00", descricao: "Código de exemplo (sem catálogo oficial)" }, fgts: { codigo: "00", descricao: "Código de exemplo (sem catálogo oficial)" }, pis: { codigo: "00", descricao: "Código de exemplo (sem catálogo oficial)" } }, domestico: { ativo: false, codigo: "" } },
+      vigencias: [
+        { id: "rub-1020-v2", dataInicio: "01/03/2024", dataFim: null, tipoCalculo: "automatico", classificacao: "adicional", taxa: "20" },
+        { id: "rub-1020-v1", dataInicio: "01/06/2023", dataFim: "29/02/2024", tipoCalculo: "automatico", classificacao: "adicional", taxa: "15" },
+      ],
+    },
+    {
+      codigo: "9010", codigoEsocial: "9010", nome: "Desconto Vale Transporte", dataInicio: "01/01/2024", situacao: "Ativo", dataFim: null,
+      geral: { tipoRubrica: "desconto", tipoCalculo: "automatico", unidade: "percentual", baseCalculo: "salario-base", classificacao: "desconto-legal", taxa: "6" },
+      configuracoes: { adicional: { avisoPrevio: false, decimoTerceiroFerias: false, licencaPremio: false, afastamentos: false }, medias: { avisoPrevio: false, decimoTerceiro: false, ferias: false, licencaPremio: false, afastamentos: false, saldoSalario: false, corrigeMedia: false, sobre: "" }, relatorios: { fichaFinanceira: true, dirfComprovante: false, rais: false }, lancamentosFixos: { calcularFerias: false, calcular13: false }, opcoes: { componeHorasMes: false, refleteDSR: false, descontaDSR: false, calculaDuranteAfastamento: false, componeLiquido: true, apareceRelatorios: true, apareceRecibos: true, componeAdiantamentoSalarial: false, detalharLancamentosPorServico: false, calculaDiferencaPiso: false, calculaDiferencaRubrica: false, pagaProporcional: false, naoConsiderarFaltasFerias: false, naoConsiderarFaltasRescisao: false, naoConsiderarFaltasAfastamento: false, naoConsiderarFaltasOutras: false } },
+      somaBaseCalculo: [],
+      rescisao: { emitirTermoRescisao: false, campo: "", campo23: false, campo23Opcao: "", gerarHomolognet: false, homolognetRubricaCodigo: "", homolognetCodigoExterno: "", gerarSaldoSalarioRescisao: true, saldoSalarioRubricaCodigo: "1000" },
+      esocial: blankEsocial(),
+      vigencias: [{ id: "rub-9010-v1", dataInicio: "01/01/2024", dataFim: null, tipoCalculo: "automatico", classificacao: "desconto-legal", taxa: "6" }],
+    },
+    {
+      codigo: "9020", codigoEsocial: "9020", nome: "Desconto Convênio Farmácia", dataInicio: "01/06/2023", situacao: "Inativo", dataFim: "31/12/2025",
+      geral: { tipoRubrica: "desconto", tipoCalculo: "lancado", unidade: "valor", baseCalculo: "", classificacao: "desconto-convenio", taxa: "" },
+      configuracoes: blankConfiguracoes(),
+      somaBaseCalculo: [],
+      rescisao: blankRescisao(),
+      esocial: blankEsocial(),
+      vigencias: [{ id: "rub-9020-v1", dataInicio: "01/06/2023", dataFim: null, tipoCalculo: "lancado", classificacao: "desconto-convenio", taxa: "" }],
+    },
+    {
+      codigo: "5000", codigoEsocial: "5000", nome: "Base de Cálculo INSS (Informativo)", dataInicio: "01/01/2024", situacao: "Ativo", dataFim: null,
+      geral: { tipoRubrica: "informativo", tipoCalculo: "automatico", unidade: "valor", baseCalculo: "nenhuma", classificacao: "outra", taxa: "" },
+      configuracoes: { adicional: { avisoPrevio: false, decimoTerceiroFerias: false, licencaPremio: false, afastamentos: false }, medias: { avisoPrevio: false, decimoTerceiro: false, ferias: false, licencaPremio: false, afastamentos: false, saldoSalario: false, corrigeMedia: false, sobre: "" }, relatorios: { fichaFinanceira: false, dirfComprovante: false, rais: false }, lancamentosFixos: { calcularFerias: false, calcular13: false }, opcoes: { componeHorasMes: false, refleteDSR: false, descontaDSR: false, calculaDuranteAfastamento: false, componeLiquido: false, apareceRelatorios: true, apareceRecibos: false, componeAdiantamentoSalarial: false, detalharLancamentosPorServico: false, calculaDiferencaPiso: false, calculaDiferencaRubrica: false, pagaProporcional: false, naoConsiderarFaltasFerias: false, naoConsiderarFaltasRescisao: false, naoConsiderarFaltasAfastamento: false, naoConsiderarFaltasOutras: false } },
+      somaBaseCalculo: [{ codigoRubrica: "1000" }, { codigoRubrica: "1010" }],
+      rescisao: blankRescisao(),
+      esocial: { natureza: { codigo: "", descricao: "" }, incidencias: { irrf: { codigo: "", descricao: "" }, inss: { codigo: "", descricao: "" }, fgts: { codigo: "", descricao: "" }, pis: { codigo: "", descricao: "" } }, domestico: { ativo: true, codigo: "DOM-5000" } },
+      vigencias: [{ id: "rub-5000-v1", dataInicio: "01/01/2024", dataFim: null, tipoCalculo: "automatico", classificacao: "outra", taxa: "" }],
+    },
+  ];
+
+  function findRubrica(codigo) { return RUBRICAS.filter(function (r) { return r.codigo === codigo; })[0]; }
+  function getQueryParam(name) { return new URLSearchParams(window.location.search).get(name); }
+
+  var TABS = [
+    { key: "geral", label: "Geral" },
+    { key: "configuracoes", label: "Configurações" },
+    { key: "soma-base-calculo", label: "Soma na Base de Cálculo" },
+    { key: "rescisao", label: "Rescisão" },
+    { key: "esocial", label: "e-Social" },
+  ];
+
+  var codigoParam = getQueryParam("rubrica");
+  var rubricaExistente = findRubrica(codigoParam || RUBRICAS[0].codigo) || RUBRICAS[0];
+
+  var form = JSON.parse(JSON.stringify(rubricaExistente));
+  var state = {
+    mode: "view",
+    activeTab: "geral",
+    snapshot: null,
+    accordionOpen: { adicional: false, medias: false, relatorios: false, lancamentosFixos: false, opcoes: false },
+    vigenciaAtual: true,
+    vigenciaSelecionada: form.vigencias && form.vigencias[0],
+    historicoAberto: false,
+  };
+
+  function deepClone(obj) { return obj == null ? obj : JSON.parse(JSON.stringify(obj)); }
+  function getPath(obj, path) { return path.split(".").reduce(function (o, k) { return o == null ? o : o[k]; }, obj); }
+  function setPath(obj, path, value) {
+    var keys = path.split(".");
+    var o = obj;
+    for (var i = 0; i < keys.length - 1; i++) o = o[keys[i]];
+    o[keys[keys.length - 1]] = value;
+  }
+  function esc(s) { return (s == null ? "" : String(s)).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+  function optLabel(options, value) {
+    var found = options.filter(function (o) { return o.value === value; })[0];
+    return found ? found.label : value;
+  }
+  function vazio() { return '<span class="rf-na">—</span>'; }
+
+  // ===== Troca de rubrica mock (navegação simplificada — substitui a
+  // querystring ?rubrica=CODIGO da versão original, sem depender de
+  // rubricas/index.html) =====
+  function trocarRubrica(codigo) {
+    var nova = findRubrica(codigo);
+    if (!nova) return;
+    rubricaExistente = nova;
+    form = JSON.parse(JSON.stringify(nova));
+    state.mode = "view";
+    state.snapshot = null;
+    state.activeTab = "geral";
+    state.vigenciaAtual = true;
+    state.vigenciaSelecionada = form.vigencias && form.vigencias[0];
+    var url = new URL(window.location.href);
+    url.searchParams.set("rubrica", codigo);
+    window.history.replaceState(null, "", url.toString());
+    render();
+  }
+
+  function iniciarEdicao() { state.snapshot = deepClone(form); state.mode = "edit"; }
+  function cancelarEdicao() { if (state.snapshot) form = state.snapshot; state.snapshot = null; state.mode = "view"; }
+  function confirmarSalvamento() { state.snapshot = null; state.mode = "view"; }
+
+  // ===== Campos condicionais da Aba Geral (mesma decisão provisória do
+  // rubrica-detail.js original) =====
+  function baseCalculoAtiva() { return !!form.geral.tipoCalculo && form.geral.tipoCalculo !== "lancado"; }
+  function taxaAtiva() { return form.geral.tipoCalculo === "automatico" || form.geral.unidade === "percentual"; }
+  function pagaProporcionalAtivo() { return !!form.configuracoes.opcoes.pagaProporcional; }
+  function algumReflexoMediaMarcado() {
+    var m = form.configuracoes.medias;
+    return !!(m.avisoPrevio || m.decimoTerceiro || m.ferias || m.licencaPremio || m.afastamentos || m.saldoSalario);
+  }
+
+  // ===== Helpers de campo (view + edit) =====
+  function campoField(labelHtml, controlHtml, wide, hint, error) {
+    return '<div class="rf-field' + (wide ? " wide" : "") + '">' +
+      '<span class="rf-label">' + labelHtml + '</span>' +
+      controlHtml +
+      (error ? '<span class="rf-error">' + error + '</span>' : (hint ? '<span class="rf-hint">' + hint + '</span>' : "")) +
+      '</div>';
+  }
+  function labelHtml(label, obrigatorio) { return esc(label) + (obrigatorio ? ' <span class="req">*</span>' : ""); }
+
+  function textField(label, path, opts) {
+    opts = opts || {};
+    var value = getPath(form, path);
+    if (state.mode === "view") {
+      var vHtml = opts.naoAplicavel ? '<span class="rf-na">Não aplicável</span>' : '<span class="field-value' + (value ? '' : ' empty') + '">' + (value ? esc(value) : "—") + '</span>';
+      return campoField(labelHtml(label, false), vHtml, opts.wide);
+    }
+    return campoField(
+      labelHtml(label, opts.obrigatorio && !opts.naoAplicavel),
+      '<input class="ef-input" data-path="' + path + '" value="' + esc(value || "") + '" placeholder="' + esc(opts.placeholder || "") + '"' + (opts.naoAplicavel ? " disabled" : "") + " />",
+      opts.wide, opts.hint, opts.error
+    );
+  }
+  function dateField(label, path, opts) {
+    opts = opts || {};
+    var value = getPath(form, path);
+    if (state.mode === "view") return campoField(labelHtml(label, false), '<span class="field-value' + (value ? '' : ' empty') + '">' + (value ? esc(value) : "—") + '</span>', opts.wide);
+    return campoField(labelHtml(label, opts.obrigatorio), '<input class="ef-input" type="text" placeholder="dd/mm/aaaa" data-path="' + path + '" value="' + esc(value || "") + '" />', opts.wide);
+  }
+  function selectField(label, path, options, opts) {
+    opts = opts || {};
+    var value = getPath(form, path);
+    if (state.mode === "view") {
+      var vHtml = opts.naoAplicavel ? '<span class="rf-na">Não aplicável</span>' : '<span class="field-value' + (value ? '' : ' empty') + '">' + (value ? esc(optLabel(options, value)) : "—") + '</span>';
+      return campoField(labelHtml(label, false), vHtml, opts.wide);
+    }
+    var optsHtml = options.map(function (o) { return '<option value="' + o.value + '"' + (value === o.value ? " selected" : "") + ">" + esc(o.label) + "</option>"; }).join("");
+    return campoField(
+      labelHtml(label, opts.obrigatorio && !opts.naoAplicavel),
+      '<select class="ef-select" data-path="' + path + '"' + (opts.naoAplicavel ? " disabled" : "") + '><option value="">Selecione...</option>' + optsHtml + "</select>",
+      opts.wide, opts.hint
+    );
+  }
+  function checkboxField(path, label, opts) {
+    opts = opts || {};
+    var checked = !!getPath(form, path);
+    if (state.mode === "view") {
+      if (opts.disabled) return '<div class="rub-check-view off">' + Icon("x", "size-3-5") + '<span>' + esc(label) + ' <span class="rf-na">(não aplicável)</span></span></div>';
+      return '<div class="rub-check-view' + (checked ? "" : " off") + '">' + Icon(checked ? "check" : "x", "size-3-5") + '<span>' + esc(label) + '</span></div>';
+    }
+    return (
+      '<label class="rub-check' + (opts.disabled ? " is-disabled" : "") + '"' + (opts.disabled ? "" : ' data-path="' + path + '"') + '>' +
+      '<span class="rub-check-box' + (checked ? " checked" : "") + '">' + (checked ? Icon("check", "size-3-5") : "") + '</span>' +
+      '<span>' + esc(label) + (opts.hint ? '<span class="rub-check-hint">' + opts.hint + '</span>' : "") + '</span>' +
+      '</label>'
+    );
+  }
+  function radioField(label, path, options, opts) {
+    opts = opts || {};
+    var value = getPath(form, path);
+    if (state.mode === "view") {
+      var vHtml = opts.naoAplicavel ? '<span class="rf-na">Não aplicável</span>' : '<span class="field-value' + (value ? '' : ' empty') + '">' + (value ? esc(optLabel(options, value)) : "—") + '</span>';
+      return campoField(labelHtml(label, false), vHtml, opts.wide);
+    }
+    var itemsHtml = options.map(function (o) {
+      return '<label class="rub-radio' + (opts.naoAplicavel ? " is-disabled" : "") + '"' + (opts.naoAplicavel ? "" : ' data-path="' + path + '" data-value="' + o.value + '"') + '>' +
+        '<span class="rub-radio-dot' + (value === o.value ? " checked" : "") + '"></span><span>' + esc(o.label) + '</span></label>';
+    }).join("");
+    return campoField(labelHtml(label, opts.obrigatorio && !opts.naoAplicavel), '<div class="rub-radio-group">' + itemsHtml + '</div>', opts.wide, opts.hint);
+  }
+  function comboSelectHtml(dataPath, options, value) {
+    var optsHtml = options.map(function (o) { return '<option value="' + o.value + '"' + (o.value === value ? " selected" : "") + '>' + esc(o.label) + '</option>'; }).join("");
+    return '<select class="rub-combo-select" data-path="' + dataPath + '"><option value="">Selecione uma rubrica...</option>' + optsHtml + '</select>';
+  }
+  function rubricasParaCombobox(excludeCodigo, valorAtual) {
+    return RUBRICAS
+      .filter(function (r) { return r.codigo !== excludeCodigo; })
+      .filter(function (r) { return r.situacao === "Ativo" || (valorAtual && r.codigo === valorAtual); })
+      .sort(function (a, b) { return a.codigo.localeCompare(b.codigo, "pt-BR", { numeric: true }); })
+      .map(function (r) { return { value: r.codigo, label: r.codigo + " — " + r.nome }; });
+  }
+  function rubricaReferenceField(label, path, opts) {
+    opts = opts || {};
+    var value = getPath(form, path);
+    var referenciada = value ? findRubrica(value) : null;
+    if (state.mode === "view") {
+      if (opts.naoAplicavel) return campoField(labelHtml(label, false), '<span class="rf-na">Não aplicável</span>', opts.wide);
+      return campoField(labelHtml(label, false), '<span class="field-value' + (referenciada ? '' : ' empty') + '">' + (referenciada ? esc(referenciada.codigo + " — " + referenciada.nome) : "—") + '</span>', opts.wide);
+    }
+    return campoField(labelHtml(label, opts.obrigatorio), comboSelectHtml(path, rubricasParaCombobox(form.codigo, value), value), opts.wide);
+  }
+  function secao(titulo, camposHtml, groupClass) {
+    return '<div><div class="subsection-title">' + esc(titulo) + '</div><div class="rf-group' + (groupClass || "") + '">' + camposHtml + '</div></div>';
+  }
+  function condRule(triggerHtml, dependentHtml) {
+    var ativo = !!dependentHtml;
+    return '<div class="rub-condrule">' + triggerHtml + (dependentHtml ? '<div class="rub-condrule-dependent">' + dependentHtml + '</div>' : "") + '</div>';
+  }
+  function accordionItem(key, titulo, contentHtml) {
+    var aberto = state.accordionOpen[key];
+    return (
+      '<div class="rub-accordion-item' + (aberto ? " open" : "") + '">' +
+      '<button type="button" class="rub-accordion-trigger" data-accordion-toggle="' + key + '"><span>' + esc(titulo) + '</span><span class="chev">' + Icon("chevron-down", "size-4") + '</span></button>' +
+      '<div class="rub-accordion-content"><div class="rub-accordion-body">' + contentHtml + '</div></div>' +
+      '</div>'
+    );
+  }
+
+  // ===== Aba Geral =====
+  function notaVigenciaHistoricaHtml() {
+    if (state.vigenciaAtual || !state.vigenciaSelecionada) return "";
+    var v = state.vigenciaSelecionada;
+    var periodo = v.dataFim ? v.dataInicio + " – " + v.dataFim : "desde " + v.dataInicio;
+    return (
+      '<div class="alert-banner" style="margin-bottom:0;">' + Icon("alert-triangle", "size-4") +
+      '<div style="font-size:12.5px;color:var(--text-secondary);">Vigência histórica selecionada (' + esc(periodo) + '): Tipo de Cálculo ' +
+      (v.tipoCalculo ? esc(optLabel(O.tipoCalculo, v.tipoCalculo)) : "—") + ', Classificação ' +
+      (v.classificacao ? esc(optLabel(O.classificacao, v.classificacao)) : "—") + ', Taxa ' + (v.taxa || "—") +
+      '. Os demais campos desta tela continuam exibindo o registro ATUAL.</div></div>'
+    );
+  }
+  function tabGeral() {
+    var baseAtiva = baseCalculoAtiva();
+    var taxaAtivaFlag = taxaAtiva();
+    return (
+      '<div class="section-card">' +
+      notaVigenciaHistoricaHtml() +
+      secao("Natureza e cálculo",
+        selectField("Tipo de Rubrica", "geral.tipoRubrica", O.tipoRubrica, { obrigatorio: true }) +
+        selectField("Tipo de Cálculo", "geral.tipoCalculo", O.tipoCalculo, { obrigatorio: true }) +
+        selectField("Unidade do cálculo", "geral.unidade", O.unidade, { obrigatorio: true }) +
+        selectField("Classificação", "geral.classificacao", O.classificacao, { obrigatorio: true })
+      ) +
+      secao("Base de cálculo e taxa",
+        selectField("Base de cálculo", "geral.baseCalculo", O.baseCalculo, {
+          obrigatorio: baseAtiva, naoAplicavel: !baseAtiva,
+          hint: !baseAtiva ? "Relevante quando o Tipo de Cálculo é Fórmula ou Automático." : "",
+        }) +
+        textField("Taxa", "geral.taxa", {
+          obrigatorio: taxaAtivaFlag, naoAplicavel: !taxaAtivaFlag,
+          placeholder: "Ex.: 50 (percentual) ou 120,00 (valor)",
+          hint: !taxaAtivaFlag ? "Relevante quando o cálculo depende de um fator percentual ou de um valor de referência." : "",
+        }), " rf-group-2"
+      ) +
+      '</div>'
+    );
+  }
+
+  // ===== Aba Configurações =====
+  function tabConfiguracoes() {
+    var naoFaltasDisabled = !pagaProporcionalAtivo();
+    var naoFaltasHint = naoFaltasDisabled ? 'Disponível quando "Paga proporcional" estiver marcado.' : "";
+    var mediaAtiva = algumReflexoMediaMarcado();
+
+    function checklist(itemsHtml) { return '<div class="flex flex-col gap-2">' + itemsHtml + '</div>'; }
+
+    var grupoAdicional = checklist(
+      checkboxField("configuracoes.adicional.avisoPrevio", "Aviso prévio") +
+      checkboxField("configuracoes.adicional.decimoTerceiroFerias", "13º salário / férias") +
+      checkboxField("configuracoes.adicional.licencaPremio", "Licença prêmio") +
+      checkboxField("configuracoes.adicional.afastamentos", "Afastamentos")
+    );
+
+    var grupoMedias =
+      checklist(
+        checkboxField("configuracoes.medias.avisoPrevio", "Aviso prévio") +
+        checkboxField("configuracoes.medias.decimoTerceiro", "13º salário") +
+        checkboxField("configuracoes.medias.ferias", "Férias") +
+        checkboxField("configuracoes.medias.licencaPremio", "Licença prêmio") +
+        checkboxField("configuracoes.medias.afastamentos", "Afastamentos") +
+        checkboxField("configuracoes.medias.saldoSalario", "Saldo salário") +
+        checkboxField("configuracoes.medias.corrigeMedia", "Corrige média", { disabled: !mediaAtiva, hint: !mediaAtiva ? "Disponível quando algum reflexo em média estiver marcado." : "" })
+      ) +
+      '<div class="rf-group rf-group-2" style="margin-top:6px;">' +
+      selectField("Sobre", "configuracoes.medias.sobre", O.baseCalculo, { naoAplicavel: !mediaAtiva, hint: !mediaAtiva ? "Disponível quando algum reflexo em média estiver marcado." : "" }) +
+      '</div>';
+
+    var grupoRelatorios = checklist(
+      checkboxField("configuracoes.relatorios.fichaFinanceira", "Ficha financeira") +
+      checkboxField("configuracoes.relatorios.dirfComprovante", "DIRF / Comprovante de rendimentos") +
+      checkboxField("configuracoes.relatorios.rais", "RAIS")
+    );
+
+    var grupoLancamentosFixos = checklist(
+      checkboxField("configuracoes.lancamentosFixos.calcularFerias", "Calcular nas férias") +
+      checkboxField("configuracoes.lancamentosFixos.calcular13", "Calcular no 13º salário")
+    );
+
+    var grupoOpcoes =
+      '<div class="flex flex-col gap-2">' +
+      checkboxField("configuracoes.opcoes.componeHorasMes", "Compõe horas mês") +
+      checkboxField("configuracoes.opcoes.refleteDSR", "Reflete no DSR") +
+      checkboxField("configuracoes.opcoes.descontaDSR", "Desconta DSR") +
+      checkboxField("configuracoes.opcoes.calculaDuranteAfastamento", "Calcula durante o afastamento") +
+      checkboxField("configuracoes.opcoes.componeLiquido", "Compõe o líquido") +
+      checkboxField("configuracoes.opcoes.apareceRelatorios", "Aparece nos relatórios") +
+      checkboxField("configuracoes.opcoes.apareceRecibos", "Aparece nos recibos") +
+      checkboxField("configuracoes.opcoes.componeAdiantamentoSalarial", "Compõe o adiantamento salarial") +
+      checkboxField("configuracoes.opcoes.detalharLancamentosPorServico", "Detalhar lançamentos por serviço") +
+      checkboxField("configuracoes.opcoes.calculaDiferencaPiso", "Calcula diferença devido alteração piso salarial") +
+      checkboxField("configuracoes.opcoes.calculaDiferencaRubrica", "Calcula diferença da rubrica") +
+      checkboxField("configuracoes.opcoes.pagaProporcional", "Paga proporcional") +
+      '</div>' +
+      '<div class="rub-subcard">' +
+      '<div class="rub-subcard-title">Tratamento de faltas (com "Paga proporcional")</div>' +
+      '<div class="flex flex-col gap-2">' +
+      checkboxField("configuracoes.opcoes.naoConsiderarFaltasFerias", "Não considerar para faltas em férias", { disabled: naoFaltasDisabled, hint: naoFaltasHint }) +
+      checkboxField("configuracoes.opcoes.naoConsiderarFaltasRescisao", "Não considerar para faltas em rescisão", { disabled: naoFaltasDisabled, hint: naoFaltasHint }) +
+      checkboxField("configuracoes.opcoes.naoConsiderarFaltasAfastamento", "Não considerar para faltas em afastamento", { disabled: naoFaltasDisabled, hint: naoFaltasHint }) +
+      checkboxField("configuracoes.opcoes.naoConsiderarFaltasOutras", "Não considerar para faltas em outras situações", { disabled: naoFaltasDisabled, hint: naoFaltasHint }) +
+      '</div></div>';
+
+    return (
+      '<div class="section-card">' +
+      accordionItem("adicional", "Adicional", grupoAdicional) +
+      accordionItem("medias", "Médias", grupoMedias) +
+      accordionItem("relatorios", "Relatórios", grupoRelatorios) +
+      accordionItem("lancamentosFixos", "Lançamentos fixos", grupoLancamentosFixos) +
+      accordionItem("opcoes", "Opções", grupoOpcoes) +
+      '</div>'
+    );
+  }
+
+  // ===== Aba Soma na Base de Cálculo =====
+  function tabSomaBaseCalculo() {
+    var linhas = form.somaBaseCalculo;
+    var editing = state.mode === "edit";
+
+    function descricaoDe(codigo) { var r = codigo ? findRubrica(codigo) : null; return r ? r.nome : ""; }
+
+    var corpoHtml;
+    if (linhas.length === 0) {
+      corpoHtml = '<tr class="empty-row"><td colspan="' + (editing ? 3 : 2) + '">Nenhuma rubrica somada à base de cálculo.</td></tr>';
+    } else {
+      corpoHtml = linhas.map(function (linha, i) {
+        if (!editing) {
+          return "<tr><td>" + (linha.codigoRubrica ? esc(linha.codigoRubrica) : vazio()) + "</td><td>" + (descricaoDe(linha.codigoRubrica) ? esc(descricaoDe(linha.codigoRubrica)) : vazio()) + "</td></tr>";
+        }
+        return (
+          "<tr>" +
+          "<td>" + comboSelectHtml("somaBaseCalculo." + i + ".codigoRubrica", rubricasParaCombobox(form.codigo, linha.codigoRubrica), linha.codigoRubrica) + "</td>" +
+          '<td style="font-size:12.5px;color:var(--text-secondary);">' + (descricaoDe(linha.codigoRubrica) ? esc(descricaoDe(linha.codigoRubrica)) : vazio()) + "</td>" +
+          '<td><button type="button" class="btn btn-ghost btn-xs" data-remove-soma="' + i + '" aria-label="Remover">' + Icon("x", "size-3-5") + "</button></td>" +
+          "</tr>"
+        );
+      }).join("");
+    }
+
+    return (
+      '<div class="section-card">' +
+      '<div class="subsection-title" style="margin-top:0;">Rubricas somadas à base de cálculo</div>' +
+      '<div class="rub-table-wrap"><table class="rub-table">' +
+      "<thead><tr><th>Código</th><th>Descrição</th>" + (editing ? "<th></th>" : "") + "</tr></thead>" +
+      "<tbody>" + corpoHtml + "</tbody>" +
+      "</table></div>" +
+      (editing ? '<button type="button" class="btn btn-secondary btn-xs" style="margin-top:12px;" id="btn-incluir-soma">' + Icon("plus", "size-3-5") + " Incluir rubrica</button>" : "") +
+      '</div>'
+    );
+  }
+
+  // ===== Aba Rescisão =====
+  function tabRescisao() {
+    var r = form.rescisao;
+    var emitirAtivo = !!r.emitirTermoRescisao;
+    var campo23Ativo = emitirAtivo && !!r.campo23;
+
+    var grupoEmitir = condRule(
+      checkboxField("rescisao.emitirTermoRescisao", "Emitir no Termo de Rescisão"),
+      emitirAtivo
+        ? '<div class="rf-group rf-group-2">' + textField("Campo", "rescisao.campo", { obrigatorio: true, placeholder: "Identificação do campo no TRCT" }) + '</div>' +
+          '<div>' + checkboxField("rescisao.campo23", "Campo 23 – Remuneração mês anterior") + '</div>' +
+          '<div class="rf-group">' +
+          radioField("Tratamento do Campo 23", "rescisao.campo23Opcao", CAMPO23_OPCOES, {
+            wide: true, naoAplicavel: !campo23Ativo, obrigatorio: campo23Ativo,
+            hint: !campo23Ativo ? 'Disponível quando "Campo 23" estiver marcado.' : "",
+          }) + '</div>'
+        : null
+    );
+
+    var grupoHomolognet = condRule(
+      checkboxField("rescisao.gerarHomolognet", "Gerar para o Homolognet"),
+      r.gerarHomolognet
+        ? '<div class="rf-group rf-group-2">' +
+          rubricaReferenceField("Rubrica", "rescisao.homolognetRubricaCodigo", { obrigatorio: true }) +
+          textField("Código da rubrica externa", "rescisao.homolognetCodigoExterno", { placeholder: "Código exigido pelo layout do Homolognet" }) +
+          '</div>'
+        : null
+    );
+
+    var grupoSaldo = condRule(
+      checkboxField("rescisao.gerarSaldoSalarioRescisao", "Gerar a rubrica como saldo de salário de rescisão"),
+      r.gerarSaldoSalarioRescisao
+        ? '<div class="rf-group rf-group-2">' + rubricaReferenceField("Rubrica destino", "rescisao.saldoSalarioRubricaCodigo", { obrigatorio: true }) + '</div>'
+        : null
+    );
+
+    return (
+      '<div class="section-card flex flex-col gap-6">' +
+      '<div><div class="subsection-title" style="margin-top:0;">Emitir no Termo de Rescisão</div>' + grupoEmitir + '</div>' +
+      '<div><div class="subsection-title">Gerar para o Homolognet</div>' + grupoHomolognet + '</div>' +
+      '<div><div class="subsection-title">Gerar a rubrica como saldo de salário de rescisão</div>' + grupoSaldo + '</div>' +
+      '</div>'
+    );
+  }
+
+  // ===== Aba e-Social =====
+  function tabEsocial() {
+    var domesticoAtivo = !!form.esocial.domestico.ativo;
+    var grupoDomestico = condRule(
+      checkboxField("esocial.domestico.ativo", "Utiliza para o eSocial Doméstico"),
+      domesticoAtivo ? '<div class="rf-group rf-group-2">' + textField("Código eSocial", "esocial.domestico.codigo", { obrigatorio: true, placeholder: "Código no eSocial Doméstico" }) + '</div>' : null
+    );
+
+    return (
+      '<div class="section-card flex flex-col gap-6">' +
+      '<div class="alert-banner">' + Icon("info", "size-4") +
+      '<div style="font-size:12.5px;color:var(--text-secondary);">Nenhum catálogo oficial da Tabela 3 do eSocial ou de códigos de incidência está disponível neste projeto. Os campos abaixo aceitam preenchimento livre; a validação contra a tabela oficial fica para uma etapa futura.</div></div>' +
+      secao("Natureza das rubricas",
+        textField("Código", "esocial.natureza.codigo", { obrigatorio: true, placeholder: "Código da Tabela 3 do eSocial" }) +
+        textField("Descrição", "esocial.natureza.descricao", { wide: true, placeholder: "Preenchimento manual — sem catálogo oficial disponível" }), " rf-group-2"
+      ) +
+      '<div><div class="subsection-title">Incidências</div><div class="flex flex-col gap-4">' +
+      '<div class="rf-group rf-group-2">' + textField("IRRF — código", "esocial.incidencias.irrf.codigo", { obrigatorio: true }) + textField("IRRF — descrição", "esocial.incidencias.irrf.descricao", { wide: true }) + '</div>' +
+      '<div class="rf-group rf-group-2">' + textField("INSS — código", "esocial.incidencias.inss.codigo", { obrigatorio: true }) + textField("INSS — descrição", "esocial.incidencias.inss.descricao", { wide: true }) + '</div>' +
+      '<div class="rf-group rf-group-2">' + textField("FGTS — código", "esocial.incidencias.fgts.codigo", { obrigatorio: true }) + textField("FGTS — descrição", "esocial.incidencias.fgts.descricao", { wide: true }) + '</div>' +
+      '<div class="rf-group rf-group-2">' + textField("PIS — código", "esocial.incidencias.pis.codigo", { obrigatorio: true }) + textField("PIS — descrição", "esocial.incidencias.pis.descricao", { wide: true }) + '</div>' +
+      '</div></div>' +
+      '<div><div class="subsection-title">eSocial Doméstico</div>' + grupoDomestico + '</div>' +
+      '</div>'
+    );
+  }
+
+  function renderTab() {
+    if (state.activeTab === "geral") return tabGeral();
+    if (state.activeTab === "configuracoes") return tabConfiguracoes();
+    if (state.activeTab === "soma-base-calculo") return tabSomaBaseCalculo();
+    if (state.activeTab === "rescisao") return tabRescisao();
+    if (state.activeTab === "esocial") return tabEsocial();
+    return "";
+  }
+
+  function renderTabsBar() {
+    return '<div class="rub-tabs">' + TABS.map(function (t) {
+      return '<button type="button" class="rub-tab-btn' + (t.key === state.activeTab ? " active" : "") + '" data-tab="' + t.key + '">' + esc(t.label) + '</button>';
+    }).join("") + '</div>';
+  }
+
+  // ===== Validação (mesmas regras do original) =====
+  function codigoValido() { return /^[0-9]+$/.test((form.codigo || "").trim()); }
+  function codigoEsocialValido() { return /^[0-9]+$/.test((form.codigoEsocial || "").trim()); }
+  function codigoDuplicado() {
+    return RUBRICAS.some(function (r) { return r.codigo === form.codigo && r.codigo !== rubricaExistente.codigo; });
+  }
+  function somaBaseCalculoValida() {
+    return form.somaBaseCalculo.every(function (linha) {
+      if (!linha.codigoRubrica || linha.codigoRubrica === form.codigo) return false;
+      return !!findRubrica(linha.codigoRubrica);
+    });
+  }
+  function rescisaoValida() {
+    var r = form.rescisao;
+    if (r.emitirTermoRescisao && !(r.campo || "").trim()) return false;
+    if (r.emitirTermoRescisao && r.campo23 && !r.campo23Opcao) return false;
+    if (r.gerarHomolognet && !r.homolognetRubricaCodigo) return false;
+    if (r.gerarSaldoSalarioRescisao && !r.saldoSalarioRubricaCodigo) return false;
+    return true;
+  }
+  function esocialValido() {
+    var e = form.esocial;
+    if (!(e.natureza.codigo || "").trim()) return false;
+    if (!(e.incidencias.irrf.codigo || "").trim()) return false;
+    if (!(e.incidencias.inss.codigo || "").trim()) return false;
+    if (!(e.incidencias.fgts.codigo || "").trim()) return false;
+    if (!(e.incidencias.pis.codigo || "").trim()) return false;
+    return true;
+  }
+  function camposObrigatoriosPreenchidos() {
+    if (!(form.codigo || "").trim() || !codigoValido() || codigoDuplicado()) return false;
+    if (!(form.codigoEsocial || "").trim() || !codigoEsocialValido()) return false;
+    if (!(form.nome || "").trim()) return false;
+    if (!(form.dataInicio || "").trim()) return false;
+    if (!(form.situacao || "").trim()) return false;
+    if (!form.geral.tipoRubrica || !form.geral.tipoCalculo || !form.geral.unidade || !form.geral.classificacao) return false;
+    if (baseCalculoAtiva() && !form.geral.baseCalculo) return false;
+    if (taxaAtiva() && !(form.geral.taxa || "").toString().trim()) return false;
+    if (!somaBaseCalculoValida()) return false;
+    if (!rescisaoValida()) return false;
+    if (!esocialValido()) return false;
+    return true;
+  }
+
+  function hojeBr() {
+    var d = new Date();
+    return String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0") + "/" + d.getFullYear();
+  }
+
+  // ===== Cabeçalho comum =====
+  function headerHtml() {
+    var mockOptions = RUBRICAS.map(function (r) {
+      return '<option value="' + r.codigo + '"' + (r.codigo === form.codigo ? " selected" : "") + '>' + esc(r.codigo + " — " + r.nome) + '</option>';
+    }).join("");
+
+    var tipoBadge = form.geral.tipoRubrica ? '<span class="badge badge-pink">' + esc(optLabel(O.tipoRubrica, form.geral.tipoRubrica)) + '</span>' : "";
+    var situacaoBadge = '<span class="badge ' + (form.situacao === "Ativo" ? "badge-success" : "badge-neutral") + '">' + esc(form.situacao) + '</span>';
+
+    var editarBloqueadoPorVigencia = !state.vigenciaAtual;
+    var acoesHtml = state.mode === "view"
+      ? '<div class="flex gap-2">' +
+        '<button type="button" class="btn btn-secondary btn-xs" id="btn-historico">' + Icon("clock", "size-3-5") + ' Histórico</button>' +
+        '<button type="button" class="btn btn-secondary btn-xs" id="btn-editar"' + (editarBloqueadoPorVigencia ? ' disabled title="Volte para a vigência atual para editar."' : "") + '>' + Icon("pencil", "size-3-5") + ' Editar</button>' +
+        '</div>'
+      : '<div class="flex gap-2">' +
+        '<button type="button" class="btn btn-ghost btn-xs" id="btn-cancelar">Cancelar</button>' +
+        '<button type="button" class="btn btn-primary btn-xs" id="btn-gravar"' + (camposObrigatoriosPreenchidos() ? "" : " disabled") + '>Gravar</button>' +
+        '</div>';
+
+    var camposHtml =
+      textField("Código", "codigo", { obrigatorio: true, placeholder: "Ex.: 1000", error: (state.mode === "edit" && (form.codigo || "").trim() && (!codigoValido() || codigoDuplicado())) ? (!codigoValido() ? "Código deve conter apenas números." : "Já existe uma rubrica com este código.") : "" }) +
+      textField("Código eSocial", "codigoEsocial", { obrigatorio: true, placeholder: "Tabela 3 do eSocial", error: (state.mode === "edit" && (form.codigoEsocial || "").trim() && !codigoEsocialValido()) ? "Código eSocial deve conter apenas números." : "" }) +
+      textField("Nome", "nome", { obrigatorio: true, wide: true, placeholder: "Nome completo da rubrica" }) +
+      dateField("Data de Início", "dataInicio", { obrigatorio: true }) +
+      selectField("Situação", "situacao", O.situacao, { obrigatorio: true }) +
+      campoField(labelHtml("Data fim", false), '<span class="field-value' + (form.dataFim ? "" : " empty") + '">' + (form.dataFim ? esc(form.dataFim) : "—") + '</span>');
+
+    var vigenciasHtml = "";
+    if (form.vigencias && form.vigencias.length > 1) {
+      vigenciasHtml = '<div class="rub-vigencia-bar">' +
+        '<span class="rf-label" style="margin:0;">Vigência</span>' +
+        form.vigencias.map(function (v, i) {
+          var isAtual = i === 0;
+          var selected = state.vigenciaSelecionada && state.vigenciaSelecionada.id === v.id;
+          var periodo = v.dataFim ? v.dataInicio + " – " + v.dataFim : "desde " + v.dataInicio;
+          return '<button type="button" class="badge ' + (selected ? "badge-pink" : "badge-neutral") + '" style="cursor:pointer;border:none;" data-vigencia="' + v.id + '">' + esc(periodo) + (isAtual ? " (atual)" : "") + '</button>';
+        }).join("") +
+        (!state.vigenciaAtual ? '<button type="button" class="btn btn-ghost btn-xs" data-vigencia-atual="1">Voltar para vigência atual</button>' : "") +
+        '</div>';
+    }
+
+    return (
+      '<div class="flex flex-col gap-2">' +
+      '<a href="index.html" class="back-link">' + Icon("chevron-left", "size-3-5") + ' voltar para a lista</a>' +
+      '<div class="rub-header-top">' +
+      '<div class="rub-title-row"><h1>' + esc(form.nome) + '</h1>' + tipoBadge + situacaoBadge + '</div>' +
+      acoesHtml +
+      '</div></div>' +
+      '<div class="section-card">' +
+      '<div class="flex items-center justify-between gap-3 flex-wrap" style="margin-bottom:16px;">' +
+      '<div class="subsection-title" style="margin:0;border:none;padding:0;">Dados cadastrais</div>' +
+      '<div class="rub-mock-picker"><span>Rubrica mock:</span><select id="rub-mock-select">' + mockOptions + '</select></div>' +
+      '</div>' +
+      '<div class="rf-group">' + camposHtml + '</div>' +
+      vigenciasHtml +
+      '</div>'
+    );
+  }
+
+  function render() {
+    var root = document.getElementById("rubrica-root");
+    root.innerHTML = headerHtml() + renderTabsBar() + '<div id="rubrica-tab-content"></div>';
+    document.getElementById("rubrica-tab-content").innerHTML = renderTab();
+    refreshIcons();
+    wireEvents();
+  }
+
+  function wireEvents() {
+    document.querySelectorAll("[data-tab]").forEach(function (el) {
+      el.addEventListener("click", function () { state.activeTab = el.getAttribute("data-tab"); render(); });
+    });
+
+    var mockSelect = document.getElementById("rub-mock-select");
+    if (mockSelect) mockSelect.addEventListener("change", function () { trocarRubrica(mockSelect.value); });
+
+    var btnHistorico = document.getElementById("btn-historico");
+    if (btnHistorico) btnHistorico.addEventListener("click", abrirHistorico);
+
+    var btnEditar = document.getElementById("btn-editar");
+    if (btnEditar) btnEditar.addEventListener("click", function () { iniciarEdicao(); render(); });
+
+    var btnCancelar = document.getElementById("btn-cancelar");
+    if (btnCancelar) btnCancelar.addEventListener("click", function () { cancelarEdicao(); render(); });
+
+    var btnGravar = document.getElementById("btn-gravar");
+    if (btnGravar) btnGravar.addEventListener("click", salvar);
+
+    document.querySelectorAll("input[data-path], select[data-path]").forEach(function (el) {
+      el.addEventListener("change", function () {
+        var path = el.getAttribute("data-path");
+        setPath(form, path, el.value);
+        if (path === "situacao") {
+          if (form.situacao === "Inativo" && !form.dataFim) form.dataFim = hojeBr();
+          else if (form.situacao === "Ativo") form.dataFim = null;
+        }
+        render();
+      });
+    });
+
+    document.querySelectorAll(".rub-check[data-path]").forEach(function (el) {
+      el.addEventListener("click", function (e) {
+        e.preventDefault();
+        var path = el.getAttribute("data-path");
+        var novoValor = !getPath(form, path);
+        setPath(form, path, novoValor);
+        if (path === "configuracoes.opcoes.pagaProporcional" && !novoValor) {
+          var o = form.configuracoes.opcoes;
+          o.naoConsiderarFaltasFerias = false; o.naoConsiderarFaltasRescisao = false;
+          o.naoConsiderarFaltasAfastamento = false; o.naoConsiderarFaltasOutras = false;
+        }
+        if (path === "rescisao.emitirTermoRescisao" && !novoValor) {
+          form.rescisao.campo = ""; form.rescisao.campo23 = false; form.rescisao.campo23Opcao = "";
+        }
+        if (path === "rescisao.campo23" && !novoValor) form.rescisao.campo23Opcao = "";
+        if (path === "rescisao.gerarHomolognet" && !novoValor) { form.rescisao.homolognetRubricaCodigo = ""; form.rescisao.homolognetCodigoExterno = ""; }
+        if (path === "rescisao.gerarSaldoSalarioRescisao" && !novoValor) form.rescisao.saldoSalarioRubricaCodigo = "";
+        if (path === "esocial.domestico.ativo" && !novoValor) form.esocial.domestico.codigo = "";
+        render();
+      });
+    });
+
+    document.querySelectorAll(".rub-radio[data-path]").forEach(function (el) {
+      el.addEventListener("click", function () { setPath(form, el.getAttribute("data-path"), el.getAttribute("data-value")); render(); });
+    });
+
+    var btnIncluirSoma = document.getElementById("btn-incluir-soma");
+    if (btnIncluirSoma) btnIncluirSoma.addEventListener("click", function () { form.somaBaseCalculo.push({ codigoRubrica: "" }); render(); });
+    document.querySelectorAll("[data-remove-soma]").forEach(function (el) {
+      el.addEventListener("click", function () { form.somaBaseCalculo.splice(Number(el.getAttribute("data-remove-soma")), 1); render(); });
+    });
+
+    document.querySelectorAll("[data-accordion-toggle]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var key = btn.getAttribute("data-accordion-toggle");
+        state.accordionOpen[key] = !state.accordionOpen[key];
+        render();
+      });
+    });
+
+    document.querySelectorAll("[data-vigencia]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var id = btn.getAttribute("data-vigencia");
+        var v = form.vigencias.filter(function (x) { return x.id === id; })[0];
+        if (!v) return;
+        state.vigenciaSelecionada = v;
+        state.vigenciaAtual = form.vigencias[0].id === id;
+        render();
+      });
+    });
+    var btnVigenciaAtual = document.querySelector("[data-vigencia-atual]");
+    if (btnVigenciaAtual) btnVigenciaAtual.addEventListener("click", function () {
+      state.vigenciaSelecionada = form.vigencias[0];
+      state.vigenciaAtual = true;
+      render();
+    });
+  }
+
+  // ===== Histórico — modal centrado (Cockpit .modal-backdrop/.modal-panel),
+  // só leitura, mesmo critério do catálogo (design-tokens-and-components.md:
+  // "só leitura/confirmação -> modal centrado"). =====
+  function blocoVigenciaHtml(v, isAtual) {
+    var periodo = v.dataFim ? v.dataInicio + " – " + v.dataFim : "desde " + v.dataInicio;
+    var metaHtml = (v.tipoCalculo || v.classificacao || v.taxa)
+      ? '<table class="rub-hist-meta-table"><thead><tr><th>Tipo de Cálculo</th><th>Classificação</th><th>Taxa</th></tr></thead>' +
+        '<tbody><tr><td>' + (v.tipoCalculo ? esc(optLabel(O.tipoCalculo, v.tipoCalculo)) : "—") + '</td><td>' +
+        (v.classificacao ? esc(optLabel(O.classificacao, v.classificacao)) : "—") + '</td><td>' + (v.taxa || "—") + '</td></tr></tbody></table>'
+      : "";
+    return (
+      '<div class="rub-hist-event">' +
+      '<div class="rub-hist-event-head"><span class="flex items-center gap-1" style="font-size:13px;font-weight:600;">' + Icon("calendar", "size-3-5") + esc(periodo) + '</span>' +
+      '<span class="badge ' + (isAtual ? "badge-success" : "badge-neutral") + '">' + (isAtual ? "Atual" : "Encerrada") + '</span></div>' +
+      metaHtml + '</div>'
+    );
+  }
+  function renderHistoricoConteudo() {
+    var vigencias = (rubricaExistente && rubricaExistente.vigencias) || [];
+    var corpo = vigencias.length
+      ? vigencias.map(function (v, i) { return blocoVigenciaHtml(v, i === 0); }).join("")
+      : '<div class="rf-na" style="text-align:center;padding:20px;">Nenhuma vigência registrada até o momento.</div>';
+    return corpo + '<div class="flex items-start gap-2" style="margin-top:4px;">' +
+      '<span style="color:var(--text-tertiary);flex-shrink:0;margin-top:1px;">' + Icon("info", "size-3-5") + '</span>' +
+      '<span style="font-size:11.5px;color:var(--text-tertiary);">Este histórico lista as vigências registradas no cadastro. Este protótipo não possui um registro de auditoria por alteração de campo (quem alterou, quando, valor anterior e novo).</span>' +
+      '</div>';
+  }
+  function ensureHistoricoModal() {
+    if (document.getElementById("rub-historico-backdrop")) return;
+    var wrap = document.createElement("div");
+    wrap.innerHTML =
+      '<div class="modal-backdrop hidden" id="rub-historico-backdrop">' +
+      '<div class="modal-panel" style="max-width:560px;">' +
+      '<div style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">' +
+      '<div><div style="font-size:15px;font-weight:700;color:var(--text-primary);">Histórico</div>' +
+      '<div style="font-size:12.5px;color:var(--text-secondary);margin-top:2px;">Vigências registradas nesta rubrica ao longo do tempo.</div></div>' +
+      '<button type="button" class="btn btn-ghost btn-xs" id="rub-historico-close">' + Icon("x", "size-4") + '</button>' +
+      '</div>' +
+      '<div class="rub-hist-body" style="padding:20px 24px;overflow-y:auto;" id="rub-historico-body"></div>' +
+      '<div style="padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;">' +
+      '<button type="button" class="btn btn-secondary btn-xs" id="rub-historico-fechar">Fechar</button>' +
+      '</div></div></div>';
+    document.body.appendChild(wrap);
+    document.getElementById("rub-historico-close").addEventListener("click", fecharHistorico);
+    document.getElementById("rub-historico-fechar").addEventListener("click", fecharHistorico);
+    document.getElementById("rub-historico-backdrop").addEventListener("click", function (e) { if (e.target.id === "rub-historico-backdrop") fecharHistorico(); });
+  }
+  function abrirHistorico() {
+    ensureHistoricoModal();
+    document.getElementById("rub-historico-body").innerHTML = renderHistoricoConteudo();
+    document.getElementById("rub-historico-backdrop").classList.remove("hidden");
+    refreshIcons();
+  }
+  function fecharHistorico() {
+    var el = document.getElementById("rub-historico-backdrop");
+    if (el) el.classList.add("hidden");
+  }
+
+  // ===== Toast simples (mesmo padrão sugerido pelo catálogo: container
+  // fixed bottom-right, replicado por fluxo) =====
+  function showToastRub(title, desc) {
+    var container = document.getElementById("rub-toast");
+    var item = document.createElement("div");
+    item.className = "rub-toast-item";
+    item.innerHTML = '<span style="color:var(--success);display:flex;">' + Icon("check-circle", "size-4") + '</span>' +
+      '<div><div class="rub-toast-title">' + esc(title) + '</div><div class="rub-toast-desc">' + esc(desc) + '</div></div>';
+    container.appendChild(item);
+    refreshIcons();
+    setTimeout(function () { item.remove(); }, 4500);
+  }
+
+  function salvar() {
+    if (!camposObrigatoriosPreenchidos()) return;
+    if (form.vigencias && form.vigencias.length && !form.vigencias[0].dataFim) {
+      form.vigencias[0].tipoCalculo = form.geral.tipoCalculo;
+      form.vigencias[0].classificacao = form.geral.classificacao;
+      form.vigencias[0].taxa = form.geral.taxa;
+    }
+    // Sem persistência (protótipo sem localStorage) — reflete no registro
+    // mock em memória, mesmo critério de "mudar valores nos campos e
+    // refletir no estado" pedido para este protótipo.
+    Object.assign(rubricaExistente, JSON.parse(JSON.stringify(form)));
+    confirmarSalvamento();
+    render();
+    showToastRub("Rubrica salva", form.nome + " foi atualizada com sucesso.");
+  }
+
+  render();
+})();
+</script>
 </body>
 </html>

@@ -450,9 +450,13 @@
   //
   // Regra definitiva de vínculo NÃO fechada pelo Produto: se a seleção deve
   // exigir vínculo prévio via aba Contadores, se pode haver mais de um
-  // responsável, prioridade entre eles, vigência etc. Esta implementação
-  // deliberadamente não assume nenhuma dessas regras — permite selecionar
-  // qualquer contador do registro, sem validar vínculo prévio.
+  // responsável, prioridade entre eles. Esta implementação deliberadamente
+  // não assume nenhuma dessas regras — permite selecionar qualquer contador
+  // do registro, sem validar vínculo prévio.
+  // Vigência NÃO é mais pendência (resolvido 15/09/2026, confirmado por
+  // Thais Lima de Souza): o Log de Histórico de Alterações (aba Histórico)
+  // já cobre o rastreio de trocas de responsável — ver
+  // docs/RN-RF_CadastroEmpresasAuxiliares.md, seção 4-A.
   const CONTADOR_RESPONSAVEL_KEY = "autopilot_prototype_contador_responsavel_v1";
   function getContadoresResponsaveisSalvos() {
     try {

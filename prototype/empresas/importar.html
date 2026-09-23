@@ -1,81 +1,485 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
-  <title>Importar empresas — Empresas — AutoPilot</title>
-  <link rel="stylesheet" href="../shared/css/tokens.css" />
-  <link rel="stylesheet" href="../shared/css/base.css" />
-  <link rel="stylesheet" href="../shared/css/components.css" />
-  <link rel="stylesheet" href="../shared/css/layout.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Importar empresas · Empresas · Autopilot Configs</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body { margin: 0; }
+.ap-crumb{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-tertiary);}
+.ap-crumb a{color:var(--text-tertiary);text-decoration:none;}
+.ap-crumb a:hover{color:var(--brand-pink);}
+.ap-page{padding:20px 28px 60px;max-width:1100px;margin:0 auto;width:100%;}
+.ap-topbar-inner{display:flex;align-items:center;height:56px;padding:0 28px;border-bottom:1px solid var(--border);background:#fff;}
+.ap-card-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;background:var(--surface-subtle);border-radius:0 0 14px 14px;margin:20px -28px -24px;}
+.ap-toggle-group{display:inline-flex;gap:2px;padding:4px;background:var(--surface-muted);border-radius:10px;}
+.ap-toggle-item{padding:7px 14px;font-size:12.5px;font-weight:500;color:var(--text-secondary);cursor:pointer;border-radius:7px;background:transparent;border:none;}
+.ap-toggle-item.active{background:var(--surface);color:var(--text-primary);box-shadow:0 1px 2px rgba(0,0,0,.06);}
+.ap-stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;min-width:150px;}
+.ap-stat-value{font-size:22px;font-weight:700;color:var(--text-primary);}
+.ap-stat.success .ap-stat-value{color:var(--success);}
+.ap-stat.warning .ap-stat-value{color:var(--warning);}
+.ap-stat-label{font-size:11.5px;color:var(--text-tertiary);margin-top:2px;}
+.ap-stepper{display:flex;align-items:center;gap:0;margin-bottom:20px;}
+.ap-step{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:72px;}
+.ap-step-circle{width:26px;height:26px;border-radius:50%;background:var(--surface-muted);color:var(--text-tertiary);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;}
+.ap-step.active .ap-step-circle{background:var(--brand-pink);color:#fff;}
+.ap-step.done .ap-step-circle{background:var(--success);color:#fff;}
+.ap-step-label{font-size:10px;color:var(--text-tertiary);text-align:center;white-space:nowrap;}
+.ap-step.active .ap-step-label{color:var(--text-primary);font-weight:600;}
+.ap-step-connector{flex:1;height:2px;background:var(--border);margin:0 -2px 20px;}
+.ap-step-connector.done{background:var(--success);}
+.ap-progress{height:8px;border-radius:999px;background:var(--surface-muted);overflow:hidden;}
+.ap-progress-fill{height:100%;background:var(--brand-pink);transition:width .18s;}
+.ap-flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.ap-flow-node{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--surface-subtle);border:1px solid var(--border);border-radius:10px;font-size:12.5px;font-weight:500;}
+.ap-dropzone{border:2px dashed var(--border-strong);border-radius:12px;padding:28px 18px;text-align:center;background:var(--surface-subtle);cursor:pointer;transition:all .15s;}
+.ap-dropzone:hover,.ap-dropzone.dragover{border-color:var(--brand-pink);background:var(--brand-pink-soft);}
+.ap-alert{display:flex;gap:10px;align-items:flex-start;padding:12px 16px;border-radius:10px;border:1px solid;font-size:12.5px;line-height:1.5;}
+.ap-alert.warning{background:var(--warning-soft);border-color:#fcd34d;color:#92400e;}
+.ap-alert.info{background:var(--info-soft);border-color:#93c5fd;color:#1e40af;}
+.ap-upload-file-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);}
+</style>
 </head>
 <body>
-  <div id="shell-root"></div>
 
-  <template id="page-content">
-    <section class="max-w-7xl flex flex-col gap-4">
-      <div class="flex flex-col gap-2">
-        <a href="index.html" class="flex items-center gap-1 text-sm font-medium link-info w-fit">
-          ::icon-back:: voltar para a lista
-        </a>
-        <div>
-          <h1 class="text-xl font-semibold mb-1">Importação massiva de empresas</h1>
-          <p class="text-sm text-muted max-w-2xl">Cadastre várias empresas de uma só vez a partir de uma planilha com os dados do Cadastro Geral.</p>
-        </div>
-      </div>
+<div class="sidebar"></div>
+<div class="main">
+  <div class="ap-topbar-inner">
+    <div class="ap-crumb"><span style="color:var(--text-primary);font-weight:600;">Autopilot</span> <i data-lucide="chevron-right" style="width:12px;height:12px;"></i> <a href="index.html">Empresas</a> <i data-lucide="chevron-right" style="width:12px;height:12px;"></i> <span>Importar empresas</span></div>
+  </div>
 
-      <div class="stepper" id="import-stepper"></div>
-
-      <div id="import-step-mount"></div>
-    </section>
-
-    <div class="dialog-overlay" id="dialog-detalhe-erro">
-      <div class="dialog-content" role="dialog" aria-modal="true" aria-labelledby="dialog-detalhe-erro-title">
-        <button type="button" class="dialog-close" data-close-dialog="dialog-detalhe-erro" aria-label="Fechar">::icon-x::</button>
-        <div class="flex flex-col gap-1">
-          <h2 class="dialog-title" id="dialog-detalhe-erro-title">Inconsistência na linha</h2>
-          <p class="dialog-description">Corrija estes pontos na planilha e envie o arquivo novamente para importar este registro.</p>
-        </div>
-        <div id="dialog-detalhe-erro-content" class="flex flex-col gap-3"></div>
-        <div class="dialog-footer">
-          <button type="button" class="btn btn-outline" data-close-dialog="dialog-detalhe-erro">Fechar</button>
-        </div>
-      </div>
+  <div class="ap-page">
+    <div style="margin-bottom:16px;">
+      <a href="index.html" class="flex items-center gap-1" style="font-size:12.5px;font-weight:500;color:var(--brand-blue);text-decoration:none;width:fit-content;margin-bottom:8px;"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i> voltar para a lista</a>
+      <h1 style="font-size:19px;font-weight:700;color:var(--text-primary);margin:0 0 4px;">Importação massiva de empresas</h1>
+      <p style="font-size:13px;color:var(--text-secondary);max-width:640px;margin:0;">Cadastre várias empresas de uma só vez a partir de uma planilha com os dados do Cadastro Geral.</p>
     </div>
 
-    <div class="dialog-overlay" id="dialog-confirmar-importacao">
-      <div class="dialog-content" role="dialog" aria-modal="true" aria-labelledby="dialog-confirmar-title">
-        <button type="button" class="dialog-close" data-close-dialog="dialog-confirmar-importacao" aria-label="Fechar">::icon-x::</button>
-        <div class="flex flex-col gap-1">
-          <h2 class="dialog-title" id="dialog-confirmar-title">Importar empresas?</h2>
-          <p class="dialog-description" id="dialog-confirmar-desc"></p>
-        </div>
-        <div class="dialog-footer">
-          <button type="button" class="btn btn-outline" data-close-dialog="dialog-confirmar-importacao">Cancelar</button>
-          <button type="button" class="btn" id="btn-confirmar-importacao">Confirmar importação</button>
-        </div>
-      </div>
-    </div>
-  </template>
+    <div class="ap-stepper" id="import-stepper"></div>
+    <div id="import-step-mount"></div>
+  </div>
+</div>
 
-  <script src="../shared/js/icons.js"></script>
-  <script src="../shared/js/shell.js"></script>
-  <script src="../shared/js/ui.js"></script>
-  <script src="../shared/js/fab-tools.js"></script>
-  <script src="js/data.js"></script>
-  <script src="../cadastros-auxiliares/js/contadores/data.js"></script>
-  <script src="js/importar-data.js"></script>
-  <script>
-    Shell.mount(document.getElementById("shell-root"), {
-      base: "../",
-      active: "empresas",
-      crumbs: [{ label: "empresas", href: "index.html" }, { label: "importar empresas" }],
+<div id="ap-toast" class="ap-toast">
+  <span class="ap-toast-icon"><i data-lucide="check" style="width:12px;height:12px;"></i></span>
+  <div><div class="ap-toast-title"></div><div class="ap-toast-desc"></div></div>
+</div>
+
+<script>window.FLOW_CONFIG = { standalone: true };</script>
+<script src="js/data.js"></script>
+<script src="../cadastros-auxiliares/js/contadores/data.js"></script>
+<script src="js/importar-data.js"></script>
+<script src="../assets/core/cockpit-01-shell.js"></script>
+<script src="../assets/core/cockpit-02-state-helpers.js"></script>
+<script src="../assets/core/cockpit-05-timeline-actions.js"></script>
+<script src="../assets/core/cockpit-08-datatable.js"></script>
+<script src="../assets/core/cockpit-07-modals-init.js"></script>
+<script src="../assets/core/cockpit-09-cx-sidebar.js"></script>
+<script>
+(function () {
+  const D = window.EmpresasData;
+  const I = window.ImportarEmpresasData;
+
+  const STEP_DEFS = [
+    { key: "intro", label: "Introdução" }, { key: "upload", label: "Upload" }, { key: "processing", label: "Processamento" },
+    { key: "consulta", label: "Consulta cadastral" }, { key: "validation", label: "Validação" }, { key: "review", label: "Revisão" },
+    { key: "importing", label: "Importação" }, { key: "result", label: "Resultado" },
+  ];
+
+  const state = {
+    step: "intro", arquivoNome: null, arquivoTamanhoKb: null,
+    arquivoCompletoNome: null, arquivoCompletoTamanhoKb: null,
+    linhas: [], filtroValidacao: "todas", empresasImportadas: [],
+    consultaTentativas: 0, consultaDisponivel: null,
+  };
+
+  function contarPorStatus(linhas) {
+    const validas = linhas.filter((l) => l.status === "valida").length;
+    return { total: linhas.length, validas, invalidas: linhas.length - validas };
+  }
+
+  function renderStepper() {
+    const indiceAtual = STEP_DEFS.findIndex((s) => s.key === state.step);
+    let html = "";
+    STEP_DEFS.forEach((s, i) => {
+      const done = i < indiceAtual, active = i === indiceAtual;
+      if (i > 0) html += '<div class="ap-step-connector' + (done || active ? " done" : "") + '"></div>';
+      html += '<div class="ap-step' + (active ? " active" : "") + (done ? " done" : "") + '"><div class="ap-step-circle">' + (done ? '<i data-lucide="check" style="width:12px;height:12px;"></i>' : i + 1) + '</div><div class="ap-step-label">' + s.label + "</div></div>";
     });
-    document.querySelector('a[href="index.html"].link-info').innerHTML =
-      Icon("chevron-left", "size-3-5") + " voltar para a lista";
-    document.querySelectorAll(".dialog-close").forEach((el) => (el.innerHTML = Icon("x", "size-4")));
-  </script>
-  <script src="js/importar.js"></script>
+    document.getElementById("import-stepper").innerHTML = html;
+  }
+  function mount(html) { document.getElementById("import-step-mount").innerHTML = html; renderStepper(); refreshIcons(); }
+  function irPara(step) { state.step = step; RENDERERS[step](); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  function secao(titulo, conteudoHtml) { return '<div style="margin-bottom:22px;"><div class="subsection-title">' + titulo + "</div>" + conteudoHtml + "</div>"; }
+  function cardOpen(title, desc) { return '<div class="section-card">' + (title ? '<div class="subsection-title" style="margin-top:0;">' + title + (desc ? '<div style="font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-secondary);margin-top:4px;">' + desc + "</div>" : "") + "</div>" : ""); }
+  function cardFooter(innerHtml) { return '<div class="ap-card-footer">' + innerHtml + "</div></div>"; }
+
+  function statusBadge(linha) {
+    return linha.status === "valida"
+      ? '<span class="badge badge-success"><i data-lucide="check" style="width:12px;height:12px;"></i> Pronta para importação</span>'
+      : '<span class="badge badge-warning"><i data-lucide="alert-triangle" style="width:12px;height:12px;"></i> Com inconsistência</span>';
+  }
+  function renderTabelaLinhas(linhas, filtro) {
+    const filtradas = linhas.filter((l) => filtro === "todas" || (filtro === "validas" ? l.status === "valida" : l.status === "invalida"));
+    let rows = filtradas.length === 0
+      ? '<tr><td colspan="5"><div class="dt-empty">Nenhum registro encontrado para este filtro.</div></td></tr>'
+      : filtradas.map((l) =>
+          "<tr><td>" + l.linha + "</td><td>" + esc(l.campos.razaoSocial || "(sem razão social)") + '</td><td class="dt-td-mono">' + (l.campos.cnpj || "—") + "</td><td>" + statusBadge(l) + "</td><td>" +
+          (l.status === "invalida" ? '<button type="button" class="btn btn-ghost" style="padding:4px 8px;font-size:12px;color:var(--brand-blue);" data-ver-detalhe="' + l.linha + '">Ver detalhe</button>' : "") + "</td></tr>"
+        ).join("");
+    return '<div class="dt-wrap"><div class="dt-scroll"><table class="dt-table"><thead><tr><th>Linha</th><th>Razão social</th><th>CNPJ</th><th>Status</th><th></th></tr></thead><tbody>' + rows + "</tbody></table></div></div>";
+  }
+  function wireTabelaLinhasEvents() {
+    document.querySelectorAll("[data-ver-detalhe]").forEach((btn) => btn.addEventListener("click", () => abrirDetalheErro(Number(btn.getAttribute("data-ver-detalhe")))));
+  }
+
+  function abrirDetalheErro(numeroLinha) {
+    const linha = state.linhas.find((l) => l.linha === numeroLinha);
+    if (!linha) return;
+    const c = linha.campos;
+    let el = document.getElementById("modal-detalhe-erro");
+    if (el) el.remove();
+    el = document.createElement("div");
+    el.id = "modal-detalhe-erro";
+    el.innerHTML =
+      '<div class="modal-backdrop" style="z-index:300;" onclick="if(event.target===this)document.getElementById(\'modal-detalhe-erro\').remove()">' +
+      '<div class="modal-panel" style="max-width:560px;">' +
+      '<div class="modal-header"><div style="font-weight:700;font-size:15px;">Inconsistência na linha</div><button type="button" class="btn btn-ghost" onclick="document.getElementById(\'modal-detalhe-erro\').remove()"><i data-lucide="x" style="width:16px;height:16px;"></i></button></div>' +
+      '<div class="modal-body flex flex-col gap-3">' +
+      '<div class="ap-alert warning"><i data-lucide="alert-triangle" style="width:15px;height:15px;flex-shrink:0;"></i><ul style="margin:0;padding-left:16px;">' + linha.erros.map((e) => "<li>" + esc(e) + "</li>").join("") + "</ul></div>" +
+      '<div class="ap-detail-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">' +
+      '<div><div class="field-label">Linha da planilha</div><div class="field-value">' + linha.linha + "</div></div>" +
+      '<div><div class="field-label">Razão social</div><div class="field-value">' + (c.razaoSocial ? esc(c.razaoSocial) : '<span class="empty">Não informado</span>') + "</div></div>" +
+      '<div><div class="field-label">CNPJ</div><div class="field-value">' + (c.cnpj ? esc(c.cnpj) : '<span class="empty">Não informado</span>') + "</div></div>" +
+      '<div><div class="field-label">Nome fantasia</div><div class="field-value">' + (c.nomeFantasia ? esc(c.nomeFantasia) : "—") + "</div></div>" +
+      '<div><div class="field-label">Município/UF</div><div class="field-value">' + esc(c.municipio || "—") + "/" + esc(c.uf || "—") + "</div></div>" +
+      "</div></div>" +
+      '<div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="document.getElementById(\'modal-detalhe-erro\').remove()">Fechar</button></div>' +
+      "</div></div>";
+    document.body.appendChild(el);
+    refreshIcons();
+  }
+
+  function renderIntro() {
+    mount(
+      cardOpen("Como funciona", "Antes de importar, entenda o que a importação massiva faz — e o que não faz.") +
+      '<div class="ap-card-content" style="padding:0;">' +
+      secao("O que será importado", '<p style="font-size:13px;">Importa em massa os dados do <b>Cadastro Geral</b> de várias empresas, a partir de uma planilha.</p><p style="font-size:13px;">Os dados do Cadastro Geral importados serão <b>refletidos e sincronizados no Cockpit</b>.</p>') +
+      secao("Você só precisa informar os CNPJs",
+        '<p style="font-size:13px;">Informe os CNPJs das empresas que deseja importar. O AutoPilot consultará os dados cadastrais disponíveis e preencherá automaticamente as informações correspondentes do Cadastro Geral — você não precisa digitá-las.</p>' +
+        '<div class="ap-alert info"><i data-lucide="circle-check" style="width:15px;height:15px;flex-shrink:0;"></i><div>Se a consulta cadastral estiver indisponível para algum CNPJ, você ainda pode continuar: basta usar a planilha completa para informar manualmente os dados necessários para o cadastro.</div></div>') +
+      secao("O que não faz parte desta importação",
+        '<div class="ap-alert warning"><i data-lucide="alert-triangle" style="width:15px;height:15px;flex-shrink:0;"></i><div><b>Limite desta primeira versão.</b> A importação massiva contempla somente os dados do Cadastro Geral. Informações das demais abas da empresa (Sócios, Contadores, Atividades, Empresa centralizadora) <b>não fazem parte desta importação</b> e deverão ser preenchidas ou vinculadas manualmente no cadastro da empresa.</div></div>') +
+      secao("Modelo de planilha",
+        '<div class="flex items-center justify-between gap-3 flex-wrap"><p style="font-size:13px;color:var(--text-secondary);max-width:480px;margin:0;">O modelo simplificado traz apenas a coluna de CNPJ, campo obrigatório para iniciar a consulta cadastral de cada empresa.</p>' +
+        '<button type="button" class="btn btn-secondary" id="btn-baixar-modelo"><i data-lucide="download" style="width:14px;height:14px;"></i> Baixar modelo</button></div>') +
+      "</div>" +
+      cardFooter('<a href="index.html" class="btn btn-secondary">Cancelar</a><button type="button" class="btn btn-primary" id="btn-intro-continuar">Continuar</button>')
+    );
+    document.getElementById("btn-baixar-modelo").addEventListener("click", baixarModelo);
+    document.getElementById("btn-intro-continuar").addEventListener("click", () => irPara("upload"));
+  }
+
+  function baixarCsv(csv, nomeArquivo) {
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = nomeArquivo;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  function baixarModelo() { baixarCsv(I.gerarModeloSimplificadoCsv(), "modelo-importacao-cnpj.csv"); }
+  function baixarModeloCompleto() { baixarCsv(I.gerarModeloCompletoCsv(), "planilha-completa-importacao-empresas.csv"); }
+
+  function renderUpload() {
+    mount(
+      cardOpen("Envie sua planilha", "Utilize o modelo disponibilizado para garantir que os dados estejam no formato esperado.") +
+      '<div class="ap-card-content" style="padding:0;"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;align-items:start;">' +
+      '<div class="flex flex-col gap-3" id="upload-area"></div>' +
+      '<div class="flex flex-col gap-3"><div class="subsection-title" style="margin-top:0;">O que esperar</div>' +
+      '<ul style="margin:0;padding-left:18px;font-size:13px;display:flex;flex-direction:column;gap:8px;">' +
+      "<li>Cada linha da planilha representa uma empresa do Cadastro Geral.</li>" +
+      "<li>Utilize o modelo disponibilizado na etapa anterior para garantir o formato esperado.</li>" +
+      "<li>Depois do envio, o sistema identifica os registros e valida os dados antes da importação.</li></ul></div>" +
+      "</div></div>" +
+      cardFooter('<button type="button" class="btn btn-secondary" id="btn-upload-voltar">Voltar</button><button type="button" class="btn btn-primary" id="btn-upload-processar"' + (state.arquivoNome ? "" : " disabled") + ">Processar planilha</button>")
+    );
+    renderUploadArea();
+    document.getElementById("btn-upload-voltar").addEventListener("click", () => irPara("intro"));
+    document.getElementById("btn-upload-processar").addEventListener("click", () => irPara("processing"));
+  }
+
+  function renderUploadArea() {
+    const area = document.getElementById("upload-area");
+    if (!state.arquivoNome) {
+      area.innerHTML =
+        '<div class="ap-dropzone" id="upload-dropzone" tabindex="0"><div style="width:40px;height:40px;border-radius:50%;background:#fff;color:var(--brand-pink);display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px;"><i data-lucide="upload" style="width:18px;height:18px;"></i></div>' +
+        '<div style="font-size:13px;font-weight:600;">Arraste sua planilha aqui ou clique para selecionar</div><div style="font-size:12px;color:var(--text-secondary);">Formatos aceitos: .xlsx, .csv</div></div>' +
+        '<input type="file" id="upload-input" accept=".xlsx,.csv" style="display:none;" />' +
+        '<button type="button" class="btn btn-ghost" style="width:fit-content;color:var(--brand-blue);" id="btn-usar-exemplo">Não tem uma planilha em mãos? Usar planilha de exemplo</button>';
+      wireUploadDropzone();
+    } else {
+      area.innerHTML =
+        '<div class="ap-upload-file-row"><span><i data-lucide="file-text" style="width:20px;height:20px;color:var(--text-secondary);"></i></span>' +
+        '<div class="flex flex-col min-w-0 flex-1"><span style="font-size:13px;font-weight:600;">' + esc(state.arquivoNome) + '</span><span style="font-size:11px;color:var(--text-tertiary);">' + state.arquivoTamanhoKb + " KB</span></div>" +
+        '<button type="button" class="btn btn-ghost" id="btn-remover-arquivo"><i data-lucide="x" style="width:14px;height:14px;"></i></button></div>';
+      document.getElementById("btn-remover-arquivo").addEventListener("click", () => {
+        state.arquivoNome = null; state.arquivoTamanhoKb = null; renderUploadArea();
+        document.getElementById("btn-upload-processar").setAttribute("disabled", "true");
+      });
+    }
+    refreshIcons();
+  }
+  function selecionarArquivo(nome, tamanhoKb) {
+    state.arquivoNome = nome; state.arquivoTamanhoKb = tamanhoKb; renderUploadArea();
+    document.getElementById("btn-upload-processar").removeAttribute("disabled");
+  }
+  function wireUploadDropzone() {
+    const dropzone = document.getElementById("upload-dropzone");
+    const input = document.getElementById("upload-input");
+    dropzone.addEventListener("click", () => input.click());
+    dropzone.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
+    ["dragenter", "dragover"].forEach((evt) => dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.add("dragover"); }));
+    ["dragleave", "drop"].forEach((evt) => dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.remove("dragover"); }));
+    dropzone.addEventListener("drop", (e) => {
+      const arquivo = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (arquivo) selecionarArquivo(arquivo.name, Math.max(1, Math.round(arquivo.size / 1024)));
+      else selecionarArquivo("empresas_importacao_modelo.xlsx", 38);
+    });
+    input.addEventListener("change", (e) => { const arquivo = e.target.files && e.target.files[0]; if (arquivo) selecionarArquivo(arquivo.name, Math.max(1, Math.round(arquivo.size / 1024))); });
+    document.getElementById("btn-usar-exemplo").addEventListener("click", () => selecionarArquivo("empresas_importacao_modelo.xlsx", 38));
+  }
+
+  function renderProcessing() {
+    state.consultaTentativas = 0; state.consultaDisponivel = null;
+    mount(
+      cardOpen("Processando planilha", "Estamos lendo o arquivo e identificando os CNPJs informados.") +
+      '<div class="ap-card-content flex items-center gap-4" role="status" aria-live="polite" aria-busy="true">' +
+      '<div style="width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--brand-pink);border-radius:50%;animation:ap-spin 0.8s linear infinite;"></div>' +
+      '<div><div style="font-size:13px;font-weight:600;">Lendo planilha...</div><div style="font-size:12px;color:var(--text-secondary);">Identificando os CNPJs informados antes de consultar os dados cadastrais.</div></div></div></div>' +
+      '<style>@keyframes ap-spin{to{transform:rotate(360deg)}}</style>'
+    );
+    setTimeout(() => irPara("consulta"), 1400);
+  }
+
+  function renderConsulta() {
+    mount(
+      cardOpen("Consultando dados cadastrais", "Buscando automaticamente os dados de registro de cada CNPJ para preencher o Cadastro Geral.") +
+      '<div class="ap-card-content flex items-center gap-4" role="status" aria-live="polite" aria-busy="true">' +
+      '<div style="width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--brand-pink);border-radius:50%;animation:ap-spin 0.8s linear infinite;"></div>' +
+      '<div><div style="font-size:13px;font-weight:600;">Consultando dados cadastrais...</div><div style="font-size:12px;color:var(--text-secondary);">Preenchendo automaticamente razão social, endereço e demais dados de registro.</div></div></div></div>' +
+      '<style>@keyframes ap-spin{to{transform:rotate(360deg)}}</style>'
+    );
+    setTimeout(() => {
+      state.consultaTentativas++;
+      if (state.consultaTentativas === 1) renderConsultaIndisponivel();
+      else { state.consultaDisponivel = true; state.linhas = I.gerarLinhasComConsulta(); irPara("validation"); }
+    }, 1400);
+  }
+
+  function renderConsultaIndisponivel() {
+    mount(
+      cardOpen("Consulta cadastral indisponível") +
+      '<div class="ap-card-content"><div class="ap-alert warning"><i data-lucide="alert-triangle" style="width:15px;height:15px;flex-shrink:0;"></i><div>Não foi possível consultar os dados cadastrais neste momento. Você pode tentar novamente ou continuar utilizando uma planilha completa para informar manualmente os dados necessários para o cadastro.</div></div></div>' +
+      cardFooter('<button type="button" class="btn btn-secondary" id="btn-consulta-voltar">Voltar</button><button type="button" class="btn btn-secondary" id="btn-consulta-usar-completa">Usar planilha completa</button><button type="button" class="btn btn-primary" id="btn-consulta-tentar-novamente"><i data-lucide="rotate-ccw" style="width:13px;height:13px;"></i> Tentar novamente</button>')
+    );
+    document.getElementById("btn-consulta-voltar").addEventListener("click", () => irPara("upload"));
+    document.getElementById("btn-consulta-tentar-novamente").addEventListener("click", renderConsulta);
+    document.getElementById("btn-consulta-usar-completa").addEventListener("click", renderFallbackUpload);
+  }
+
+  function renderFallbackUpload() {
+    mount(
+      cardOpen("Cadastro manual por planilha", "A consulta cadastral está temporariamente indisponível. Para continuar a importação, utilize a planilha completa e informe os dados necessários para o cadastro das empresas.") +
+      '<div class="ap-card-content" style="padding:0;"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;align-items:start;">' +
+      '<div class="flex flex-col gap-3" id="fallback-upload-area"></div>' +
+      '<div class="flex flex-col gap-3"><div class="subsection-title" style="margin-top:0;">O que esperar</div>' +
+      '<ul style="margin:0;padding-left:18px;font-size:13px;display:flex;flex-direction:column;gap:8px;">' +
+      "<li>A planilha completa traz todos os campos do Cadastro Geral, para preenchimento manual.</li>" +
+      "<li>Os mesmos campos obrigatórios do cadastro individual de uma empresa precisam estar preenchidos.</li>" +
+      "<li>Registros sem os campos obrigatórios não são importados — o motivo é indicado na validação.</li></ul>" +
+      '<button type="button" class="btn btn-secondary" style="width:fit-content;" id="btn-baixar-modelo-completo"><i data-lucide="download" style="width:14px;height:14px;"></i> Baixar planilha completa</button></div>' +
+      "</div></div>" +
+      cardFooter('<button type="button" class="btn btn-secondary" id="btn-fallback-voltar">Voltar</button><button type="button" class="btn btn-primary" id="btn-fallback-processar"' + (state.arquivoCompletoNome ? "" : " disabled") + ">Enviar planilha completa</button>")
+    );
+    renderFallbackUploadArea();
+    document.getElementById("btn-baixar-modelo-completo").addEventListener("click", baixarModeloCompleto);
+    document.getElementById("btn-fallback-voltar").addEventListener("click", renderConsultaIndisponivel);
+    document.getElementById("btn-fallback-processar").addEventListener("click", () => { state.consultaDisponivel = false; state.linhas = I.gerarLinhasFallback(); irPara("validation"); });
+  }
+  function renderFallbackUploadArea() {
+    const area = document.getElementById("fallback-upload-area");
+    if (!state.arquivoCompletoNome) {
+      area.innerHTML =
+        '<div class="ap-dropzone" id="fallback-upload-dropzone" tabindex="0"><div style="width:40px;height:40px;border-radius:50%;background:#fff;color:var(--brand-pink);display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px;"><i data-lucide="upload" style="width:18px;height:18px;"></i></div>' +
+        '<div style="font-size:13px;font-weight:600;">Arraste a planilha completa aqui ou clique para selecionar</div><div style="font-size:12px;color:var(--text-secondary);">Formatos aceitos: .xlsx, .csv</div></div>' +
+        '<input type="file" id="fallback-upload-input" accept=".xlsx,.csv" style="display:none;" />' +
+        '<button type="button" class="btn btn-ghost" style="width:fit-content;color:var(--brand-blue);" id="btn-fallback-usar-exemplo">Não tem uma planilha em mãos? Usar planilha de exemplo</button>';
+      wireFallbackUploadDropzone();
+    } else {
+      area.innerHTML =
+        '<div class="ap-upload-file-row"><span><i data-lucide="file-text" style="width:20px;height:20px;color:var(--text-secondary);"></i></span>' +
+        '<div class="flex flex-col min-w-0 flex-1"><span style="font-size:13px;font-weight:600;">' + esc(state.arquivoCompletoNome) + '</span><span style="font-size:11px;color:var(--text-tertiary);">' + state.arquivoCompletoTamanhoKb + " KB</span></div>" +
+        '<button type="button" class="btn btn-ghost" id="btn-fallback-remover-arquivo"><i data-lucide="x" style="width:14px;height:14px;"></i></button></div>';
+      document.getElementById("btn-fallback-remover-arquivo").addEventListener("click", () => {
+        state.arquivoCompletoNome = null; state.arquivoCompletoTamanhoKb = null; renderFallbackUploadArea();
+        document.getElementById("btn-fallback-processar").setAttribute("disabled", "true");
+      });
+    }
+    refreshIcons();
+  }
+  function selecionarArquivoCompleto(nome, tamanhoKb) {
+    state.arquivoCompletoNome = nome; state.arquivoCompletoTamanhoKb = tamanhoKb; renderFallbackUploadArea();
+    document.getElementById("btn-fallback-processar").removeAttribute("disabled");
+  }
+  function wireFallbackUploadDropzone() {
+    const dropzone = document.getElementById("fallback-upload-dropzone");
+    const input = document.getElementById("fallback-upload-input");
+    dropzone.addEventListener("click", () => input.click());
+    dropzone.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
+    ["dragenter", "dragover"].forEach((evt) => dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.add("dragover"); }));
+    ["dragleave", "drop"].forEach((evt) => dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.remove("dragover"); }));
+    dropzone.addEventListener("drop", (e) => {
+      const arquivo = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (arquivo) selecionarArquivoCompleto(arquivo.name, Math.max(1, Math.round(arquivo.size / 1024)));
+      else selecionarArquivoCompleto("planilha-completa-importacao-empresas.xlsx", 52);
+    });
+    input.addEventListener("change", (e) => { const arquivo = e.target.files && e.target.files[0]; if (arquivo) selecionarArquivoCompleto(arquivo.name, Math.max(1, Math.round(arquivo.size / 1024))); });
+    document.getElementById("btn-fallback-usar-exemplo").addEventListener("click", () => selecionarArquivoCompleto("planilha-completa-importacao-empresas.xlsx", 52));
+  }
+
+  function bannerConsulta() {
+    return state.consultaDisponivel
+      ? '<div class="ap-alert info"><i data-lucide="circle-check" style="width:15px;height:15px;flex-shrink:0;"></i><div><b>Consulta cadastral concluída.</b> Os dados encontrados foram usados para preencher automaticamente o Cadastro Geral das empresas prontas para importação.</div></div>'
+      : '<div class="ap-alert warning"><i data-lucide="alert-triangle" style="width:15px;height:15px;flex-shrink:0;"></i><div><b>Dados informados pela planilha completa.</b> Como a consulta cadastral não estava disponível, os dados informados na planilha completa foram utilizados para preencher o Cadastro Geral — só é possível importar registros com todos os campos obrigatórios preenchidos.</div></div>';
+  }
+
+  function renderValidation() {
+    const resumo = contarPorStatus(state.linhas);
+    mount(
+      '<div class="flex flex-col gap-4">' + bannerConsulta() +
+      '<div class="flex flex-wrap gap-3">' +
+      '<div class="ap-stat"><div class="ap-stat-value">' + resumo.total + '</div><div class="ap-stat-label">Empresas encontradas</div></div>' +
+      '<div class="ap-stat success"><div class="ap-stat-value">' + resumo.validas + '</div><div class="ap-stat-label">Prontas para importação</div></div>' +
+      '<div class="ap-stat warning"><div class="ap-stat-value">' + resumo.invalidas + '</div><div class="ap-stat-label">Com inconsistência</div></div>' +
+      "</div>" +
+      '<div class="section-card">' +
+      '<div class="flex items-center justify-between flex-wrap gap-3" style="margin-bottom:16px;">' +
+      '<div><div class="subsection-title" style="margin:0;border:none;padding:0;">Lista de empresas</div><p style="font-size:12.5px;color:var(--text-secondary);margin:4px 0 0;">Revise o status de cada registro identificado na planilha.</p></div>' +
+      '<div class="ap-toggle-group" id="f-validacao"><button type="button" class="ap-toggle-item active" data-value="todas">Todas</button><button type="button" class="ap-toggle-item" data-value="validas">Prontas</button><button type="button" class="ap-toggle-item" data-value="invalidas">Com inconsistência</button></div>' +
+      "</div>" +
+      '<div id="validation-table"></div>' +
+      cardFooter('<button type="button" class="btn btn-secondary" id="btn-validation-voltar">Voltar</button><button type="button" class="btn btn-primary" id="btn-validation-continuar">Continuar</button>') +
+      "</div>"
+    );
+    function renderTable() { document.getElementById("validation-table").innerHTML = renderTabelaLinhas(state.linhas, state.filtroValidacao); wireTabelaLinhasEvents(); }
+    renderTable();
+    document.querySelectorAll("#f-validacao .ap-toggle-item").forEach((btn) => btn.addEventListener("click", () => {
+      document.querySelectorAll("#f-validacao .ap-toggle-item").forEach((b) => b.classList.toggle("active", b === btn));
+      state.filtroValidacao = btn.getAttribute("data-value"); renderTable();
+    }));
+    document.getElementById("btn-validation-voltar").addEventListener("click", () => irPara("upload"));
+    document.getElementById("btn-validation-continuar").addEventListener("click", () => irPara("review"));
+  }
+
+  function renderReview() {
+    const resumo = contarPorStatus(state.linhas);
+    mount(
+      '<div class="flex flex-col gap-4">' + bannerConsulta() +
+      '<div><h2 style="font-size:15px;font-weight:700;margin:0;">Revise os dados antes de importar</h2>' +
+      '<p style="font-size:13px;color:var(--text-secondary);margin:4px 0 0;"><b>' + resumo.validas + " " + (resumo.validas === 1 ? "empresa está" : "empresas estão") + '</b> prontas para importação · <b>' + resumo.invalidas + " " + (resumo.invalidas === 1 ? "empresa possui" : "empresas possuem") + "</b> inconsistências e não serão importadas até que sejam corrigidas.</p></div>" +
+      '<div class="section-card"><div id="review-table">' + renderTabelaLinhas(state.linhas, "todas") + "</div>" +
+      cardFooter('<button type="button" class="btn btn-secondary" id="btn-review-voltar">Voltar</button><button type="button" class="btn btn-primary" id="btn-review-importar">Importar empresas</button>') +
+      "</div>"
+    );
+    wireTabelaLinhasEvents();
+    document.getElementById("btn-review-voltar").addEventListener("click", () => irPara("validation"));
+    document.getElementById("btn-review-importar").addEventListener("click", abrirConfirmacaoImportacao);
+  }
+
+  function abrirConfirmacaoImportacao() {
+    const resumo = contarPorStatus(state.linhas);
+    showConfirmModal({
+      title: "Importar " + resumo.validas + " empresas" + (state.consultaDisponivel ? "?" : " sem consulta cadastral?"),
+      message: state.consultaDisponivel
+        ? "Os dados cadastrais encontrados na consulta serão utilizados para preencher o Cadastro Geral das empresas. Informações complementares das demais abas não fazem parte desta importação."
+        : "Os dados informados na planilha completa serão utilizados para preencher o Cadastro Geral. Somente empresas com os campos obrigatórios preenchidos poderão ser importadas.",
+      confirmLabel: "Confirmar importação",
+      onConfirm: () => irPara("importing"),
+    });
+  }
+
+  function renderImporting() {
+    mount(
+      cardOpen("Importando empresas", "Cadastrando os registros prontos e sincronizando os dados com o Cockpit.") +
+      '<div class="ap-card-content flex flex-col gap-3">' +
+      '<div class="flex items-center gap-4"><div style="width:40px;height:40px;border-radius:50%;background:var(--surface-subtle);color:var(--brand-pink);display:inline-flex;align-items:center;justify-content:center;"><i data-lucide="building-2" style="width:18px;height:18px;"></i></div>' +
+      '<div class="flex flex-col gap-1 flex-1"><div style="font-size:13px;font-weight:600;">Importando empresas...</div><div class="ap-progress"><div class="ap-progress-fill" id="import-progress-fill" style="width:0%;"></div></div></div></div>' +
+      '<div style="font-size:12px;color:var(--text-secondary);" id="import-progress-label">Cadastrando empresas e sincronizando os dados com o Cockpit...</div>' +
+      "</div></div>"
+    );
+    const linhasValidas = state.linhas.filter((l) => l.status === "valida");
+    const fill = document.getElementById("import-progress-fill");
+    const label = document.getElementById("import-progress-label");
+    let progresso = 0;
+    const intervalo = setInterval(() => {
+      progresso += 12;
+      fill.style.width = Math.min(progresso, 100) + "%";
+      label.textContent = "Cadastrando empresas e sincronizando os dados com o Cockpit... (" + Math.min(progresso, 100) + "%)";
+      if (progresso >= 100) {
+        clearInterval(intervalo);
+        setTimeout(() => {
+          state.empresasImportadas = linhasValidas.map((linha, i) => I.converterParaEmpresa(linha, i + 1));
+          D.salvarEmpresasImportadas(state.empresasImportadas);
+          irPara("result");
+        }, 300);
+      }
+    }, 180);
+  }
+
+  function flowNode(iconName, label) { return '<div class="ap-flow-node"><i data-lucide="' + iconName + '" style="width:14px;height:14px;"></i>' + label + "</div>"; }
+  function flowArrow() { return '<span style="color:var(--text-tertiary);"><i data-lucide="arrow-right" style="width:14px;height:14px;"></i></span>'; }
+
+  function renderResult() {
+    const resumo = contarPorStatus(state.linhas);
+    const invalidas = state.linhas.filter((l) => l.status === "invalida");
+    const primeiraImportada = state.empresasImportadas[0];
+
+    mount(
+      '<div class="flex flex-col gap-4">' +
+      '<div class="ap-alert info"><i data-lucide="circle-check" style="width:15px;height:15px;flex-shrink:0;"></i><div><b>Importação concluída.</b> As empresas foram cadastradas com sucesso.</div></div>' +
+      '<div class="flex flex-wrap gap-3">' +
+      '<div class="ap-stat success"><div class="ap-stat-value">' + resumo.validas + '</div><div class="ap-stat-label">Empresas importadas</div></div>' +
+      '<div class="ap-stat warning"><div class="ap-stat-value">' + resumo.invalidas + '</div><div class="ap-stat-label">Empresas não importadas</div></div>' +
+      "</div>" +
+      '<div class="section-card"><div class="subsection-title" style="margin-top:0;">Dados sincronizados</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;align-items:center;">' +
+      '<div class="flex flex-col gap-3"><p style="font-size:13px;">Os dados do Cadastro Geral das empresas importadas foram refletidos e sincronizados no <b>Cockpit</b>.</p>' +
+      '<p style="font-size:12px;color:var(--text-secondary);">' + (state.consultaDisponivel ? "Dados obtidos por consulta cadastral, combinados com os campos informados na planilha." : "A consulta cadastral não estava disponível nesta rodada — os dados informados na planilha completa foram utilizados.") + "</p>" +
+      (primeiraImportada ? '<a href="dados-gerais.html?empresa=' + encodeURIComponent(primeiraImportada.codigo) + '" class="btn btn-secondary" style="width:fit-content;">Ver exemplo importado no Cockpit <i data-lucide="arrow-up-right" style="width:13px;height:13px;"></i></a>' : "") +
+      "</div>" +
+      '<div class="ap-flow">' + flowNode("file-text", "Planilha") + flowArrow() + flowNode("building-2", "Empresas") + flowArrow() + flowNode("landmark", "Cockpit") + "</div>" +
+      "</div></div>" +
+      '<div class="ap-alert warning"><i data-lucide="alert-triangle" style="width:15px;height:15px;flex-shrink:0;"></i><div><b>Complete o cadastro das empresas.</b><br/>A importação massiva desta versão contempla somente os dados do Cadastro Geral.<br/>Informações complementares, como sócios, contadores e demais configurações das outras abas, não fazem parte da importação massiva.<br/>Para completar o cadastro, acesse a empresa em <b>Empresas → Cadastro da empresa</b> e preencha ou vincule manualmente as informações restantes.</div></div>' +
+      (invalidas.length
+        ? '<div class="section-card"><div class="subsection-title" style="margin-top:0;">Empresas não importadas</div><p style="font-size:12.5px;color:var(--text-secondary);margin:-8px 0 14px;">Corrija estes registros na planilha e importe novamente.</p>' + renderTabelaLinhas(invalidas, "todas") + "</div>"
+        : "") +
+      '<div class="flex justify-end gap-2"><a href="index.html" class="btn btn-primary">Ver empresas importadas</a></div>' +
+      "</div>"
+    );
+    wireTabelaLinhasEvents();
+  }
+
+  const RENDERERS = { intro: renderIntro, upload: renderUpload, processing: renderProcessing, consulta: renderConsulta, validation: renderValidation, review: renderReview, importing: renderImporting, result: renderResult };
+
+  irPara("intro");
+})();
+</script>
 </body>
 </html>

@@ -1,11 +1,118 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="refresh" content="0; url=cadastros-auxiliares/implantacao-geral.html" />
-  <title>AutoPilot — Protótipo de Implantação</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Protótipos · Implantação (Cockpit)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; }
+  .hub-page { max-width: 1200px; padding: 40px 40px 64px; }
+  .hub-eyebrow { font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
+  .hub-title { font-size: 32px; font-weight: 700; color: var(--text-primary); margin: 0 0 10px; }
+  .hub-sub { font-size: 14px; color: var(--text-secondary); line-height: 1.6; max-width: 680px; margin-bottom: 8px; }
+  .hub-module { margin-top: 36px; margin-bottom: 14px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--text-tertiary); }
+  .hub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .hub-card { display: flex; flex-direction: column; text-decoration: none; background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 20px; transition: border-color .15s, box-shadow .15s, transform .1s; }
+  .hub-card:hover { border-color: var(--brand-pink); box-shadow: 0 4px 14px rgba(0,0,0,0.06); transform: translateY(-1px); }
+  .hub-card .ic { width: 40px; height: 40px; border-radius: 10px; background: var(--brand-pink-soft); color: var(--brand-pink); display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+  .hub-card .ic svg { width: 20px; height: 20px; }
+  .hub-card .ti { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+  .hub-card .de { font-size: 12.5px; color: var(--text-secondary); line-height: 1.5; flex: 1; }
+  .hub-card .go { display: inline-flex; align-items: center; gap: 5px; margin-top: 14px; font-size: 12px; font-weight: 600; color: var(--brand-pink); }
+  .hub-card .go svg { width: 13px; height: 13px; }
+</style>
 </head>
 <body>
-  <p>Redirecionando para <a href="cadastros-auxiliares/implantacao-geral.html">a tela de Implantação de Empresas</a>...</p>
+
+<div class="sidebar"></div>
+
+<div class="main">
+  <div class="hub-page">
+    <div class="hub-eyebrow">Ferramentas &nbsp;›&nbsp; Autopilot</div>
+    <h1 class="hub-title">Implantação — Protótipos (Cockpit)</h1>
+    <p class="hub-sub">Versão adaptada ao design system do Cockpit de todas as telas do sistema de implantação (cadastros auxiliares, empresas, parâmetros DP/Fiscal/Contábil, folha de pagamento, rubricas e sindicatos). Mantida em paralelo à versão original do protótipo, para comparação lado a lado. Navegue também pelo menu lateral, em "Protótipos · Implantação".</p>
+
+    <div class="hub-module">Implantação (frente prioritária)</div>
+    <div class="hub-grid">
+      <a class="hub-card" href="cadastros-auxiliares/implantacao-console.html">
+        <div class="ic"><i data-lucide="layout-dashboard"></i></div>
+        <div class="ti">Console de Implantação DP</div>
+        <div class="de">Acompanhamento completo de uma empresa em implantação de DP — colaboradores, financeiro, rubricas, cálculo em paralelo, parâmetros, relatórios e histórico.</div>
+        <div class="go">Abrir <i data-lucide="arrow-right"></i></div>
+      </a>
+      <a class="hub-card" href="cadastros-auxiliares/implantacao-geral.html">
+        <div class="ic"><i data-lucide="gauge"></i></div>
+        <div class="ti">Implantação — Visão Geral</div>
+        <div class="de">Dashboard por empresa nas 3 frentes de implantação (DP/Fiscal/Contábil), com percentual de conclusão.</div>
+        <div class="go">Abrir <i data-lucide="arrow-right"></i></div>
+      </a>
+      <a class="hub-card" href="cadastros-auxiliares/implantacao-importar.html">
+        <div class="ic"><i data-lucide="upload-cloud"></i></div>
+        <div class="ti">Nova Implantação (Importação DP)</div>
+        <div class="de">Wizard de importação de lote (upload → confirmação → processamento → resultado), com tratamento de CNPJ não identificado.</div>
+        <div class="go">Abrir <i data-lucide="arrow-right"></i></div>
+      </a>
+      <a class="hub-card" href="cadastros-auxiliares/socios.html">
+        <div class="ic"><i data-lucide="users"></i></div>
+        <div class="ti">Sócios</div>
+        <div class="de">Cadastro mestre de pessoas físicas do quadro societário, com CPF único e vínculo automático às empresas.</div>
+        <div class="go">Abrir <i data-lucide="arrow-right"></i></div>
+      </a>
+      <a class="hub-card" href="cadastros-auxiliares/contadores.html">
+        <div class="ic"><i data-lucide="calculator"></i></div>
+        <div class="ti">Registro de Contadores</div>
+        <div class="de">Cadastro mestre de contadores habilitados, com CRC e vínculo às empresas atendidas.</div>
+        <div class="go">Abrir <i data-lucide="arrow-right"></i></div>
+      </a>
+    </div>
+
+    <div class="hub-module">Empresas</div>
+    <div class="hub-grid">
+      <a class="hub-card" href="empresas/index.html"><div class="ic"><i data-lucide="list"></i></div><div class="ti">Empresas</div><div class="de">Listagem de empresas com filtros e estrutura matriz/filial expansível.</div><div class="go">Abrir <i data-lucide="arrow-right"></i></div></a>
+      <a class="hub-card" href="empresas/dados-gerais.html"><div class="ic"><i data-lucide="id-card"></i></div><div class="ti">Dados gerais</div><div class="de">Cadastro completo da empresa: identificação, inscrições, contato, contador responsável, contrato e complementares.</div><div class="go">Abrir <i data-lucide="arrow-right"></i></div></a>
+      <a class="hub-card" href="empresas/atividades.html"><div class="ic"><i data-lucide="briefcase"></i></div><div class="ti">Atividades</div><div class="de">CNAE principal e secundários da empresa, com drawer de edição.</div><div class="go">Abrir <i data-lucide="arrow-right"></i></div></a>
+      <a class="hub-card" href="empresas/socios.html"><div class="ic"><i data-lucide="pie-chart"></i></div><div class="ti">Quadro societário</div><div class="de">Participações societárias da empresa, com drawer completo e totais derivados.</div><div class="go">Abrir <i data-lucide="arrow-right"></i></div></a>
+      <a class="hub-card" href="empresas/responsavel-legal.html"><div class="ic"><i data-lucide="user-check"></i></div><div class="ti">Responsável legal</div><div class="de">Dados da pessoa física responsável legal pela empresa.</div><div class="go">Abrir <i data-lucide="arrow-right"></i></div></a>
+      <a class="hub-card" href="empresas/contadores.html"><div class="ic"><i data-lucide="link"></i></div><div class="ti">Contadores</div><div class="de">Vínculo da empresa com o Registro de Contadores, com drawer de vincular e desvínculo.</div><div class="go">Abrir <i data-lucide="arrow-right"></i></div></a>
+      <a class="hub-card" href="empresas/centralizadora.html"><div class="ic"><i data-lucide="network"></i></div><div class="ti">Empresa centralizadora</div><div class="de">Tabela somente leitura do grupo matriz/filiais.</div><div class="go">Abrir <i data-lucide="arrow-right"></i></div></a>
+      <a class="hub-card" href="empresas/historico.html"><div class="ic"><i data-lucide="history"></i></div><div class="ti">Histórico de alterações</div><div class="de">Timeline de eventos de auditoria da empresa, somente leitura.</div><div class="go">Abrir <i data-lucide="arrow-right"></i></div></a>
+      <a class="hub-card" href="empresas/importar.html"><div class="ic"><i data-lucide="file-up"></i></div><div class="ti">Importar empresas</div><div class="de">Wizard de 8 passos com stepper, upload, validação e resultado para importação em lote.</div><div class="go">Abrir <i data-lucide="arrow-right"></i></div></a>
+    </div>
+
+    <div class="hub-module">Parâmetros &amp; Fiscal</div>
+    <div class="hub-grid">
+      <a class="hub-card" href="folha-pagamento/index.html"><div class="ic"><i data-lucide="wallet"></i></div><div class="ti">Folha de Pagamento</div><div class="de">Parametrização completa da folha por empresa — eSocial, regime, 13º, férias, contabilidade, honorários e cronograma.</div><div class="go">Abrir <i data-lucide="arrow-right"></i></div></a>
+      <a class="hub-card" href="parametros/dp.html"><div class="ic"><i data-lucide="hourglass"></i></div><div class="ti">Parâmetros de DP</div><div class="de">Trilha em evolução: configurações de DP chegam nas próximas entregas.</div><div class="go">Abrir <i data-lucide="arrow-right"></i></div></a>
+      <a class="hub-card" href="parametros/contabil.html"><div class="ic"><i data-lucide="hourglass"></i></div><div class="ti">Parâmetros Contábeis</div><div class="de">Trilha em evolução: configurações contábeis chegam nas próximas entregas.</div><div class="go">Abrir <i data-lucide="arrow-right"></i></div></a>
+      <a class="hub-card" href="parametros-fiscais/index.html"><div class="ic"><i data-lucide="landmark"></i></div><div class="ti">Parâmetros Fiscais</div><div class="de">Configuração fiscal por empresa (Simples Nacional), com histórico de vigências.</div><div class="go">Abrir <i data-lucide="arrow-right"></i></div></a>
+      <a class="hub-card" href="parametros-fiscais/exploracao-origem.html"><div class="ic"><i data-lucide="flask-conical"></i></div><div class="ti">Exploração — Dados e Origem</div><div class="de">Validação de Badge de Origem, Campo com Origem e Indicador Calculado. Não faz parte da navegação do produto.</div><div class="go">Abrir <i data-lucide="arrow-right"></i></div></a>
+      <a class="hub-card" href="parametros-fiscais/exploracao-nao-aplicavel.html"><div class="ic"><i data-lucide="flask-conical"></i></div><div class="ti">Exploração — Não Aplicável</div><div class="de">Alternativas visuais para o estado "não aplicável" do Indicador Calculado.</div><div class="go">Abrir <i data-lucide="arrow-right"></i></div></a>
+    </div>
+
+    <div class="hub-module">Regras, Rubricas &amp; Sindicatos</div>
+    <div class="hub-grid">
+      <a class="hub-card" href="regras-gerais/index.html"><div class="ic"><i data-lucide="hourglass"></i></div><div class="ti">Regras Gerais</div><div class="de">Tela em construção — placeholder no mesmo padrão das demais trilhas em evolução.</div><div class="go">Abrir <i data-lucide="arrow-right"></i></div></a>
+      <a class="hub-card" href="rubricas/index.html"><div class="ic"><i data-lucide="table"></i></div><div class="ti">Rubricas</div><div class="de">Listagem de rubricas de folha com busca e filtros de situação/tipo.</div><div class="go">Abrir <i data-lucide="arrow-right"></i></div></a>
+      <a class="hub-card" href="rubricas/rubrica.html"><div class="ic"><i data-lucide="file-text"></i></div><div class="ti">Rubrica (detalhe)</div><div class="de">Cadastro de rubrica — cálculo, configurações, soma na base, rescisão e e-Social.</div><div class="go">Abrir <i data-lucide="arrow-right"></i></div></a>
+      <a class="hub-card" href="sindicatos/index.html"><div class="ic"><i data-lucide="landmark"></i></div><div class="ti">Sindicatos</div><div class="de">Listagem de sindicatos cadastrados, com busca por nome.</div><div class="go">Abrir <i data-lucide="arrow-right"></i></div></a>
+      <a class="hub-card" href="sindicatos/sindicato.html"><div class="ic"><i data-lucide="handshake"></i></div><div class="ti">Sindicato (detalhe)</div><div class="de">Cadastro da entidade sindical, com a lista de convenções coletivas vinculadas.</div><div class="go">Abrir <i data-lucide="arrow-right"></i></div></a>
+      <a class="hub-card" href="sindicatos/convencao.html"><div class="ic"><i data-lucide="file-signature"></i></div><div class="ti">Convenção Coletiva</div><div class="de">Configurações de cálculo, contribuições, empresas vinculadas, piso salarial/histórico e regras condicionais.</div><div class="go">Abrir <i data-lucide="arrow-right"></i></div></a>
+    </div>
+  </div>
+</div>
+
+<script>
+window.FLOW_CONFIG = { standalone: true };
+window.CX_SIDEBAR_DEPTH = 0;
+</script>
+<script src="assets/core/cockpit-01-shell.js"></script>
+<script src="assets/core/cockpit-02-state-helpers.js"></script>
+<script src="assets/core/cockpit-07-modals-init.js"></script>
+<script src="assets/core/cockpit-09-cx-sidebar.js"></script>
 </body>
 </html>

@@ -1,31 +1,81 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
-  <title>Histórico de alterações — Empresas — AutoPilot</title>
-  <link rel="stylesheet" href="../shared/css/tokens.css" />
-  <link rel="stylesheet" href="../shared/css/base.css" />
-  <link rel="stylesheet" href="../shared/css/components.css" />
-  <link rel="stylesheet" href="../shared/css/layout.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Histórico de alterações · Empresas · Autopilot Configs</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body { margin: 0; }
+.ap-crumb{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-tertiary);}
+.ap-crumb a{color:var(--text-tertiary);text-decoration:none;}
+.ap-crumb a:hover{color:var(--brand-pink);}
+.ap-page{padding:20px 28px 48px;max-width:1200px;margin:0 auto;width:100%;}
+.ap-topbar-inner{display:flex;align-items:center;height:56px;padding:0 28px;border-bottom:1px solid var(--border);background:#fff;}
+.ap-history-event{padding:16px 0;border-bottom:1px solid var(--border);}
+.ap-history-event:first-child{padding-top:0;}
+.ap-history-event:last-child{border-bottom:none;padding-bottom:0;}
+.ap-history-event-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+</style>
 </head>
 <body>
-  <div id="shell-root"></div>
 
-  <template id="page-content">
-    <div id="detail-shell-mount"></div>
-  </template>
+<div class="sidebar"></div>
+<div class="main">
+  <div class="ap-topbar-inner" id="ap-crumb"></div>
+  <div class="ap-page" id="ap-empresa-shell"></div>
+</div>
 
-  <script src="../shared/js/icons.js"></script>
-  <script src="../shared/js/shell.js"></script>
-  <script src="../shared/js/ui.js"></script>
-  <script src="../shared/js/fab-tools.js"></script>
-  <script src="js/data.js"></script>
-  <script src="../cadastros-auxiliares/js/contadores/data.js"></script>
-  <script src="js/detail-common.js"></script>
-  <script src="js/historico.js"></script>
-  <script>window.ACTIVE_TAB = "historico";</script>
-  <script src="js/boot-detail.js"></script>
+<script>window.FLOW_CONFIG = { standalone: true };</script>
+<script src="js/data.js"></script>
+<script src="../cadastros-auxiliares/js/contadores/data.js"></script>
+<script src="../assets/core/cockpit-01-shell.js"></script>
+<script src="../assets/core/cockpit-02-state-helpers.js"></script>
+<script src="../assets/core/cockpit-05-timeline-actions.js"></script>
+<script src="../assets/core/cockpit-08-datatable.js"></script>
+<script src="../assets/core/cockpit-07-modals-init.js"></script>
+<script src="../assets/core/cockpit-09-cx-sidebar.js"></script>
+<script src="js/empresa-shell-cockpit.js"></script>
+<script>
+(function () {
+  const D = window.EmpresasData;
+
+  function linhaAlteracao(alt) {
+    return "<tr><td>" + esc(alt.campo) + "</td><td>" + esc(alt.de || "—") + "</td><td>" + esc(alt.para || "—") + "</td></tr>";
+  }
+
+  function blocoEvento(evento) {
+    return (
+      '<div class="ap-history-event">' +
+      '<div class="ap-history-event-header">' +
+      '<span class="flex items-center gap-1" style="font-size:12.5px;font-weight:500;"><i data-lucide="clock" style="width:13px;height:13px;"></i>' + evento.data + " às " + evento.hora + "</span>" +
+      '<span class="badge badge-neutral flex items-center gap-1"><i data-lucide="users" style="width:13px;height:13px;"></i>' + esc(evento.usuario) + "</span>" +
+      "</div>" +
+      '<div class="dt-wrap"><div class="dt-scroll"><table class="dt-table">' +
+      "<thead><tr><th>Campo alterado</th><th>Valor anterior</th><th>Novo valor</th></tr></thead>" +
+      "<tbody>" + evento.alteracoes.map(linhaAlteracao).join("") + "</tbody></table></div></div>" +
+      "</div>"
+    );
+  }
+
+  window.renderTabContent = function (empresa) {
+    const eventos = D.getHistoricoAlteracoes(empresa.codigo);
+    const conteudo = eventos.length ? eventos.map(blocoEvento).join("") : '<div class="dt-empty">Nenhuma alteração registrada até o momento.</div>';
+
+    document.getElementById("tab-content").innerHTML =
+      '<div class="section-card">' +
+      '<div class="subsection-title" style="margin-top:0;">Histórico de alterações</div>' +
+      '<p style="font-size:12.5px;color:var(--text-secondary);margin:-10px 0 16px;">Quem alterou, o que foi alterado, de qual valor para qual valor, e quando — agrupado por evento de edição.</p>' +
+      conteudo + "</div>";
+    refreshIcons();
+  };
+
+  ApEmpresaShell.boot("historico");
+})();
+</script>
 </body>
 </html>

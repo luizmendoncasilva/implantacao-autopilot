@@ -27,6 +27,8 @@ window.DocsContent = {
     markdown: `# Cadastro de Empresas — Especificação do estado atual (as-built)
 
 > Este documento descreve **o que existe hoje** no protótipo do Cadastro de Empresas do AutoPilot. Ele não é a especificação original de requisitos — é o retrato funcional da implementação, para que Product Managers validem o que foi construído e planejem as próximas evoluções. Não repete o conteúdo do documento de requisitos original; documenta apenas o comportamento real da tela.
+>
+> **Nota — 15/09/2026:** Dados Gerais, Atividades e Responsável Legal tornaram-se **somente leitura** nesta versão (decisão de Produto confirmada por Thais Lima de Souza; ver \`docs/RN-RF_CadastroEmpresasAuxiliares.md\`, seção 4-A). O botão "Editar" descrito nas seções abaixo não aparece mais no cabeçalho dessas 3 abas; os drawers de edição e o dialog "Salvar e refletir no Cockpit" continuam implementados no código, só sem ponto de entrada na tela — texto abaixo preservado como histórico do desenho original.
 
 ## Visão geral
 
@@ -107,7 +109,7 @@ Uma única tela (aba "Dados Gerais" dentro do cadastro da empresa).
 - **Regime tributário federal é um atributo cadastral da empresa, e o Cadastro de Empresas (esta aba) é o único ponto autorizado de edição.** O campo é um Select (\`EmpresasData.REGIME_TRIBUTARIO_FEDERAL_OPCOES\`, catálogo D01 de \`docs/02-parametros-fiscais.md\`, seção 14: Simples Nacional, Simples Nacional — MEI, Simples Nacional — excesso de sublimite, Lucro Presumido, Lucro Real, Imune, Isenta). No escopo atual do Autopilot, somente **Simples Nacional** está habilitado para seleção — os demais regimes permanecem visíveis no catálogo, porém \`disabled\`, sem poder ser selecionados. Parâmetros Fiscais (e, futuramente, Contábil) consomem esse mesmo dado (\`empresa.dadosGerais.regimeTributarioFederal\`) somente leitura — nenhuma cópia independente do regime existe em outra trilha.
 - "Data de inativação" só é exibida quando o status do cliente é "Inativo" — para clientes ativos, o campo não aparece.
 - O contador responsável exibido aqui prioriza uma seleção explícita feita pela ação "Alterar"/"Selecionar contador" desta aba; na ausência dela, cai para o mesmo contador mostrado na aba Contadores (primeiro contador do Registro cujo vínculo inclui esta empresa) — um atalho ("Ver em Contadores") leva direto para lá em ambos os casos.
-- Selecionar um contador responsável não exige que ele já esteja vinculado via aba Contadores, nem impede a seleção de mais de um contador ao longo do tempo (a seleção mais recente sempre substitui a anterior) — nenhuma regra de prioridade, múltiplos responsáveis ou vigência foi criada (ver "Pendências").
+- Selecionar um contador responsável não exige que ele já esteja vinculado via aba Contadores, nem impede a seleção de mais de um contador ao longo do tempo (a seleção mais recente sempre substitui a anterior) — nenhuma regra de prioridade ou múltiplos responsáveis foi criada (ver "Pendências"). Vigência não é mais pendência (resolvido 15/09/2026 — o Log de Histórico de Alterações já cobre o rastreio).
 
 ### Integrações
 Dados de origem do Cockpit (indicado explicitamente na tela). A edição acontece exclusivamente no Autopilot, dentro deste Cadastro de Empresas — o Cockpit não tem mais um botão de edição associado a esta tela; ele é apenas o destino conceitual das alterações, quando o usuário escolhe refletir a alteração nele. Ao salvar o drawer, um dialog de confirmação pergunta explicitamente se a alteração deve ser refletida no Cockpit ("Salvar e refletir no Cockpit") ou descartada ("Descartar alterações") — não existe salvamento silencioso.
@@ -161,7 +163,7 @@ Auditoria pontual da experiência do campo "CNAE principal" (preenchido, vazio, 
 Nenhuma regra de negócio foi criada ou alterada por esta correção — é puramente uma clarificação de UX de um estado que já existia na prática.
 
 ### Pendências
-Os CNAEs são mostrados apenas pelo código (ex.: "2599-3/99"), sem a descrição textual da atividade — não há indicação de que essa descrição deva ou não existir.
+Os CNAEs são mostrados apenas pelo código (ex.: "2599-3/99"), sem a descrição textual da atividade — não há indicação de que essa descrição deva ou não existir. **Fonte, se o campo vier a ser criado: resolvido 15/09/2026 — Cockpit, validado pela revisão da Andressa como hipótese de trabalho. A decisão sobre criar ou não o campo continua em aberto.**
 
 ### Itens de Fase 2
 Nenhum previsto para esta aba.
@@ -444,9 +446,9 @@ Auditoria de ponta a ponta da experiência do Cadastro de Empresas (Listagem →
 - **Módulos** — a remoção da aba própria "Módulos" está completa; a linha "Módulos:" aparece de forma consistente no cabeçalho em todas as 7 abas; nenhuma referência quebrada à antiga aba foi encontrada no código.
 
 **Pendências de negócio mantidas em aberto (não resolvidas nesta auditoria):**
-- Regra definitiva de vínculo do Contador Responsável (vínculo prévio obrigatório, múltiplos responsáveis, prioridade, vigência) — ver seção 2.
+- Regra definitiva de vínculo do Contador Responsável (vínculo prévio obrigatório, múltiplos responsáveis, prioridade) — ver seção 2. Vigência não é mais pendência (resolvido 15/09/2026).
 - Regra "módulo habilitado → libera parâmetro" — não avaliada nem implementada nesta rodada.
-- Descrição textual do CNAE (código puro) — ver seção 3.
+- Descrição textual do CNAE (código puro) — ver seção 3. Fonte, se criado, já resolvida (Cockpit, 15/09/2026); falta decidir se o campo será criado.
 - Campos "Dados de acesso"/"Credenciais necessárias" de Contadores — ver seção 6.
 - Trilha de auditoria real do Histórico de Alterações — ver seção 8.
 - Usuários e Permissões — ver "Pendências gerais" acima.

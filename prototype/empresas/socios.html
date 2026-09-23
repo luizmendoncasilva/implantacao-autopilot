@@ -1,165 +1,323 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
-  <title>Quadro societário — Empresas — AutoPilot</title>
-  <link rel="stylesheet" href="../shared/css/tokens.css" />
-  <link rel="stylesheet" href="../shared/css/base.css" />
-  <link rel="stylesheet" href="../shared/css/components.css" />
-  <link rel="stylesheet" href="../shared/css/layout.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Quadro societário · Empresas · Autopilot Configs</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body { margin: 0; }
+.ap-crumb{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-tertiary);}
+.ap-crumb a{color:var(--text-tertiary);text-decoration:none;}
+.ap-crumb a:hover{color:var(--brand-pink);}
+.ap-page{padding:20px 28px 48px;max-width:1300px;margin:0 auto;width:100%;}
+.ap-btn-link{background:none;border:none;padding:0;font-size:12.5px;font-weight:500;cursor:pointer;color:var(--brand-blue);}
+.ap-btn-link.danger{color:var(--danger);}
+.ap-toast{position:fixed;bottom:24px;right:24px;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 14px 30px rgba(0,0,0,.14);padding:14px 16px;display:flex;gap:10px;align-items:flex-start;max-width:360px;z-index:400;transform:translateY(12px);opacity:0;pointer-events:none;transition:all .2s;}
+.ap-toast.show{transform:translateY(0);opacity:1;}
+.ap-toast-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--success-soft);color:var(--success);}
+.ap-toast.info .ap-toast-icon{background:var(--info-soft);color:var(--info);}
+.ap-toast-title{font-size:13px;font-weight:600;color:var(--text-primary);}
+.ap-toast-desc{font-size:12px;color:var(--text-secondary);margin-top:2px;}
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:140;opacity:0;pointer-events:none;transition:opacity .2s;}
+.drawer-overlay.open{opacity:1;pointer-events:auto;}
+.drawer{position:fixed;top:0;right:0;height:100%;width:480px;background:var(--surface);border-left:1px solid var(--border);z-index:150;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s cubic-bezier(.25,.46,.45,.94);}
+.drawer.open{transform:translateX(0);}
+.drawer-header{padding:18px 22px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:flex-start;gap:12px;}
+.drawer-title{font-size:15px;font-weight:700;color:var(--text-primary);line-height:1.3;}
+.drawer-desc{font-size:12.5px;color:var(--text-secondary);margin-top:4px;}
+.drawer-body{flex:1;overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:14px;}
+.drawer-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;background:var(--surface);}
+.ap-topbar-inner{display:flex;align-items:center;height:56px;padding:0 28px;border-bottom:1px solid var(--border);background:#fff;}
+.ap-drawer-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+</style>
 </head>
 <body>
-  <div id="shell-root"></div>
 
-  <template id="page-content">
-    <div id="detail-shell-mount"></div>
-  </template>
+<div class="sidebar"></div>
+<div class="main">
+  <div class="ap-topbar-inner" id="ap-crumb"></div>
+  <div class="ap-page" id="ap-empresa-shell"></div>
+</div>
 
-  <!-- Sheet (drawer) de Adicionar/Editar sócio — portado de QuadroSocietarioDrawer.jsx -->
-  <div class="sheet-overlay" id="qs-overlay"></div>
-  <div class="sheet-panel" id="qs-panel" role="dialog" aria-modal="true" aria-labelledby="qs-title">
-    <button type="button" class="sheet-close" id="qs-close"></button>
-    <div class="sheet-header">
-      <div class="sheet-title" id="qs-title">Adicionar sócio</div>
-      <div class="sheet-description">Vincula um sócio já cadastrado no registro unificado a esta empresa, com % de participação.</div>
+<!-- Drawer: Adicionar/Editar sócio -->
+<div class="drawer-overlay" id="qs-overlay"></div>
+<div class="drawer" id="qs-panel">
+  <div class="drawer-header">
+    <div style="flex:1;">
+      <div class="drawer-title" id="qs-title">Adicionar sócio</div>
+      <div class="drawer-desc">Vincula um sócio já cadastrado no registro unificado a esta empresa, com % de participação.</div>
     </div>
-    <div class="sheet-body">
-      <div class="sheet-field">
-        <label class="field-label">Sócio</label>
-        <div class="combobox" id="qs-combobox" data-empty-text="Todos os sócios do registro já estão vinculados a esta empresa.">
-          <button type="button" class="combobox-trigger">
-            <span class="combobox-label truncate">Selecione um sócio</span>
-            <span class="chev"></span>
-          </button>
-          <div class="combobox-panel">
-            <div class="combobox-search">
-              <span class="search-icon"></span>
-              <input type="text" placeholder="Buscar por nome ou CPF..." />
-            </div>
-            <div class="combobox-list"></div>
-          </div>
-        </div>
-        <span class="text-xs text-muted" id="qs-socio-lock-hint" style="display:none;">Não é possível trocar o sócio de uma participação existente — desvincule e adicione o sócio correto, se necessário.</span>
-      </div>
-      <div class="sheet-field">
-        <label class="field-label">Participação (%)</label>
-        <input type="number" class="field-input" id="qs-percentual" placeholder="Ex.: 50" min="0" max="100" step="0.01" />
-      </div>
-      <div class="sheet-field">
-        <label class="field-label">Capital integralizado</label>
-        <input type="number" class="field-input" id="qs-capital-integralizado" placeholder="Ex.: 50000,00" min="0" step="0.01" />
-      </div>
-      <div class="sheet-field">
-        <label class="field-label">Capital a integralizar</label>
-        <input type="number" class="field-input" id="qs-capital-a-integralizar" placeholder="Ex.: 0,00" min="0" step="0.01" />
-      </div>
-      <div class="sheet-field">
-        <div class="flex items-center justify-between">
-          <label class="field-label">Total do capital</label>
-          <span class="text-xs text-muted" id="qs-capital-total">R$ 0,00</span>
-        </div>
-      </div>
-      <div class="sheet-field">
-        <label class="field-label">Quotas integralizadas</label>
-        <input type="number" class="field-input" id="qs-quotas" placeholder="Ex.: 50" min="0" step="1" />
-      </div>
-      <div class="sheet-field">
-        <label class="field-label">Quotas a integralizar</label>
-        <input type="number" class="field-input" id="qs-quotas-a-integralizar" placeholder="Ex.: 0" min="0" step="1" />
-      </div>
-      <div class="sheet-field">
-        <div class="flex items-center justify-between">
-          <label class="field-label">Total de quotas</label>
-          <span class="text-xs text-muted" id="qs-quotas-total">0</span>
-        </div>
-      </div>
-      <div class="sheet-field">
-        <label class="field-label">Tipo de sócio</label>
-        <div class="field-select-wrap">
-          <select class="field-select" id="qs-tipo">
-            <option value="">Selecione...</option>
-            <option value="Administrador">Administrador</option>
-            <option value="Cotista">Cotista</option>
-          </select>
-          <span class="chev"></span>
-        </div>
-      </div>
-      <div class="sheet-field">
-        <label class="field-label">Data de entrada</label>
-        <div class="date-picker" id="qs-entrada-picker">
-          <button type="button" class="date-picker-trigger">
-            <span class="date-picker-icon"></span>
-            <span class="date-picker-label">Selecione uma data</span>
-          </button>
-          <div class="date-picker-panel">
-            <div class="date-picker-header">
-              <button type="button" class="date-picker-nav-btn" data-nav="prev" aria-label="Mês anterior"></button>
-              <span class="date-picker-caption"></span>
-              <button type="button" class="date-picker-nav-btn" data-nav="next" aria-label="Próximo mês"></button>
-            </div>
-            <div class="date-picker-weekdays">
-              <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
-            </div>
-            <div class="date-picker-grid"></div>
-          </div>
-        </div>
-      </div>
-      <div class="sheet-field">
-        <label class="field-label">Data de saída</label>
-        <div class="date-picker" id="qs-saida-picker">
-          <button type="button" class="date-picker-trigger">
-            <span class="date-picker-icon"></span>
-            <span class="date-picker-label">Selecione uma data</span>
-          </button>
-          <div class="date-picker-panel">
-            <div class="date-picker-header">
-              <button type="button" class="date-picker-nav-btn" data-nav="prev" aria-label="Mês anterior"></button>
-              <span class="date-picker-caption"></span>
-              <button type="button" class="date-picker-nav-btn" data-nav="next" aria-label="Próximo mês"></button>
-            </div>
-            <div class="date-picker-weekdays">
-              <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
-            </div>
-            <div class="date-picker-grid"></div>
-          </div>
-        </div>
-        <span class="text-xs text-muted">Deixe em branco se o sócio ainda estiver ativo nesta empresa. Clique numa data selecionada de novo para limpar.</span>
-      </div>
-    </div>
-    <div class="sheet-footer">
-      <button type="button" class="btn btn-outline" id="qs-cancelar">Cancelar</button>
-      <button type="button" class="btn" id="qs-salvar" disabled>Salvar</button>
-    </div>
+    <button type="button" class="btn btn-ghost" id="qs-close"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
   </div>
-
-  <!-- Dialog de confirmação de desvínculo (remoção da participação, não do
-       cadastro do sócio) — mesmo padrão do dialog
-       "Restaurar dados do protótipo?" em fab-tools.js. -->
-  <div class="dialog-overlay" id="qs-delete-overlay">
-    <div class="dialog-content" role="dialog" aria-modal="true" aria-labelledby="qs-delete-title">
-      <button type="button" class="dialog-close" id="qs-delete-close" aria-label="Fechar"></button>
-      <div class="flex flex-col gap-1">
-        <h2 class="dialog-title" id="qs-delete-title">Remover vínculo do sócio?</h2>
-        <p class="dialog-description" id="qs-delete-description"></p>
-      </div>
-      <div class="dialog-footer">
-        <button type="button" class="btn btn-outline" id="qs-delete-cancel">Cancelar</button>
-        <button type="button" class="btn btn-destructive" id="qs-delete-confirm">Remover vínculo</button>
+  <div class="drawer-body">
+    <div class="ef-field">
+      <label class="ef-label">Sócio</label>
+      <select class="ef-select" id="qs-select"></select>
+      <span style="font-size:11px;color:var(--text-tertiary);" id="qs-socio-lock-hint" style="display:none;">Não é possível trocar o sócio de uma participação existente — desvincule e adicione o sócio correto, se necessário.</span>
+    </div>
+    <div class="ap-drawer-row">
+      <div class="ef-field"><label class="ef-label">Participação (%)</label><input type="number" class="ef-input" id="qs-percentual" placeholder="Ex.: 50" min="0" max="100" step="0.01" /></div>
+      <div class="ef-field"><label class="ef-label">Tipo de sócio</label>
+        <select class="ef-select" id="qs-tipo"><option value="">Selecione...</option><option value="Administrador">Administrador</option><option value="Cotista">Cotista</option></select>
       </div>
     </div>
+    <div class="ap-drawer-row">
+      <div class="ef-field"><label class="ef-label">Capital integralizado</label><input type="number" class="ef-input" id="qs-capital-integralizado" placeholder="Ex.: 50000,00" min="0" step="0.01" /></div>
+      <div class="ef-field"><label class="ef-label">Capital a integralizar</label><input type="number" class="ef-input" id="qs-capital-a-integralizar" placeholder="Ex.: 0,00" min="0" step="0.01" /></div>
+    </div>
+    <div class="flex items-center justify-between" style="font-size:11.5px;color:var(--text-tertiary);"><span>Total do capital</span><span id="qs-capital-total">R$ 0,00</span></div>
+    <div class="ap-drawer-row">
+      <div class="ef-field"><label class="ef-label">Quotas integralizadas</label><input type="number" class="ef-input" id="qs-quotas" placeholder="Ex.: 50" min="0" step="1" /></div>
+      <div class="ef-field"><label class="ef-label">Quotas a integralizar</label><input type="number" class="ef-input" id="qs-quotas-a-integralizar" placeholder="Ex.: 0" min="0" step="1" /></div>
+    </div>
+    <div class="flex items-center justify-between" style="font-size:11.5px;color:var(--text-tertiary);"><span>Total de quotas</span><span id="qs-quotas-total">0</span></div>
+    <div class="ap-drawer-row">
+      <div class="ef-field"><label class="ef-label">Data de entrada</label><input type="date" class="ef-input" id="qs-entrada" /></div>
+      <div class="ef-field"><label class="ef-label">Data de saída</label><input type="date" class="ef-input" id="qs-saida" /></div>
+    </div>
+    <span style="font-size:11px;color:var(--text-tertiary);">Deixe "Data de saída" em branco se o sócio ainda estiver ativo nesta empresa.</span>
   </div>
+  <div class="drawer-footer">
+    <button type="button" class="btn btn-secondary" id="qs-cancelar">Cancelar</button>
+    <button type="button" class="btn btn-primary" id="qs-salvar" disabled>Salvar</button>
+  </div>
+</div>
 
-  <script src="../shared/js/icons.js"></script>
-  <script src="../shared/js/shell.js"></script>
-  <script src="../shared/js/ui.js"></script>
-  <script src="../shared/js/fab-tools.js"></script>
-  <script src="js/data.js"></script>
-  <script src="../cadastros-auxiliares/js/socios/data.js"></script>
-  <script src="js/detail-common.js"></script>
-  <script src="js/socios.js"></script>
-  <script>window.ACTIVE_TAB = "societario";</script>
-  <script src="js/boot-detail.js"></script>
+<div id="ap-toast" class="ap-toast">
+  <span class="ap-toast-icon"><i data-lucide="check" style="width:12px;height:12px;"></i></span>
+  <div><div class="ap-toast-title"></div><div class="ap-toast-desc"></div></div>
+</div>
+
+<script>window.FLOW_CONFIG = { standalone: true };</script>
+<script src="js/data.js"></script>
+<script src="../cadastros-auxiliares/js/contadores/data.js"></script>
+<script src="../cadastros-auxiliares/js/socios/data.js"></script>
+<script src="../assets/core/cockpit-01-shell.js"></script>
+<script src="../assets/core/cockpit-02-state-helpers.js"></script>
+<script src="../assets/core/cockpit-05-timeline-actions.js"></script>
+<script src="../assets/core/cockpit-08-datatable.js"></script>
+<script src="../assets/core/cockpit-07-modals-init.js"></script>
+<script src="../assets/core/cockpit-09-cx-sidebar.js"></script>
+<script src="js/empresa-shell-cockpit.js"></script>
+<script>
+(function () {
+  const D = window.SociosData;
+  let empresaAtual = null;
+  let editandoSocioId = null;
+
+  function participacoesDaEmpresa() {
+    const socios = D.getSocios();
+    return socios.flatMap((s) => s.participacoes.filter((p) => p.empresaCodigo === empresaAtual.codigo).map((p) => Object.assign({ socio: s }, p)));
+  }
+  function vinculoLabel(part) {
+    if (!part.dataEntrada) return "—";
+    return part.dataSaida ? part.dataEntrada + " – " + part.dataSaida : "desde " + part.dataEntrada;
+  }
+  function participacaoTotal(linhas) {
+    const soma = linhas.filter((part) => !part.dataSaida).reduce((total, part) => total + (Number(part.percentual) || 0), 0);
+    return Math.round(soma * 100) / 100;
+  }
+  function formatarMoeda(valor) { return "R$ " + (Number(valor) || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+  const CAMPOS_PARTICIPACAO = [
+    { key: "tipoSocio", label: "Tipo de sócio" },
+    { key: "percentual", label: "Participação (%)", format: (v) => (v || v === 0 ? v + "%" : "—") },
+    { key: "capitalIntegralizado", label: "Capital integralizado", format: formatarMoeda },
+    { key: "capitalAIntegralizar", label: "Capital a integralizar", format: formatarMoeda },
+    { key: "quotasIntegralizadas", label: "Quotas integralizadas", format: (v) => String(v || 0) },
+    { key: "quotasAIntegralizar", label: "Quotas a integralizar", format: (v) => String(v || 0) },
+    { key: "dataEntrada", label: "Data de entrada" },
+    { key: "dataSaida", label: "Data de saída" },
+  ];
+  function normalizarValorCampo(v) { return v === undefined || v === null || v === "" ? null : v; }
+  function formatarValorCampo(campo, valor) { return campo.format ? campo.format(valor) : (valor || valor === 0 ? String(valor) : "—"); }
+  function diffParticipacao(antes, depois) {
+    return CAMPOS_PARTICIPACAO.map((campo) => {
+      const valorAntes = normalizarValorCampo(antes ? antes[campo.key] : null);
+      const valorDepois = normalizarValorCampo(depois[campo.key]);
+      if (valorAntes === valorDepois) return null;
+      return { campo: campo.label, de: formatarValorCampo(campo, valorAntes), para: formatarValorCampo(campo, valorDepois) };
+    }).filter(Boolean);
+  }
+  function registrarHistoricoSocio(alteracoes) { if (alteracoes.length) window.EmpresasData.registrarEventoHistorico(empresaAtual.codigo, alteracoes); }
+  function capitalTotal(part) { return (Number(part.capitalIntegralizado) || 0) + (Number(part.capitalAIntegralizar) || 0); }
+  function quotasTotal(part) { return (Number(part.quotasIntegralizadas) || 0) + (Number(part.quotasAIntegralizar) || 0); }
+
+  function renderTabela() {
+    const linhas = participacoesDaEmpresa();
+    const rows = linhas.length === 0
+      ? '<tr><td colspan="8"><div class="dt-empty">Nenhum sócio vinculado a esta empresa ainda.</div></td></tr>'
+      : linhas.map((part) =>
+          "<tr>" +
+          '<td><div class="flex flex-col gap-0-5 min-w-0"><span style="font-weight:500;">' + esc(part.socio.nome) + '</span><span style="font-size:11px;color:var(--text-tertiary);">' + part.socio.cpf + "</span></div></td>" +
+          '<td><div class="flex flex-col gap-0-5"><span>' + esc(part.socio.telefone) + '</span><span style="font-size:11px;color:var(--text-tertiary);">' + esc(part.socio.email) + "</span></div></td>" +
+          "<td>" + (part.tipoSocio || "—") + "</td>" +
+          "<td>" + part.percentual + "%</td>" +
+          '<td><div class="flex flex-col gap-0-5"><span>' + formatarMoeda(capitalTotal(part)) + '</span><span style="font-size:11px;color:var(--text-tertiary);">' + formatarMoeda(part.capitalIntegralizado) + ' integralizado</span><span style="font-size:11px;color:var(--text-tertiary);">' + formatarMoeda(part.capitalAIntegralizar) + " a integralizar</span></div></td>" +
+          '<td><div class="flex flex-col gap-0-5"><span>' + quotasTotal(part) + '</span><span style="font-size:11px;color:var(--text-tertiary);">' + (Number(part.quotasIntegralizadas) || 0) + ' integralizadas</span><span style="font-size:11px;color:var(--text-tertiary);">' + (Number(part.quotasAIntegralizar) || 0) + " a integralizar</span></div></td>" +
+          "<td>" + vinculoLabel(part) + "</td>" +
+          '<td><div class="flex gap-3"><button type="button" class="ap-btn-link" data-editar="' + part.socio.id + '">editar</button><button type="button" class="ap-btn-link danger" data-desvincular="' + part.socio.id + '">desvincular</button></div></td>' +
+          "</tr>"
+        ).join("");
+
+    const total = participacaoTotal(linhas);
+    const totalHtml = linhas.length === 0 ? "" : total === 100
+      ? '<div class="flex items-center justify-between" style="font-size:11.5px;color:var(--text-tertiary);padding:10px 4px 0;"><span>Total de participação ativa vinculada</span><span>' + total + "%</span></div>"
+      : '<div class="ap-alert warning" style="margin-top:12px;"><i data-lucide="alert-triangle" style="width:15px;height:15px;flex-shrink:0;"></i><div>A soma das participações ativas é <b>' + total + "%</b> — revise os percentuais para totalizar 100%.</div></div>";
+
+    document.getElementById("tab-content").innerHTML =
+      '<div class="section-card">' +
+      '<div class="flex items-center justify-between flex-wrap gap-3" style="margin-bottom:18px;">' +
+      '<div><div class="subsection-title" style="margin:0;border:none;padding:0;">Quadro societário</div><p style="font-size:12.5px;color:var(--text-secondary);margin:4px 0 0;">Participações vinculadas a esta empresa — referencia o registro unificado de sócios.</p></div>' +
+      '<button type="button" class="btn btn-secondary" id="btn-add-socio"><i data-lucide="plus" style="width:13px;height:13px;"></i> Adicionar sócio</button>' +
+      "</div>" +
+      '<div class="dt-wrap"><div class="dt-scroll"><table class="dt-table">' +
+      "<thead><tr><th>Sócio</th><th>Contato</th><th>Tipo de sócio</th><th>Participação</th><th>Capital</th><th>Quotas</th><th>Vínculo</th><th></th></tr></thead>" +
+      "<tbody>" + rows + "</tbody></table></div></div>" + totalHtml + "</div>";
+
+    document.getElementById("btn-add-socio").addEventListener("click", abrirAdicionar);
+    document.querySelectorAll("[data-editar]").forEach((btn) => btn.addEventListener("click", () => abrirEditar(Number(btn.getAttribute("data-editar")))));
+    document.querySelectorAll("[data-desvincular]").forEach((btn) => btn.addEventListener("click", () => confirmarDesvinculo(Number(btn.getAttribute("data-desvincular")))));
+    refreshIcons();
+  }
+
+  function confirmarDesvinculo(socioId) {
+    const socio = D.getSocios().find((s) => s.id === socioId);
+    showConfirmModal({
+      title: "Remover vínculo do sócio?",
+      message: "O vínculo de " + esc(socio.nome) + " com " + esc(empresaAtual.nome) + " será removido. O sócio continua cadastrado no registro unificado e mantém suas participações em outras empresas.",
+      confirmLabel: "Remover vínculo",
+      danger: true,
+      onConfirm: () => {
+        const socios = D.getSocios();
+        const atualizados = socios.map((s) => s.id !== socioId ? s : Object.assign({}, s, { participacoes: s.participacoes.filter((p) => p.empresaCodigo !== empresaAtual.codigo) }));
+        D.setSocios(atualizados);
+        registrarHistoricoSocio([{ campo: "Sócio desvinculado", de: socio.nome + " — " + socio.cpf, para: "—" }]);
+        renderTabela();
+        ApEmpresaShell.toast("Vínculo removido", "A participação foi desvinculada de " + empresaAtual.nome + ".", "info");
+      },
+    });
+  }
+
+  function socioOptions() {
+    const socios = D.getSocios();
+    return socios.filter((s) => !s.participacoes.some((p) => p.empresaCodigo === empresaAtual.codigo) || s.id === editandoSocioId).map((s) => ({ value: String(s.id), label: s.nome + " — " + s.cpf }));
+  }
+
+  let currentSocioId = "";
+  function atualizarBotaoSalvar() {
+    const percentual = document.getElementById("qs-percentual").value;
+    document.getElementById("qs-salvar").disabled = !(currentSocioId && percentual);
+  }
+  function atualizarTotaisDrawer() {
+    const ci = Number(document.getElementById("qs-capital-integralizado").value) || 0;
+    const ca = Number(document.getElementById("qs-capital-a-integralizar").value) || 0;
+    const qi = Number(document.getElementById("qs-quotas").value) || 0;
+    const qa = Number(document.getElementById("qs-quotas-a-integralizar").value) || 0;
+    document.getElementById("qs-capital-total").textContent = formatarMoeda(ci + ca);
+    document.getElementById("qs-quotas-total").textContent = String(qi + qa);
+  }
+
+  function abrirDrawer(titulo, form) {
+    document.getElementById("qs-title").textContent = titulo;
+    currentSocioId = form.socioId || "";
+    document.getElementById("qs-percentual").value = form.percentual || "";
+    document.getElementById("qs-capital-integralizado").value = form.capitalIntegralizado || "";
+    document.getElementById("qs-capital-a-integralizar").value = form.capitalAIntegralizar || "";
+    document.getElementById("qs-quotas").value = form.quotasIntegralizadas || "";
+    document.getElementById("qs-quotas-a-integralizar").value = form.quotasAIntegralizar || "";
+    document.getElementById("qs-tipo").value = form.tipoSocio || "";
+    document.getElementById("qs-entrada").value = form.dataEntrada || "";
+    document.getElementById("qs-saida").value = form.dataSaida || "";
+    atualizarTotaisDrawer();
+
+    const socioBloqueado = editandoSocioId !== null;
+    const sel = document.getElementById("qs-select");
+    sel.disabled = socioBloqueado;
+    document.getElementById("qs-socio-lock-hint").style.display = socioBloqueado ? "" : "none";
+    const opts = socioOptions();
+    sel.innerHTML = '<option value="">Selecione um sócio...</option>' + opts.map((o) => '<option value="' + o.value + '"' + (o.value === currentSocioId ? " selected" : "") + ">" + esc(o.label) + "</option>").join("");
+    atualizarBotaoSalvar();
+    ApEmpresaShell.abrirDrawer("qs-overlay", "qs-panel");
+  }
+
+  function abrirAdicionar() {
+    editandoSocioId = null;
+    abrirDrawer("Adicionar sócio", { socioId: "", percentual: "", capitalIntegralizado: "", capitalAIntegralizar: "", quotasIntegralizadas: "", quotasAIntegralizar: "", tipoSocio: "", dataEntrada: "", dataSaida: "" });
+  }
+  function abrirEditar(socioId) {
+    const socios = D.getSocios();
+    const socio = socios.find((s) => s.id === socioId);
+    const part = socio.participacoes.find((p) => p.empresaCodigo === empresaAtual.codigo);
+    editandoSocioId = socioId;
+    abrirDrawer("Editar participação", {
+      socioId: String(socioId), percentual: String(part.percentual),
+      capitalIntegralizado: String(part.capitalIntegralizado || 0), capitalAIntegralizar: String(part.capitalAIntegralizar || 0),
+      quotasIntegralizadas: String(part.quotasIntegralizadas), quotasAIntegralizar: String(part.quotasAIntegralizar || 0),
+      tipoSocio: part.tipoSocio || "", dataEntrada: part.dataEntrada || "", dataSaida: part.dataSaida || "",
+    });
+  }
+  function fecharDrawer() { ApEmpresaShell.fecharDrawer("qs-overlay", "qs-panel"); }
+
+  function salvarParticipacao() {
+    if (!currentSocioId) return;
+    const percentual = Number(document.getElementById("qs-percentual").value) || 0;
+    const capitalIntegralizado = Number(document.getElementById("qs-capital-integralizado").value) || 0;
+    const capitalAIntegralizar = Number(document.getElementById("qs-capital-a-integralizar").value) || 0;
+    const quotasIntegralizadas = Number(document.getElementById("qs-quotas").value) || 0;
+    const quotasAIntegralizar = Number(document.getElementById("qs-quotas-a-integralizar").value) || 0;
+    const tipoSocio = document.getElementById("qs-tipo").value || null;
+    const dataEntrada = document.getElementById("qs-entrada").value || null;
+    const dataSaida = document.getElementById("qs-saida").value || null;
+
+    const socios = D.getSocios();
+    const socioSelecionado = socios.find((s) => String(s.id) === currentSocioId);
+    const participacaoAnterior = editandoSocioId ? socioSelecionado.participacoes.find((p) => p.empresaCodigo === empresaAtual.codigo) : null;
+    const atualizados = socios.map((s) => {
+      const participaDestaEmpresa = s.participacoes.some((p) => p.empresaCodigo === empresaAtual.codigo);
+      if (String(s.id) === currentSocioId) {
+        const outras = s.participacoes.filter((p) => p.empresaCodigo !== empresaAtual.codigo);
+        return Object.assign({}, s, { participacoes: outras.concat([{ empresaCodigo: empresaAtual.codigo, percentual, capitalIntegralizado, capitalAIntegralizar, quotasIntegralizadas, quotasAIntegralizar, tipoSocio, dataEntrada, dataSaida }]) });
+      }
+      if (editandoSocioId && s.id === editandoSocioId && participaDestaEmpresa) return Object.assign({}, s, { participacoes: s.participacoes.filter((p) => p.empresaCodigo !== empresaAtual.codigo) });
+      return s;
+    });
+    D.setSocios(atualizados);
+
+    const participacaoNova = { tipoSocio, percentual, capitalIntegralizado, capitalAIntegralizar, quotasIntegralizadas, quotasAIntegralizar, dataEntrada, dataSaida };
+    const alteracoes = editandoSocioId
+      ? diffParticipacao(participacaoAnterior, participacaoNova)
+      : [{ campo: "Sócio vinculado", de: "—", para: socioSelecionado.nome + " — " + socioSelecionado.cpf }].concat(diffParticipacao(null, participacaoNova));
+    registrarHistoricoSocio(alteracoes);
+
+    fecharDrawer();
+    renderTabela();
+    ApEmpresaShell.toast("Sócio salvo", "A participação foi atualizada para " + empresaAtual.nome + ".");
+  }
+
+  window.renderTabContent = function (empresa) {
+    empresaAtual = empresa;
+    renderTabela();
+
+    document.getElementById("qs-select").onchange = (e) => { currentSocioId = e.target.value; atualizarBotaoSalvar(); };
+    document.getElementById("qs-overlay").addEventListener("click", fecharDrawer);
+    document.getElementById("qs-close").addEventListener("click", fecharDrawer);
+    document.getElementById("qs-cancelar").addEventListener("click", fecharDrawer);
+    document.getElementById("qs-salvar").addEventListener("click", salvarParticipacao);
+    document.getElementById("qs-percentual").addEventListener("input", atualizarBotaoSalvar);
+    document.getElementById("qs-capital-integralizado").addEventListener("input", atualizarTotaisDrawer);
+    document.getElementById("qs-capital-a-integralizar").addEventListener("input", atualizarTotaisDrawer);
+    document.getElementById("qs-quotas").addEventListener("input", atualizarTotaisDrawer);
+    document.getElementById("qs-quotas-a-integralizar").addEventListener("input", atualizarTotaisDrawer);
+  };
+
+  ApEmpresaShell.boot("societario");
+})();
+</script>
 </body>
 </html>

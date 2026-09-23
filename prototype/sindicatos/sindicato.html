@@ -1,28 +1,379 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
-  <title>Sindicato — DP — AutoPilot</title>
-  <link rel="stylesheet" href="../shared/css/tokens.css" />
-  <link rel="stylesheet" href="../shared/css/base.css" />
-  <link rel="stylesheet" href="../shared/css/components.css" />
-  <link rel="stylesheet" href="../shared/css/layout.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1280" />
+<title>Sindicato · Protótipo Cockpit</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Tela de cadastro isolada (não é o fluxo fila/tarefa do Cockpit) —
+     modo standalone: layout próprio, reaproveitando tokens e componentes
+     prontos do design system (section-card, field-group, badges, drawer,
+     datatable) em vez de reinventar visual novo. */
+  body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: var(--surface-muted); color: var(--text-primary); }
+
+  .page-wrap { max-width: 1080px; margin: 0 auto; padding: 32px 32px 64px; }
+
+  .back-link { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 500; color: var(--text-secondary); text-decoration: none; margin-bottom: 14px; }
+  .back-link:hover { color: var(--brand-pink); }
+  .back-link i { width: 14px; height: 14px; }
+
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+  .page-header h1 { font-size: 22px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .page-header .header-actions { display: flex; gap: 8px; }
+
+  .field-group-2col { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px 24px; }
+  .field-group-3col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px 24px; }
+  .field-group-addr { display: grid; grid-template-columns: 160px 1fr; gap: 20px 24px; }
+  .field-group-addr2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 24px; }
+  .field-group-addr3 { display: grid; grid-template-columns: 1fr 1fr 110px; gap: 20px 24px; }
+  .field-span-2 { grid-column: span 2; }
+
+  .sindicato-actions-view { display: flex; gap: 8px; }
+  .sindicato-actions-edit { display: flex; gap: 8px; }
+
+  #convencoes-card .dt-wrap { margin-top: 4px; }
+</style>
 </head>
 <body>
-  <div id="shell-root"></div>
 
-  <template id="page-content">
-    <section class="max-w-7xl flex flex-col gap-4" id="sindicato-root"></section>
-  </template>
+<div class="page-wrap" id="sindicato-root"></div>
 
-  <script src="../shared/js/icons.js"></script>
-  <script src="../shared/js/shell.js"></script>
-  <script src="../shared/js/ui.js"></script>
-  <script src="../shared/js/fab-tools.js"></script>
-  <script src="js/data.js"></script>
-  <script src="js/sindicato-form.js"></script>
-  <script src="js/sindicato-detail.js"></script>
+<script>
+/* =========================================================================
+   Dados mock — reproduz SINDICATOS_INICIAL / CONVENCOES_INICIAL do
+   protótipo original (sindicatos/js/data.js), com overlay em localStorage
+   (mesmo padrão de persistência local do restante do protótipo).
+   Sufixo "Sind" em todo nome específico deste fluxo, pra não colidir com
+   globais do core (showScreen, state, dtCreate, openDrawer, etc.).
+   ========================================================================= */
+const SINDICATOS_INICIAL_SIND = [
+  {
+    codigo: "SIND-0001",
+    nome: "Sindicato dos Empregados no Comércio de Goiânia",
+    cep: "74.223-000", endereco: "Rua das Flores", numero: "500", complemento: "Sala 2",
+    bairro: "Setor Bueno", cidade: "Goiânia", uf: "GO",
+    cnpj: "01.234.567/0001-89", telefone: "(62) 3210-9900", fax: "",
+    site: "www.sintracomgo.org.br", email: "contato@sintracomgo.org.br",
+    tipoEntidade: "Sindicato", cnes: "SIND.0001.2024",
+  },
+  {
+    codigo: "SIND-0002",
+    nome: "Sindicato dos Trabalhadores nas Indústrias Metalúrgicas de Goiânia",
+    cep: "74.675-000", endereco: "Av. Industrial", numero: "1200", complemento: "",
+    bairro: "Distrito Industrial", cidade: "Goiânia", uf: "GO",
+    cnpj: "02.345.678/0001-70", telefone: "(62) 3299-1188", fax: "(62) 3299-1189",
+    site: "www.metalurgicosgoiania.org.br", email: "secretaria@metalurgicosgoiania.org.br",
+    tipoEntidade: "Sindicato", cnes: "SIND.0002.2024",
+  },
+  {
+    codigo: "SIND-0003",
+    nome: "Federação dos Professores do Estado de Goiás",
+    cep: "74.030-010", endereco: "Av. Anhanguera", numero: "3400", complemento: "8º andar",
+    bairro: "Centro", cidade: "Goiânia", uf: "GO",
+    cnpj: "03.456.789/0001-61", telefone: "(62) 3224-5500", fax: "",
+    site: "www.fepeg.org.br", email: "fepeg@fepeg.org.br",
+    tipoEntidade: "Federação", cnes: "SIND.0003.2024",
+  },
+];
+
+const CONVENCOES_INICIAL_SIND = [
+  { codigo: "CONV-0001", sindicatoCodigo: "SIND-0001", descricao: "Convenção Coletiva 2026 — Comerciários de Goiânia", dataBase: "01/05", empresasVinculadas: 2 },
+  { codigo: "CONV-0002", sindicatoCodigo: "SIND-0001", descricao: "Convenção Coletiva 2026 — Vigilantes (categoria diferenciada)", dataBase: "01/09", empresasVinculadas: 0 },
+  { codigo: "CONV-0003", sindicatoCodigo: "SIND-0002", descricao: "Convenção Coletiva 2026 — Metalúrgicos de Goiânia", dataBase: "01/11", empresasVinculadas: 3 },
+];
+
+const SIND_KEY = "cockpit_prototype_sindicatos_v1";
+
+function loadSindicatosSind() {
+  try {
+    const raw = window.localStorage.getItem(SIND_KEY);
+    return raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(SINDICATOS_INICIAL_SIND));
+  } catch (e) {
+    return JSON.parse(JSON.stringify(SINDICATOS_INICIAL_SIND));
+  }
+}
+function saveSindicatosSind(lista) {
+  try { window.localStorage.setItem(SIND_KEY, JSON.stringify(lista)); } catch (e) { /* localStorage indisponível */ }
+}
+function convencoesDoSindicatoSind(codigo) {
+  return CONVENCOES_INICIAL_SIND.filter((c) => c.sindicatoCodigo === codigo);
+}
+function getQueryParamSind(name) {
+  return new URLSearchParams(window.location.search).get(name);
+}
+
+const TIPO_ENTIDADE_OPCOES_SIND = ["Sindicato", "Federação", "Confederação"];
+const UF_OPCOES_SIND = ["GO", "SP", "RJ", "MG", "DF", "MT", "MS", "TO", "BA", "PR", "SC", "RS", "PE", "CE"];
+
+/* =========================================================================
+   Estado da tela
+   ========================================================================= */
+let sindicatosSind = loadSindicatosSind();
+const codigoParamSind = getQueryParamSind("sindicato") || "SIND-0001"; // default pro protótipo abrir com dado de exemplo
+let sindicatoAtualSind = sindicatosSind.find((s) => s.codigo === codigoParamSind) || sindicatosSind[0];
+let modeSind = "view"; // 'view' | 'edit'
+let formSind = Object.assign({}, sindicatoAtualSind);
+
+const CAMPOS_OBRIGATORIOS_SIND = ["nome", "cep", "endereco", "numero", "bairro", "cidade", "uf", "cnpj", "tipoEntidade", "cnes"];
+
+/* =========================================================================
+   Toast simples (o core não tem um global — replicando o padrão já usado
+   em outros fluxos adaptados, ex. contabil-conciliacao.html)
+   ========================================================================= */
+function ensureToastSind() {
+  if (document.getElementById("toast-sind")) return;
+  const el = document.createElement("div");
+  el.id = "toast-sind";
+  el.style.cssText = "position:fixed;bottom:24px;right:24px;z-index:400;display:flex;flex-direction:column;gap:8px;";
+  document.body.appendChild(el);
+}
+function showToastSind(title, desc) {
+  ensureToastSind();
+  const box = document.createElement("div");
+  box.className = "toast toast-success";
+  box.style.cssText = "background:#fff;border:1px solid var(--border);border-left:3px solid var(--success);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,0.12);padding:12px 16px;min-width:260px;max-width:340px;";
+  box.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:2px;">' + esc(title) + '</div><div style="font-size:12.5px;color:var(--text-secondary);">' + esc(desc) + '</div>';
+  document.getElementById("toast-sind").appendChild(box);
+  setTimeout(() => { box.style.transition = "opacity .3s"; box.style.opacity = "0"; setTimeout(() => box.remove(), 300); }, 4200);
+}
+
+/* =========================================================================
+   Campos view/edit — segue o padrão do catálogo Cockpit (field-label /
+   field-value / ef-field / ef-input / ef-select), view/edit inline no
+   próprio card (mais adequado aqui do que drawer: são ~13 campos simples,
+   sem sub-listas, cabem confortavelmente numa página cheia).
+   ========================================================================= */
+function fieldViewSind(label, value) {
+  return '<div><div class="field-label">' + esc(label) + '</div><div class="field-value' + (value ? '' : ' empty') + '">' + (value ? esc(value) : 'Não informado') + '</div></div>';
+}
+function fieldEditTextSind(label, campo, placeholder, obrigatorio) {
+  return (
+    '<div class="ef-field"><label class="field-label">' + esc(label) + (obrigatorio ? ' <span style="color:var(--brand-pink)">*</span>' : '') + '</label>' +
+    '<input class="ef-input" data-campo-sind="' + campo + '" value="' + esc(formSind[campo] || '') + '" placeholder="' + esc(placeholder || '') + '" /></div>'
+  );
+}
+function fieldEditSelectSind(label, campo, opcoes, obrigatorio) {
+  return (
+    '<div class="ef-field"><label class="field-label">' + esc(label) + (obrigatorio ? ' <span style="color:var(--brand-pink)">*</span>' : '') + '</label>' +
+    '<select class="ef-select" data-campo-sind="' + campo + '">' +
+    '<option value="">Selecione...</option>' +
+    opcoes.map((o) => '<option value="' + esc(o) + '"' + (formSind[campo] === o ? ' selected' : '') + '>' + esc(o) + '</option>').join('') +
+    '</select></div>'
+  );
+}
+
+function renderCardIdentificacaoSind() {
+  if (modeSind === 'view') {
+    return (
+      '<div class="field-group-2col">' +
+      fieldViewSind('Código', formSind.codigo) +
+      fieldViewSind('Nome (Razão Social)', formSind.nome) +
+      '</div>'
+    );
+  }
+  return (
+    '<div class="field-group-2col">' +
+    '<div><div class="field-label">Código</div><div class="field-value empty">gerado automaticamente</div></div>' +
+    fieldEditTextSind('Nome (Razão Social)', 'nome', 'Nome completo do sindicato', true) +
+    '</div>'
+  );
+}
+
+function renderCardEnderecoSind() {
+  if (modeSind === 'view') {
+    return (
+      '<div class="field-group-addr">' + fieldViewSind('CEP', formSind.cep) + fieldViewSind('Endereço', formSind.endereco) + '</div>' +
+      '<div class="field-group-addr2" style="margin-top:20px;">' + fieldViewSind('Número', formSind.numero) + fieldViewSind('Complemento', formSind.complemento) + '</div>' +
+      '<div class="field-group-addr3" style="margin-top:20px;">' + fieldViewSind('Bairro', formSind.bairro) + fieldViewSind('Cidade', formSind.cidade) + fieldViewSind('UF', formSind.uf) + '</div>'
+    );
+  }
+  return (
+    '<div class="field-group-addr">' + fieldEditTextSind('CEP', 'cep', '00.000-000', true) + fieldEditTextSind('Endereço', 'endereco', 'Rua/avenida', true) + '</div>' +
+    '<div class="field-group-addr2" style="margin-top:20px;">' + fieldEditTextSind('Número', 'numero', '', true) + fieldEditTextSind('Complemento', 'complemento', '', false) + '</div>' +
+    '<div class="field-group-addr3" style="margin-top:20px;">' + fieldEditTextSind('Bairro', 'bairro', '', true) + fieldEditTextSind('Cidade', 'cidade', '', true) + fieldEditSelectSind('UF', 'uf', UF_OPCOES_SIND, true) + '</div>'
+  );
+}
+
+function renderCardContatoSind() {
+  if (modeSind === 'view') {
+    return (
+      '<div class="field-group-2col">' +
+      fieldViewSind('Telefone', formSind.telefone) +
+      fieldViewSind('Fax', formSind.fax) +
+      fieldViewSind('Página na internet', formSind.site) +
+      fieldViewSind('E-mail', formSind.email) +
+      '</div>'
+    );
+  }
+  return (
+    '<div class="field-group-2col">' +
+    fieldEditTextSind('Telefone', 'telefone', '(00) 0000-0000', false) +
+    fieldEditTextSind('Fax', 'fax', '(00) 0000-0000', false) +
+    fieldEditTextSind('Página na internet', 'site', 'www.exemplo.org.br', false) +
+    fieldEditTextSind('E-mail', 'email', 'contato@exemplo.org.br', false) +
+    '</div>'
+  );
+}
+
+function renderCardDocEnquadramentoSind() {
+  if (modeSind === 'view') {
+    return (
+      '<div class="field-group-3col">' +
+      fieldViewSind('CNPJ', formSind.cnpj) +
+      fieldViewSind('Tipo da entidade', formSind.tipoEntidade) +
+      fieldViewSind('Código da entidade (CNES)', formSind.cnes) +
+      '</div>'
+    );
+  }
+  return (
+    '<div class="field-group-3col">' +
+    fieldEditTextSind('CNPJ', 'cnpj', '00.000.000/0000-00', true) +
+    fieldEditSelectSind('Tipo da entidade', 'tipoEntidade', TIPO_ENTIDADE_OPCOES_SIND, true) +
+    fieldEditTextSind('Código da entidade (CNES)', 'cnes', '', true) +
+    '</div>'
+  );
+}
+
+function camposObrigatoriosPreenchidosSind() {
+  return CAMPOS_OBRIGATORIOS_SIND.every((c) => (formSind[c] || '').trim() !== '');
+}
+
+function renderConvencoesCardSind() {
+  const convencoes = convencoesDoSindicatoSind(formSind.codigo);
+  return (
+    '<div class="section-card" id="convencoes-card">' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:4px;">' +
+    '<div class="section-title" style="margin-bottom:0;"><i data-lucide="file-text"></i>Convenções coletivas</div>' +
+    '<button type="button" class="btn btn-primary" id="btn-nova-convencao-sind"><i data-lucide="plus" style="width:14px;height:14px"></i>Nova convenção</button>' +
+    '</div>' +
+    '<div style="font-size:12.5px;color:var(--text-secondary);margin-bottom:16px;">Parametrizações de convenção coletiva vinculadas a este sindicato.</div>' +
+    '<div id="dt-convencoes-sind"></div>' +
+    '</div>'
+  );
+}
+
+function mountConvencoesTableSind() {
+  const convencoes = convencoesDoSindicatoSind(formSind.codigo);
+  dtCreate('convencoes-sind', {
+    columns: [
+      { key: 'codigo', label: 'Código', mono: true },
+      { key: 'descricao', label: 'Descrição', sortable: true },
+      { key: 'dataBase', label: 'Data-base' },
+      { key: 'empresasVinculadas', label: 'Empresas vinculadas', render: (row) => row.empresasVinculadas + (row.empresasVinculadas === 1 ? ' empresa' : ' empresas') },
+    ],
+    rows: convencoes,
+    rowKey: 'codigo',
+    pageSize: 10,
+    searchable: convencoes.length > 5,
+    onRowClick: (row) => { window.location.href = 'convencao.html?convencao=' + encodeURIComponent(row.codigo) + '&sindicato=' + encodeURIComponent(formSind.codigo); },
+    emptyMessage: 'Você ainda não possui convenções cadastradas. Cadastre uma convenção para começar a parametrizar as regras deste sindicato.',
+  });
+}
+
+/* =========================================================================
+   Render principal
+   ========================================================================= */
+function renderSind() {
+  const podeGravar = camposObrigatoriosPreenchidosSind();
+  const acoesHtml = modeSind === 'view'
+    ? '<div class="sindicato-actions-view"><button type="button" class="btn btn-secondary" id="btn-editar-sind"><i data-lucide="pencil" style="width:14px;height:14px"></i>Editar</button></div>'
+    : '<div class="sindicato-actions-edit"><button type="button" class="btn btn-secondary" id="btn-cancelar-sind">Cancelar</button><button type="button" class="btn btn-primary" id="btn-gravar-sind" ' + (podeGravar ? '' : 'disabled') + '>Salvar</button></div>';
+
+  document.getElementById('sindicato-root').innerHTML =
+    '<a href="index.html" class="back-link"><i data-lucide="chevron-left"></i>voltar para a lista</a>' +
+    '<div class="page-header">' +
+    '<h1>' + esc(formSind.nome || 'Sindicato') +
+    (formSind.tipoEntidade ? ' <span class="badge badge-pink">' + esc(formSind.tipoEntidade) + '</span>' : '') +
+    '</h1>' + acoesHtml +
+    '</div>' +
+
+    '<div class="section-card">' +
+    '<div class="section-title"><i data-lucide="landmark"></i>Identificação</div>' +
+    renderCardIdentificacaoSind() +
+    '</div>' +
+
+    '<div class="section-card">' +
+    '<div class="section-title"><i data-lucide="map-pin"></i>Endereço</div>' +
+    renderCardEnderecoSind() +
+    '</div>' +
+
+    '<div class="section-card">' +
+    '<div class="section-title"><i data-lucide="phone"></i>Contato</div>' +
+    renderCardContatoSind() +
+    '</div>' +
+
+    '<div class="section-card">' +
+    '<div class="section-title"><i data-lucide="file-badge"></i>Documentação e enquadramento</div>' +
+    renderCardDocEnquadramentoSind() +
+    '</div>' +
+
+    renderConvencoesCardSind();
+
+  refreshIcons();
+  mountConvencoesTableSind();
+  wireEventsSind();
+}
+
+function wireEventsSind() {
+  const btnEditar = document.getElementById('btn-editar-sind');
+  if (btnEditar) btnEditar.addEventListener('click', () => { modeSind = 'edit'; renderSind(); });
+
+  const btnCancelar = document.getElementById('btn-cancelar-sind');
+  if (btnCancelar) btnCancelar.addEventListener('click', () => { formSind = Object.assign({}, sindicatoAtualSind); modeSind = 'view'; renderSind(); });
+
+  document.querySelectorAll('[data-campo-sind]').forEach((el) => {
+    el.addEventListener('input', () => {
+      formSind[el.getAttribute('data-campo-sind')] = el.value;
+      const btnGravar = document.getElementById('btn-gravar-sind');
+      if (btnGravar) btnGravar.disabled = !camposObrigatoriosPreenchidosSind();
+    });
+    el.addEventListener('change', () => {
+      formSind[el.getAttribute('data-campo-sind')] = el.value;
+      const btnGravar = document.getElementById('btn-gravar-sind');
+      if (btnGravar) btnGravar.disabled = !camposObrigatoriosPreenchidosSind();
+    });
+  });
+
+  const btnGravar = document.getElementById('btn-gravar-sind');
+  if (btnGravar) {
+    btnGravar.addEventListener('click', () => {
+      if (!camposObrigatoriosPreenchidosSind()) return;
+      sindicatosSind = sindicatosSind.map((s) => (s.codigo === sindicatoAtualSind.codigo ? Object.assign({}, formSind) : s));
+      saveSindicatosSind(sindicatosSind);
+      Object.assign(sindicatoAtualSind, formSind);
+      modeSind = 'view';
+      renderSind();
+      showToastSind('Sindicato salvo', formSind.nome + ' foi atualizado com sucesso.');
+    });
+  }
+
+  const btnNovaConv = document.getElementById('btn-nova-convencao-sind');
+  if (btnNovaConv) {
+    btnNovaConv.addEventListener('click', () => {
+      window.location.href = 'convencao.html?sindicato=' + encodeURIComponent(formSind.codigo);
+    });
+  }
+}
+
+window.FLOW_CONFIG = { standalone: true };
+</script>
+<!-- Ordem: 01 (tokens/CSS/estado do modal) + 02 (helpers: qs/esc/refreshIcons)
+     + 05 (showConfirmModal/showAlertModal, não usados aqui mas mantidos
+     disponíveis por padrão) + 08 (datatable, usado na lista de convenções)
+     + 07 por último (lê FLOW_CONFIG e faz o boot em modo standalone). -->
+<script src="../assets/core/cockpit-01-shell.js"></script>
+<script src="../assets/core/cockpit-02-state-helpers.js"></script>
+<script src="../assets/core/cockpit-05-timeline-actions.js"></script>
+<script src="../assets/core/cockpit-08-datatable.js"></script>
+<script src="../assets/core/cockpit-07-modals-init.js"></script>
+<script src="../assets/core/cockpit-09-cx-sidebar.js"></script>
+<script>
+  renderSind();
+</script>
 </body>
 </html>

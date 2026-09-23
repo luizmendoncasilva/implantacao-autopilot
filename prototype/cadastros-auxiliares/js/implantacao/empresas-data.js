@@ -194,12 +194,18 @@
     return total === 0 ? 1 : feito / total;
   }
 
-  function percentualConclusao(r) {
+  // 24/09/2026 (Andressa, validação Parte 3): parâmetros DP passou a
+  // contar como a 4ª frente do percentual, não só um gate à parte —
+  // "tem que incluir o parâmetro também" pra considerar 100%.
+  // empresaCodigo é opcional pra não quebrar chamadas antigas que ainda
+  // não repassam o código (nesse caso mantém as 3 frentes de antes).
+  function percentualConclusao(r, empresaCodigo) {
     const fracoes = [
       fracaoFrente(r.colaboradores.prontos, r.colaboradores.total),
       fracaoFrente(r.financeiro.carregadas, r.financeiro.necessarias),
       fracaoFrente(r.calculoParalelo.validadas, r.calculoParalelo.total),
     ];
+    if (empresaCodigo) fracoes.push(parametrosConfirmados(empresaCodigo) ? 1 : 0);
     const media = fracoes.reduce((a, b) => a + b, 0) / fracoes.length;
     return Math.round(media * 100);
   }

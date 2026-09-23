@@ -1,101 +1,409 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
-  <title>Empresas — AutoPilot</title>
-  <link rel="stylesheet" href="../shared/css/tokens.css" />
-  <link rel="stylesheet" href="../shared/css/base.css" />
-  <link rel="stylesheet" href="../shared/css/components.css" />
-  <link rel="stylesheet" href="../shared/css/layout.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Empresas · Autopilot Configs</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body { margin: 0; }
+/* ==== Extras da trilha Empresas — não cobertos pelo core do Cockpit (assets/core) ==== */
+.ap-crumb{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-tertiary);}
+.ap-crumb a{color:var(--text-tertiary);text-decoration:none;}
+.ap-crumb a:hover{color:var(--brand-pink);}
+.ap-page{padding:20px 28px 48px;max-width:1400px;margin:0 auto;width:100%;}
+.ap-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:16px;}
+.ap-card-header{padding:20px 24px;border-bottom:1px solid var(--border);}
+.ap-card-header.flex-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.ap-card-title{font-size:15px;font-weight:700;color:var(--text-primary);}
+.ap-card-desc{font-size:12.5px;color:var(--text-secondary);margin-top:4px;}
+.ap-card-content{padding:20px 24px;}
+.ap-card-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;background:var(--surface-subtle);border-radius:0 0 14px 14px;}
+.ap-detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px 24px;}
+.ap-detail-field-wide{grid-column:1/-1;}
+.ap-link-info{color:var(--brand-blue);font-weight:500;text-decoration:none;}
+.ap-link-info:hover{text-decoration:underline;}
+.ap-btn-link{background:none;border:none;padding:0;font-size:12.5px;font-weight:500;cursor:pointer;color:var(--brand-blue);}
+.ap-btn-link.danger{color:var(--danger);}
+.ap-row-empty{padding:32px;text-align:center;color:var(--text-tertiary);font-size:13px;}
+.ap-toast{position:fixed;bottom:24px;right:24px;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 14px 30px rgba(0,0,0,.14);padding:14px 16px;display:flex;gap:10px;align-items:flex-start;max-width:360px;z-index:400;transform:translateY(12px);opacity:0;pointer-events:none;transition:all .2s;}
+.ap-toast.show{transform:translateY(0);opacity:1;}
+.ap-toast-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--success-soft);color:var(--success);}
+.ap-toast.info .ap-toast-icon{background:var(--info-soft);color:var(--info);}
+.ap-toast-title{font-size:13px;font-weight:600;color:var(--text-primary);}
+.ap-toast-desc{font-size:12px;color:var(--text-secondary);margin-top:2px;}
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:140;opacity:0;pointer-events:none;transition:opacity .2s;}
+.drawer-overlay.open{opacity:1;pointer-events:auto;}
+.drawer{position:fixed;top:0;right:0;height:100%;width:480px;background:var(--surface);border-left:1px solid var(--border);z-index:150;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s cubic-bezier(.25,.46,.45,.94);}
+.drawer.open{transform:translateX(0);}
+.drawer-header{padding:18px 22px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:flex-start;gap:12px;}
+.drawer-title{font-size:15px;font-weight:700;color:var(--text-primary);line-height:1.3;}
+.drawer-desc{font-size:12.5px;color:var(--text-secondary);margin-top:4px;}
+.drawer-body{flex:1;overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:16px;}
+.drawer-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;background:var(--surface);}
+.drawer-block{background:var(--surface-subtle);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:12.5px;color:var(--text-secondary);display:flex;align-items:center;gap:8px;}
+.ap-toggle-group{display:inline-flex;gap:2px;padding:4px;background:var(--surface-muted);border-radius:10px;}
+.ap-toggle-item{padding:7px 14px;font-size:12.5px;font-weight:500;color:var(--text-secondary);cursor:pointer;border-radius:7px;background:transparent;border:none;}
+.ap-toggle-item.active{background:var(--surface);color:var(--text-primary);box-shadow:0 1px 2px rgba(0,0,0,.06);}
+.ap-stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;min-width:150px;}
+.ap-stat-value{font-size:22px;font-weight:700;color:var(--text-primary);}
+.ap-stat.success .ap-stat-value{color:var(--success);}
+.ap-stat.warning .ap-stat-value{color:var(--warning);}
+.ap-stat-label{font-size:11.5px;color:var(--text-tertiary);margin-top:2px;}
+.ap-stepper{display:flex;align-items:center;gap:0;margin-bottom:4px;}
+.ap-step{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:74px;}
+.ap-step-circle{width:26px;height:26px;border-radius:50%;background:var(--surface-muted);color:var(--text-tertiary);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;}
+.ap-step.active .ap-step-circle{background:var(--brand-pink);color:#fff;}
+.ap-step.done .ap-step-circle{background:var(--success);color:#fff;}
+.ap-step-label{font-size:10.5px;color:var(--text-tertiary);text-align:center;}
+.ap-step.active .ap-step-label{color:var(--text-primary);font-weight:600;}
+.ap-step-connector{flex:1;height:2px;background:var(--border);margin:0 -4px 20px;}
+.ap-step-connector.done{background:var(--success);}
+.ap-progress{height:8px;border-radius:999px;background:var(--surface-muted);overflow:hidden;}
+.ap-progress-fill{height:100%;background:var(--brand-pink);transition:width .18s;}
+.ap-flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.ap-flow-node{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--surface-subtle);border:1px solid var(--border);border-radius:10px;font-size:12.5px;font-weight:500;}
+.ap-dropzone{border:2px dashed var(--border-strong);border-radius:12px;padding:28px 18px;text-align:center;background:var(--surface-subtle);cursor:pointer;transition:all .15s;}
+.ap-dropzone:hover,.ap-dropzone.dragover{border-color:var(--brand-pink);background:var(--brand-pink-soft);}
+.ap-alert{display:flex;gap:10px;align-items:flex-start;padding:12px 16px;border-radius:10px;border:1px solid;font-size:12.5px;line-height:1.5;}
+.ap-alert.warning{background:var(--warning-soft);border-color:#fcd34d;color:#92400e;}
+.ap-alert.info{background:var(--info-soft);border-color:#93c5fd;color:#1e40af;}
+/* sidebar/topbar específicos desta trilha (standalone — sem _buildShell) */
+.ap-sidebar-brand{font-weight:700;font-size:14px;margin-bottom:28px;color:#fff;}
+.ap-topbar-inner{display:flex;align-items:center;height:56px;padding:0 28px;border-bottom:1px solid var(--border);background:#fff;}
+</style>
 </head>
 <body>
-  <div id="shell-root"></div>
 
-  <template id="page-content">
-    <section class="max-w-7xl flex flex-col gap-4">
-      <div class="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h1 class="text-xl font-semibold mb-1">Empresas</h1>
-          <p class="text-sm text-muted max-w-xl">
-            Cadastro completo por empresa.
-          </p>
-        </div>
-        <a href="importar.html" class="btn btn-outline btn-sm w-fit" id="btn-importar-empresas">::icon-upload:: Importar empresas</a>
+<div class="sidebar"></div>
+<div class="main">
+  <div class="ap-topbar-inner">
+    <div class="ap-crumb"><span style="color:var(--text-primary);font-weight:600;">Autopilot</span> <i data-lucide="chevron-right" style="width:12px;height:12px;"></i> <span>Empresas</span></div>
+  </div>
+
+  <div class="ap-page">
+    <div class="flex items-start justify-between gap-3 flex-wrap" style="margin-bottom:20px;">
+      <div>
+        <h1 style="font-size:20px;font-weight:700;color:var(--text-primary);margin:0 0 4px;">Empresas</h1>
+        <p style="font-size:13px;color:var(--text-secondary);max-width:520px;margin:0;">Cadastro completo por empresa.</p>
       </div>
+      <a href="importar.html" class="btn btn-secondary btn-sm" style="width:fit-content;"><i data-lucide="upload" style="width:14px;height:14px;"></i> Importar empresas</a>
+    </div>
 
-      <div class="flex flex-wrap items-end justify-between gap-3">
-        <div class="flex flex-wrap items-end gap-3">
-          <div class="flex flex-col gap-1">
-            <label class="field-label">Pesquisar</label>
-            <input id="f-busca" class="field-input w-72" placeholder="Pesquisar empresa, código ou CNPJ" />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="field-label">Status</label>
-            <div class="toggle-group" id="f-status">
-              <button type="button" class="toggle-item is-on" data-value="todas">Todas</button>
-              <button type="button" class="toggle-item" data-value="ativo">Ativas</button>
-              <button type="button" class="toggle-item" data-value="inativo">Inativas</button>
-            </div>
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="field-label">Tipo</label>
-            <div class="toggle-group" id="f-tipo">
-              <button type="button" class="toggle-item is-on" data-value="todos">Todas</button>
-              <button type="button" class="toggle-item" data-value="matriz">Matrizes</button>
-              <button type="button" class="toggle-item" data-value="filial">Filiais</button>
-            </div>
-          </div>
-        </div>
-
+    <div class="flex flex-wrap items-end justify-between gap-3" style="margin-bottom:16px;">
+      <div class="flex flex-wrap items-end gap-3">
         <div class="flex flex-col gap-1">
-          <label class="field-label">Ordenar por</label>
-          <div class="field-select-wrap w-52">
-            <select id="f-ordenar" class="field-select">
-              <option value="empresa">Empresa</option>
-              <option value="codigo">Código</option>
-              <option value="cnpj">CNPJ</option>
-              <option value="responsavel">Contador responsável</option>
-            </select>
-            <span class="chev">::chevron-down::</span>
+          <span class="field-label">Pesquisar</span>
+          <input id="f-busca" class="ef-input" style="width:280px;" placeholder="Pesquisar empresa, código ou CNPJ" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="field-label">Status</span>
+          <div class="ap-toggle-group" id="f-status">
+            <button type="button" class="ap-toggle-item active" data-value="todas">Todas</button>
+            <button type="button" class="ap-toggle-item" data-value="ativo">Ativas</button>
+            <button type="button" class="ap-toggle-item" data-value="inativo">Inativas</button>
+          </div>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="field-label">Tipo</span>
+          <div class="ap-toggle-group" id="f-tipo">
+            <button type="button" class="ap-toggle-item active" data-value="todos">Todas</button>
+            <button type="button" class="ap-toggle-item" data-value="matriz">Matrizes</button>
+            <button type="button" class="ap-toggle-item" data-value="filial">Filiais</button>
           </div>
         </div>
       </div>
+      <div class="flex flex-col gap-1">
+        <span class="field-label">Ordenar por</span>
+        <select id="f-ordenar" class="ef-select" style="width:210px;">
+          <option value="empresa">Empresa</option>
+          <option value="codigo">Código</option>
+          <option value="cnpj">CNPJ</option>
+          <option value="responsavel">Contador responsável</option>
+        </select>
+      </div>
+    </div>
 
-      <div class="table-wrap">
-        <table class="dtable dtable-fixed" id="tabela-empresas">
+    <div class="dt-wrap">
+      <div class="dt-scroll">
+        <table class="dt-table" id="tabela-empresas">
           <colgroup id="tabela-empresas-colgroup"></colgroup>
           <thead>
             <tr>
-              <th class="col-pad-sm">Código</th>
+              <th>Código</th>
               <th>Empresa</th>
-              <th class="col-pad-md">CNPJ</th>
-              <th class="col-pad-md">Contador responsável</th>
-              <th class="col-pad-sm">Status</th>
-              <th class="col-pad-end"></th>
+              <th>CNPJ</th>
+              <th>Contador responsável</th>
+              <th>Status</th>
+              <th></th>
             </tr>
           </thead>
           <tbody id="tabela-empresas-body"></tbody>
         </table>
       </div>
+    </div>
+    <button type="button" class="btn btn-ghost" id="btn-mostrar-mais" style="display:none;margin-top:10px;">Mostrar mais</button>
+  </div>
+</div>
 
-      <button type="button" class="btn btn-ghost btn-sm w-fit" id="btn-mostrar-mais" style="display:none;">Mostrar mais</button>
-    </section>
-  </template>
+<div id="ap-toast" class="ap-toast">
+  <span class="ap-toast-icon"><i data-lucide="check" style="width:12px;height:12px;"></i></span>
+  <div><div class="ap-toast-title"></div><div class="ap-toast-desc"></div></div>
+</div>
 
-  <script src="../shared/js/icons.js"></script>
-  <script src="../shared/js/shell.js"></script>
-  <script src="../shared/js/ui.js"></script>
-  <script src="../shared/js/fab-tools.js"></script>
-  <script src="js/data.js"></script>
-  <script src="../cadastros-auxiliares/js/contadores/data.js"></script>
-  <script>
-    Shell.mount(document.getElementById("shell-root"), { base: "../", active: "empresas", crumb: "empresas" });
-    // troca placeholder do select nativo pelo ícone real (o texto "::chevron-down::" foi só reserva de espaço no template)
-    document.querySelector(".field-select-wrap .chev").innerHTML = Icon("chevron-down", "size-4");
-    document.getElementById("btn-importar-empresas").innerHTML = Icon("upload", "size-4") + " Importar empresas";
-  </script>
-  <script src="js/list.js"></script>
+<script>
+window.FLOW_CONFIG = { standalone: true };
+</script>
+<script src="js/data.js"></script>
+<script src="../cadastros-auxiliares/js/contadores/data.js"></script>
+<script src="../assets/core/cockpit-01-shell.js"></script>
+<script src="../assets/core/cockpit-02-state-helpers.js"></script>
+<script src="../assets/core/cockpit-05-timeline-actions.js"></script>
+<script src="../assets/core/cockpit-08-datatable.js"></script>
+<script src="../assets/core/cockpit-07-modals-init.js"></script>
+<script src="../assets/core/cockpit-09-cx-sidebar.js"></script>
+<script>
+(function () {
+  const D = window.EmpresasData;
+
+  const state = {
+    busca: "", status: "todas", tipo: "todos", ordenarPor: "empresa",
+    qtdVisivel: D.EMPRESAS_PAGE_SIZE,
+    matrizesExpandidas: new Set(),
+    buscaFiliaisPorMatriz: {}, qtdVisivelFiliaisPorMatriz: {},
+  };
+
+  function truncatedCell(text, maxWidth, extraClass) {
+    return '<span class="truncate ' + (extraClass || "") + '" style="display:inline-block;max-width:' + (maxWidth || 220) + 'px;vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + esc(text || "") + '">' + esc(text || "—") + "</span>";
+  }
+
+  function empresaCorrespondeABusca(empresa, busca) {
+    const termo = busca.trim().toLowerCase();
+    if (!termo) return true;
+    return empresa.nome.toLowerCase().includes(termo) || empresa.codigo.toLowerCase().includes(termo) || empresa.dadosGerais.cnpj.toLowerCase().includes(termo);
+  }
+  function empresaCorrespondeAoStatus(empresa, status) {
+    return status === "todas" || empresa.dadosGerais.statusCliente === status;
+  }
+  function valorParaOrdenacao(empresa, ordenarPor) {
+    switch (ordenarPor) {
+      case "codigo": return empresa.codigo;
+      case "cnpj": return empresa.dadosGerais.cnpj;
+      case "responsavel": return (D.resolveContadorResponsavel(empresa.codigo) || {}).nome || "";
+      default: return empresa.nome;
+    }
+  }
+  function compararEmpresas(a, b, ordenarPor) {
+    return valorParaOrdenacao(a, ordenarPor).localeCompare(valorParaOrdenacao(b, ordenarPor), "pt-BR", { sensitivity: "base" });
+  }
+  function filtrarEOrdenar(empresas) {
+    return empresas.filter((e) => empresaCorrespondeABusca(e, state.busca) && empresaCorrespondeAoStatus(e, state.status)).sort((a, b) => compararEmpresas(a, b, state.ordenarPor));
+  }
+  function paginarListas(qtd, ...listas) {
+    let restante = qtd;
+    return listas.map((lista) => { const fatia = lista.slice(0, Math.max(0, restante)); restante -= fatia.length; return fatia; });
+  }
+  function centralInfo(codigo) {
+    const mapa = D.getCentralizacao();
+    return mapa[codigo] || { tipo: "não se aplica", vinculoCodigo: null };
+  }
+  function filiaisPorMatrizMap() {
+    const mapa = new Map();
+    D.EMPRESAS.forEach((e) => {
+      const vinculo = centralInfo(e.codigo).vinculoCodigo;
+      if (!vinculo) return;
+      if (!mapa.has(vinculo)) mapa.set(vinculo, []);
+      mapa.get(vinculo).push(e);
+    });
+    return mapa;
+  }
+  function abrirCadastro(codigo) { window.location.href = "dados-gerais.html?empresa=" + encodeURIComponent(codigo); }
+  function situacaoBadge(dg) {
+    const ativo = dg.statusCliente === "ativo";
+    return '<span class="badge ' + (ativo ? "badge-success" : "badge-neutral") + '">' + (ativo ? "Ativa" : "Inativa") + "</span>";
+  }
+
+  const COLGROUP_HTML = '<col style="width:104px" /><col /><col style="width:170px" /><col style="width:220px" /><col style="width:90px" /><col style="width:40px" />';
+
+  function nomeFilial(f) { return f.dadosGerais.razaoSocial + " — " + f.dadosGerais.nomeFantasia; }
+
+  function rowMatrizHtml(m, filiais, expandida) {
+    const contadorResp = D.resolveContadorResponsavel(m.codigo);
+    return (
+      '<tr class="dt-row-clickable" data-abrir="' + m.codigo + '">' +
+      "<td>" + m.codigo + "</td>" +
+      '<td><div class="flex items-center gap-2 min-w-0">' +
+      '<button type="button" class="btn btn-ghost" style="padding:3px;" data-toggle-matriz="' + m.codigo + '" aria-expanded="' + expandida + '">' +
+      '<i data-lucide="chevron-right" style="width:15px;height:15px;transition:transform .2s;transform:rotate(' + (expandida ? 90 : 0) + 'deg);"></i></button>' +
+      '<span style="font-weight:600;" title="' + esc(m.nome) + '">' + truncatedCell(m.nome, 240) + "</span>" +
+      '<span class="badge badge-info">Matriz</span>' +
+      (filiais.length > 0 ? '<span style="font-size:11px;color:var(--text-tertiary);">· ' + filiais.length + (filiais.length === 1 ? " filial" : " filiais") + "</span>" : "") +
+      "</div></td>" +
+      '<td class="dt-td-mono">' + m.dadosGerais.cnpj + "</td>" +
+      "<td>" + truncatedCell(contadorResp ? contadorResp.nome : "—", 200) + "</td>" +
+      "<td>" + situacaoBadge(m.dadosGerais) + "</td>" +
+      '<td><i data-lucide="arrow-right" style="width:15px;height:15px;color:var(--text-tertiary);"></i></td>' +
+      "</tr>" +
+      '<tr><td colspan="6" style="padding:0;">' +
+      '<div data-filiais-region="' + m.codigo + '" style="display:' + (expandida ? "block" : "none") + ';">' + filiaisTableHtml(m, filiais) + "</div></td></tr>"
+    );
+  }
+
+  function filiaisTableHtml(m, filiais) {
+    const busca = state.buscaFiliaisPorMatriz[m.codigo] || "";
+    const filtradas = filiais.filter((f) => (nomeFilial(f) + " " + f.codigo).toLowerCase().includes(busca.toLowerCase()));
+    const qtdVisivel = state.qtdVisivelFiliaisPorMatriz[m.codigo] || D.FILIAIS_PAGE_SIZE;
+    const visiveis = filtradas.slice(0, qtdVisivel);
+    let rows = "";
+    if (visiveis.length === 0) {
+      rows = '<tr><td colspan="6"><div class="dt-empty">Nenhuma filial encontrada.</div></td></tr>';
+    } else {
+      rows = visiveis.map((f) => {
+        const contadorResp = D.resolveContadorResponsavel(f.codigo);
+        return (
+          '<tr class="dt-row-clickable" data-abrir="' + f.codigo + '">' +
+          "<td>" + f.codigo + "</td>" +
+          '<td><div class="flex items-center gap-2 min-w-0"><span class="badge badge-neutral">Filial</span>' + truncatedCell(nomeFilial(f), 260) + "</div></td>" +
+          '<td class="dt-td-mono">' + f.dadosGerais.cnpj + "</td>" +
+          "<td>" + truncatedCell(contadorResp ? contadorResp.nome : "—", 200) + "</td>" +
+          "<td>" + situacaoBadge(f.dadosGerais) + "</td>" +
+          '<td><i data-lucide="arrow-right" style="width:15px;height:15px;color:var(--text-tertiary);"></i></td>' +
+          "</tr>"
+        );
+      }).join("");
+    }
+    return (
+      '<div class="flex flex-col gap-2" style="padding:12px 12px 12px 44px;background:var(--surface-muted);">' +
+      (filiais.length > D.FILIAIS_PAGE_SIZE ? '<input class="ef-input" style="width:280px;" placeholder="Buscar filial por nome ou código..." data-busca-filial="' + m.codigo + '" value="' + esc(busca) + '" />' : "") +
+      '<div class="dt-wrap"><div class="dt-scroll"><table class="dt-table">' +
+      "<thead><tr><th>Código</th><th>Filial</th><th>CNPJ</th><th>Contador responsável</th><th>Status</th><th></th></tr></thead><tbody>" + rows + "</tbody></table></div>" +
+      (filtradas.length > qtdVisivel ? '<div style="padding:8px 12px;"><button type="button" class="btn btn-ghost" data-mais-filiais="' + m.codigo + '">Mostrar mais (' + (filtradas.length - qtdVisivel) + " restantes)</button></div>" : "") +
+      "</div></div>"
+    );
+  }
+
+  function rowSimplesHtml(e, badge) {
+    const contadorResp = D.resolveContadorResponsavel(e.codigo);
+    return (
+      '<tr class="dt-row-clickable" data-abrir="' + e.codigo + '">' +
+      "<td>" + e.codigo + "</td>" +
+      "<td>" + (badge ? '<div class="flex items-center gap-2 min-w-0"><span class="badge badge-neutral">Filial</span>' + truncatedCell(nomeFilial(e), 240) + "</div>" : truncatedCell(e.nome, 260)) + "</td>" +
+      '<td class="dt-td-mono">' + e.dadosGerais.cnpj + "</td>" +
+      "<td>" + truncatedCell(contadorResp ? contadorResp.nome : "—", 200) + "</td>" +
+      "<td>" + situacaoBadge(e.dadosGerais) + "</td>" +
+      '<td><i data-lucide="arrow-right" style="width:15px;height:15px;color:var(--text-tertiary);"></i></td>' +
+      "</tr>"
+    );
+  }
+
+  function render() {
+    const matrizesTodas = D.EMPRESAS.filter((e) => centralInfo(e.codigo).tipo === "matriz");
+    const avulsasTodas = D.EMPRESAS.filter((e) => { const t = centralInfo(e.codigo).tipo; return t !== "matriz" && t !== "filial"; });
+    const filiaisTodas = D.EMPRESAS.filter((e) => centralInfo(e.codigo).tipo === "filial");
+    const filiaisMap = filiaisPorMatrizMap();
+
+    const mostrarMatrizes = state.tipo !== "filial";
+    const mostrarAvulsas = state.tipo === "todos";
+    const mostrarFiliaisSoltas = state.tipo === "filial";
+
+    const matrizesFiltradas = mostrarMatrizes ? filtrarEOrdenar(matrizesTodas) : [];
+    const avulsasFiltradas = mostrarAvulsas ? filtrarEOrdenar(avulsasTodas) : [];
+    const filiaisFiltradas = mostrarFiliaisSoltas ? filtrarEOrdenar(filiaisTodas) : [];
+
+    const totalFiltrado = matrizesFiltradas.length + avulsasFiltradas.length + filiaisFiltradas.length;
+    const [matrizesPag, avulsasPag, filiaisPag] = paginarListas(state.qtdVisivel, matrizesFiltradas, avulsasFiltradas, filiaisFiltradas);
+    const totalPaginado = matrizesPag.length + avulsasPag.length + filiaisPag.length;
+    const filtrosAtivos = state.busca.trim() !== "" || state.status !== "todas" || state.tipo !== "todos";
+
+    let html = "";
+    if (totalFiltrado === 0) {
+      html = '<tr><td colspan="6"><div class="dt-empty"><div class="flex flex-col items-center gap-2">Nenhuma empresa encontrada para os filtros selecionados.' +
+        (filtrosAtivos ? '<button type="button" id="btn-limpar-filtros" class="ap-btn-link">Limpar filtros</button>' : "") + "</div></div></td></tr>";
+    } else {
+      if (mostrarMatrizes) matrizesPag.forEach((m) => { html += rowMatrizHtml(m, filiaisMap.get(m.codigo) || [], state.matrizesExpandidas.has(m.codigo)); });
+      if (mostrarAvulsas) avulsasPag.forEach((e) => (html += rowSimplesHtml(e, false)));
+      if (mostrarFiliaisSoltas) filiaisPag.forEach((f) => (html += rowSimplesHtml(f, true)));
+    }
+    document.getElementById("tabela-empresas-body").innerHTML = html;
+
+    const btnMais = document.getElementById("btn-mostrar-mais");
+    if (totalFiltrado > totalPaginado) { btnMais.style.display = ""; btnMais.textContent = "Mostrar mais (" + (totalFiltrado - totalPaginado) + " restantes)"; }
+    else btnMais.style.display = "none";
+
+    wireRowEvents();
+    refreshIcons();
+  }
+
+  function wireRowEvents() {
+    document.querySelectorAll("[data-abrir]").forEach((el) => {
+      el.addEventListener("click", (e) => {
+        if (e.target.closest("[data-toggle-matriz]") || e.target.closest("[data-busca-filial]") || e.target.closest("[data-mais-filiais]")) return;
+        abrirCadastro(el.getAttribute("data-abrir"));
+      });
+    });
+    document.querySelectorAll("[data-toggle-matriz]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const codigo = btn.getAttribute("data-toggle-matriz");
+        if (state.matrizesExpandidas.has(codigo)) state.matrizesExpandidas.delete(codigo); else state.matrizesExpandidas.add(codigo);
+        render();
+      });
+    });
+    document.querySelectorAll("[data-busca-filial]").forEach((input) => {
+      input.addEventListener("click", (e) => e.stopPropagation());
+      input.addEventListener("input", (e) => {
+        const codigo = input.getAttribute("data-busca-filial");
+        state.buscaFiliaisPorMatriz[codigo] = e.target.value;
+        state.qtdVisivelFiliaisPorMatriz[codigo] = D.FILIAIS_PAGE_SIZE;
+        render();
+        const novoInput = document.querySelector('[data-busca-filial="' + codigo + '"]');
+        if (novoInput) { novoInput.focus(); novoInput.selectionStart = novoInput.selectionEnd = novoInput.value.length; }
+      });
+    });
+    document.querySelectorAll("[data-mais-filiais]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const codigo = btn.getAttribute("data-mais-filiais");
+        state.qtdVisivelFiliaisPorMatriz[codigo] = (state.qtdVisivelFiliaisPorMatriz[codigo] || D.FILIAIS_PAGE_SIZE) + D.FILIAIS_PAGE_SIZE;
+        render();
+      });
+    });
+    const btnLimpar = document.getElementById("btn-limpar-filtros");
+    if (btnLimpar) {
+      btnLimpar.addEventListener("click", () => {
+        state.busca = ""; state.status = "todas"; state.tipo = "todos";
+        document.getElementById("f-busca").value = "";
+        resetToggleGroup("f-status", "todas");
+        resetToggleGroup("f-tipo", "todos");
+        resetPaginacao();
+        render();
+      });
+    }
+  }
+
+  function resetToggleGroup(id, value) {
+    document.querySelectorAll("#" + id + " .ap-toggle-item").forEach((i) => i.classList.toggle("active", i.getAttribute("data-value") === value));
+  }
+  function resetPaginacao() { state.qtdVisivel = D.EMPRESAS_PAGE_SIZE; }
+  function wireToggleGroup(id, onChange) {
+    document.querySelectorAll("#" + id + " .ap-toggle-item").forEach((btn) => {
+      btn.addEventListener("click", () => { resetToggleGroup(id, btn.getAttribute("data-value")); onChange(btn.getAttribute("data-value")); });
+    });
+  }
+
+  document.getElementById("f-busca").addEventListener("input", (e) => { state.busca = e.target.value; resetPaginacao(); render(); });
+  document.getElementById("f-ordenar").addEventListener("change", (e) => { state.ordenarPor = e.target.value; resetPaginacao(); render(); });
+  wireToggleGroup("f-status", (v) => { state.status = v; resetPaginacao(); render(); });
+  wireToggleGroup("f-tipo", (v) => { state.tipo = v; resetPaginacao(); render(); });
+  document.getElementById("btn-mostrar-mais").addEventListener("click", () => { state.qtdVisivel += D.EMPRESAS_PAGE_SIZE; render(); });
+
+  document.getElementById("tabela-empresas-colgroup").innerHTML = COLGROUP_HTML;
+  render();
+})();
+</script>
 </body>
 </html>

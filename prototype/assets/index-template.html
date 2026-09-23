@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Protótipos · {{TITULO_HUB}}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --brand-pink:#f25461; --brand-pink-soft:#fde7ea; --surface:#fff; --surface-muted:#f7f7f8; --text-primary:#18181b; --text-secondary:#52525b; --text-tertiary:#a1a1aa; --border:#e4e4e7; }
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-muted);color:var(--text-primary);margin:0;font-size:14px;}
+  .hub{max-width:1100px;margin:0 auto;padding:48px 32px;}
+  .hub-eyebrow{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--brand-pink);margin-bottom:10px;}
+  .hub h1{font-size:28px;font-weight:700;margin:0 0 8px;}
+  .hub-sub{font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:32px;max-width:620px;}
+  .module-section{margin-bottom:40px;}
+  .module-label{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-primary);margin:0 0 14px;}
+  .module-label .count{font-size:11px;font-weight:600;color:var(--text-tertiary);background:var(--surface-muted);border:1px solid var(--border);border-radius:20px;padding:1px 8px;}
+  .col-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;}
+  .card{display:flex;flex-direction:column;min-height:150px;text-decoration:none;background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;transition:border-color .15s,box-shadow .15s,transform .1s;}
+  .card.live:hover{border-color:var(--brand-pink);box-shadow:0 4px 14px rgba(0,0,0,0.06);transform:translateY(-1px);}
+  .ic{width:34px;height:34px;border-radius:9px;background:var(--brand-pink-soft);color:var(--brand-pink);display:flex;align-items:center;justify-content:center;margin-bottom:12px;}
+  .ic svg{width:18px;height:18px;}
+  .t{font-size:14.5px;font-weight:700;margin-bottom:4px;line-height:1.3;}
+  .d{font-size:12.5px;color:var(--text-secondary);line-height:1.45;flex:1;}
+  .tag{display:inline-flex;align-items:center;gap:5px;margin-top:12px;font-size:11.5px;font-weight:600;color:var(--brand-pink);}
+  .card .tag svg{width:13px;height:13px;}
+  .empty-module{font-size:12.5px;color:var(--text-tertiary);font-style:italic;padding:12px 0;}
+</style>
+</head>
+<body>
+  <div class="hub">
+    <div class="hub-eyebrow">Cockpit · Protótipos</div>
+    <h1>Protótipos</h1>
+    <p class="hub-sub">{{DESCRICAO}}</p>
+
+    <!-- Uma seção .module-section por módulo que já tiver protótipo.
+         Adicione/atualize seções conforme novos protótipos forem criados —
+         nunca remova cards existentes de outros módulos ao adicionar um novo. -->
+
+    <div class="module-section">
+      <div class="module-label">DP <span class="count">0</span></div>
+      <div class="col-cards">
+        <!-- <a class="card live" href="ARQUIVO.html"> ... </a> -->
+      </div>
+    </div>
+
+    <div class="module-section">
+      <div class="module-label">Fiscal <span class="count">0</span></div>
+      <div class="col-cards"></div>
+    </div>
+
+    <div class="module-section">
+      <div class="module-label">Contábil <span class="count">0</span></div>
+      <div class="col-cards"></div>
+    </div>
+
+    <div class="module-section">
+      <div class="module-label">BPO <span class="count">0</span></div>
+      <div class="col-cards"></div>
+    </div>
+
+    <div class="module-section">
+      <div class="module-label">Autopilot Configs <span class="count">0</span></div>
+      <div class="col-cards"></div>
+    </div>
+  </div>
+  <script>if (window.lucide) lucide.createIcons();</script>
+</body>
+</html>

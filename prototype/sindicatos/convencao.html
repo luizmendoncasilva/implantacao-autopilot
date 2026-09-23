@@ -1,143 +1,1047 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
-  <title>Convenção Coletiva — DP — AutoPilot</title>
-  <link rel="stylesheet" href="../shared/css/tokens.css" />
-  <link rel="stylesheet" href="../shared/css/base.css" />
-  <link rel="stylesheet" href="../shared/css/components.css" />
-  <link rel="stylesheet" href="../shared/css/layout.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1280" />
+<title>Convenção Coletiva · Cockpit</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: var(--surface-muted, #f7f7f8); color: var(--text-primary, #18181b); }
+  .conv-page { max-width: 1180px; margin: 0 auto; padding: 32px 28px 80px; }
+
+  /* ---- Cabeçalho ---- */
+  .conv-back { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--text-secondary); text-decoration: none; cursor: pointer; background: none; border: none; padding: 0; margin-bottom: 14px; }
+  .conv-back:hover { color: var(--brand-pink); }
+  .conv-back i { width: 14px; height: 14px; }
+  .conv-header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 6px; }
+  .conv-title { font-size: 21px; font-weight: 700; color: var(--text-primary); margin: 0; }
+  .conv-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+  .conv-picker { font-size: 12px; color: var(--text-tertiary); display: flex; align-items: center; gap: 8px; margin-bottom: 18px; }
+  .conv-picker select { font-size: 12.5px; border: 1px solid var(--border-strong); border-radius: 8px; padding: 6px 10px; font-family: inherit; background: #fff; }
+  .conv-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .conv-desc-box { max-width: 620px; margin-top: 12px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-subtle); display: flex; flex-direction: column; gap: 6px; }
+  .conv-desc-box .ef-label { margin-bottom: 0; }
+
+  /* ---- Tabs ---- */
+  .conv-tabs { display: flex; gap: 4px; background: var(--surface-muted); padding: 4px; border-radius: 12px; flex-wrap: wrap; margin: 20px 0; position: sticky; top: 0; z-index: 5; }
+  .conv-tab { padding: 9px 16px; border-radius: 9px; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); cursor: pointer; border: none; background: transparent; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+  .conv-tab:hover { color: var(--text-primary); }
+  .conv-tab.active { background: #fff; color: var(--brand-pink); box-shadow: 0 1px 3px rgba(0,0,0,0.10); }
+  .conv-tab .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border-strong); }
+  .conv-tab.active .dot { background: var(--brand-pink); }
+
+  /* ---- Campos ---- */
+  .field-group .wide, .ef-field.wide { grid-column: span 2; }
+  .field-item .field-label { margin-bottom: 4px; }
+  .subcard2 { border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin-bottom: 16px; background: #fff; }
+  .subcard2:last-child { margin-bottom: 0; }
+  .subcard2-title { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+
+  /* ---- Checkbox / regra condicional ---- */
+  .cf-checkbox { display: inline-flex; align-items: center; gap: 9px; font-size: 13.5px; color: var(--text-primary); cursor: pointer; }
+  .cf-checkbox input { width: 16px; height: 16px; accent-color: var(--brand-pink); cursor: pointer; }
+  .cf-checkbox-view { display: flex; align-items: center; gap: 8px; font-size: 13.5px; }
+  .cf-rule { border: 1px solid var(--border); border-radius: 10px; padding: 13px 16px; background: var(--surface-subtle); }
+  .cf-rule.is-active { border-color: #f9c5cb; background: var(--brand-pink-soft); }
+  .cf-rule-dependent { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-strong); display: flex; flex-wrap: wrap; gap: 16px 24px; }
+  .cf-rule-list { display: flex; flex-direction: column; gap: 10px; }
+
+  /* ---- Notas / tags de referência ---- */
+  .conv-note { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: var(--text-tertiary); line-height: 1.5; margin-top: 10px; }
+  .conv-note i { flex-shrink: 0; margin-top: 1px; width: 14px; height: 14px; }
+  .ref-tags-wrap { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .ref-tags-label { font-size: 11px; color: var(--text-tertiary); }
+  .ref-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ref-tag { font-size: 11px; padding: 3px 9px; border-radius: 6px; background: var(--surface-muted); color: var(--text-tertiary); border: 1px solid var(--border); }
+
+  /* ---- Accordion (details/summary) para Condicionais ---- */
+  .conv-acc { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; overflow: hidden; background: #fff; }
+  .conv-acc > summary { padding: 14px 18px; cursor: pointer; font-size: 13.5px; font-weight: 700; color: var(--text-primary); list-style: none; display: flex; align-items: center; justify-content: space-between; background: var(--surface-subtle); }
+  .conv-acc > summary::-webkit-details-marker { display: none; }
+  .conv-acc > summary i { width: 16px; height: 16px; color: var(--text-tertiary); transition: transform .15s; }
+  .conv-acc[open] > summary { border-bottom: 1px solid var(--border); }
+  .conv-acc[open] > summary i { transform: rotate(180deg); }
+  .conv-acc-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+
+  /* ---- Tabelas simples inline (grades editáveis pequenas) ---- */
+  .conv-mini-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 4px; }
+  .conv-mini-table th { text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text-tertiary); padding: 8px 10px; background: var(--surface-subtle); border-bottom: 1px solid var(--border); }
+  .conv-mini-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .conv-mini-table tr:last-child td { border-bottom: none; }
+  .conv-mini-table input.ef-input { padding: 5px 8px; font-size: 12.5px; }
+  .conv-mini-remove { background: none; border: none; color: var(--danger); font-size: 12px; font-weight: 600; cursor: pointer; }
+
+  .conv-alert { display: flex; align-items: center; gap: 10px; }
+  .conv-alert i { width: 16px; height: 16px; color: var(--brand-pink); flex-shrink: 0; }
+
+  .conv-emp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .conv-emp-table th { text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text-tertiary); padding: 10px 14px; background: var(--surface-subtle); border-bottom: 1px solid var(--border); }
+  .conv-emp-table td { padding: 11px 14px; border-bottom: 1px solid var(--border); }
+  .conv-emp-table tr:last-child td { border-bottom: none; }
+
+  /* ---- Drawer lateral (piso salarial / histórico) ---- */
+  .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.25); z-index: 40; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+  .drawer { position: fixed; top: 0; right: 0; height: 100%; width: 460px; background: var(--surface); border-left: 1px solid var(--border); z-index: 50; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .25s cubic-bezier(.25,.46,.45,.94); }
+  .drawer.open { transform: translateX(0); }
+  .drawer-header { padding: 18px 22px; border-bottom: 1px solid var(--border); flex-shrink: 0; display: flex; align-items: flex-start; gap: 12px; }
+  .drawer-title { font-size: 15px; font-weight: 700; color: var(--text-primary); line-height: 1.3; }
+  .drawer-desc { font-size: 12.5px; color: var(--text-secondary); margin-top: 4px; line-height: 1.5; }
+  .drawer-body { flex: 1; overflow-y: auto; padding: 18px 22px; display: flex; flex-direction: column; gap: 16px; }
+  .drawer-footer { padding: 16px 22px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-shrink: 0; background: var(--surface); }
+  .drawer-block { background: var(--surface-subtle); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+
+  .conv-toast { position: fixed; bottom: 24px; right: 24px; background: var(--success); color: #fff; padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,.15); z-index: 300; display: flex; align-items: center; gap: 8px; opacity: 0; transform: translateY(8px); transition: all .2s; }
+  .conv-toast.show { opacity: 1; transform: translateY(0); }
+</style>
 </head>
 <body>
-  <div id="shell-root"></div>
 
-  <template id="page-content">
-    <section class="max-w-7xl flex flex-col gap-4" id="convencao-root"></section>
-  </template>
+<div class="conv-page" id="conv-root"></div>
 
-  <!-- Sheet: Adicionar/editar piso salarial -->
-  <div class="sheet-overlay" id="piso-overlay"></div>
-  <div class="sheet-panel" id="piso-panel" role="dialog" aria-modal="true" aria-labelledby="piso-title">
-    <button type="button" class="sheet-close" id="piso-close"></button>
-    <div class="sheet-header">
-      <div class="sheet-title" id="piso-title">Adicionar piso salarial</div>
-      <div class="sheet-description">Valor mínimo garantido pela convenção para o cargo/nível descrito.</div>
-    </div>
-    <div class="sheet-body">
-      <div class="sheet-field">
-        <label class="field-label">Descrição <span class="text-muted">*</span></label>
-        <input id="piso-descricao" class="field-input" placeholder="Ex.: Balconista" />
-      </div>
-      <div class="sheet-field">
-        <label class="field-label">Valor <span class="text-muted">*</span></label>
-        <input id="piso-valor" class="field-input" placeholder="Ex.: 1.750,00" />
-      </div>
-    </div>
-    <div class="sheet-footer">
-      <button type="button" class="btn btn-outline" id="piso-cancelar">Cancelar</button>
-      <button type="button" class="btn" id="piso-salvar" disabled>Salvar</button>
-    </div>
-  </div>
-  <div class="dialog-overlay" id="piso-delete-overlay">
-    <div class="dialog-content" role="dialog" aria-modal="true" aria-labelledby="piso-delete-title">
-      <button type="button" class="dialog-close" id="piso-delete-close" aria-label="Fechar"></button>
-      <div class="flex flex-col gap-1">
-        <h2 class="dialog-title" id="piso-delete-title">Remover piso salarial?</h2>
-        <p class="dialog-description" id="piso-delete-description"></p>
-      </div>
-      <div class="dialog-footer">
-        <button type="button" class="btn btn-outline" id="piso-delete-cancel">Cancelar</button>
-        <button type="button" class="btn btn-destructive" id="piso-delete-confirm">Remover</button>
-      </div>
-    </div>
-  </div>
+<script>
+window.FLOW_CONFIG = { standalone: true };
 
-  <!-- Sheet: Registrar/editar alteração salarial (histórico) -->
-  <div class="sheet-overlay" id="hist-overlay"></div>
-  <div class="sheet-panel" id="hist-panel" role="dialog" aria-modal="true" aria-labelledby="hist-title">
-    <button type="button" class="sheet-close" id="hist-close"></button>
-    <div class="sheet-header">
-      <div class="sheet-title" id="hist-title">Registrar alteração salarial</div>
-      <div class="sheet-description">Histórico de convenções aplicadas à categoria — origem e percentual de reajuste.</div>
-    </div>
-    <div class="sheet-body">
-      <div class="sheet-field">
-        <label class="field-label">Data do registro <span class="text-muted">*</span></label>
-        <div class="date-picker" id="hist-data-picker">
-          <button type="button" class="date-picker-trigger"><span class="date-picker-icon"></span><span class="date-picker-label">Selecione uma data</span></button>
-          <div class="date-picker-panel">
-            <div class="date-picker-header">
-              <button type="button" class="date-picker-nav-btn" data-nav="prev" aria-label="Mês anterior"></button>
-              <span class="date-picker-caption"></span>
-              <button type="button" class="date-picker-nav-btn" data-nav="next" aria-label="Próximo mês"></button>
-            </div>
-            <div class="date-picker-weekdays"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
-            <div class="date-picker-grid"></div>
-          </div>
-        </div>
-      </div>
-      <div class="sheet-field">
-        <label class="field-label">Descrição <span class="text-muted">*</span></label>
-        <input id="hist-descricao" class="field-input" placeholder="Ex.: Reajuste anual — data-base 2026" />
-      </div>
-      <div class="sheet-field">
-        <label class="field-label">Tipo <span class="text-muted">*</span></label>
-        <div class="field-select-wrap"><select id="hist-tipo" class="field-select"><option value="">Selecione...</option></select><span class="chev"></span></div>
-      </div>
-      <div class="sheet-field" id="hist-processo-field" style="display:none;">
-        <label class="field-label">Número do processo</label>
-        <input id="hist-processo" class="field-input" placeholder="0000000-00.0000.0.00.0000" />
-      </div>
-      <div class="sheet-field">
-        <label class="field-label">Percentual CCT</label>
-        <input id="hist-percentual" class="field-input" placeholder="Ex.: 5,20" />
-      </div>
-    </div>
-    <div class="sheet-footer">
-      <button type="button" class="btn btn-outline" id="hist-cancelar">Cancelar</button>
-      <button type="button" class="btn" id="hist-salvar" disabled>Salvar</button>
-    </div>
-  </div>
-  <div class="dialog-overlay" id="hist-delete-overlay">
-    <div class="dialog-content" role="dialog" aria-modal="true" aria-labelledby="hist-delete-title">
-      <button type="button" class="dialog-close" id="hist-delete-close" aria-label="Fechar"></button>
-      <div class="flex flex-col gap-1">
-        <h2 class="dialog-title" id="hist-delete-title">Remover registro do histórico?</h2>
-        <p class="dialog-description" id="hist-delete-description"></p>
-      </div>
-      <div class="dialog-footer">
-        <button type="button" class="btn btn-outline" id="hist-delete-cancel">Cancelar</button>
-        <button type="button" class="btn btn-destructive" id="hist-delete-confirm">Remover</button>
-      </div>
-    </div>
-  </div>
+/* ============================================================
+   DADOS MOCK — mesma estrutura de sindicatos/js/data.js
+   (3 convenções cobrindo estados distintos: rica, vazia, com
+   histórico processual) — protótipo, estado só em memória.
+   ============================================================ */
+const CONV_SINDICATOS = [
+  { codigo: "SIND-0001", nome: "Sindicato dos Empregados no Comércio de Goiânia" },
+  { codigo: "SIND-0002", nome: "Sindicato dos Trabalhadores nas Indústrias Metalúrgicas de Goiânia" },
+  { codigo: "SIND-0003", nome: "Federação dos Professores do Estado de Goiás" },
+];
 
-  <!-- Refinamento pontual — Convenção, item 4: confirmação ao cancelar uma
-       nova Convenção. Mesmo padrão de Dialog já usado acima (remoção de piso
-       salarial/histórico) — só overlay/content/title/description/footer,
-       sem componente novo. -->
-  <div class="dialog-overlay" id="cancelar-convencao-overlay">
-    <div class="dialog-content" role="dialog" aria-modal="true" aria-labelledby="cancelar-convencao-title">
-      <button type="button" class="dialog-close" id="cancelar-convencao-close" aria-label="Fechar"></button>
-      <div class="flex flex-col gap-1">
-        <h2 class="dialog-title" id="cancelar-convencao-title">Cancelar cadastro da Convenção?</h2>
-        <p class="dialog-description">As informações preenchidas serão perdidas. Deseja realmente sair?</p>
-      </div>
-      <div class="dialog-footer">
-        <button type="button" class="btn btn-outline" id="cancelar-convencao-continuar">Continuar editando</button>
-        <button type="button" class="btn btn-destructive" id="cancelar-convencao-confirmar">Cancelar cadastro</button>
-      </div>
-    </div>
-  </div>
+const CONV_EMPRESAS = [
+  { codigo: "PA-0011", nome: "Padaria Aurora", cnpj: "12.345.678/0001-90" },
+  { codigo: "CH-0042", nome: "Comércio Horizonte", cnpj: "20.456.789/0001-33" },
+  { codigo: "MS-0027", nome: "Metalúrgica Sigma", cnpj: "06.265.226/0001-09" },
+  { codigo: "MS-0027-F1", nome: "Metalúrgica Sigma — Filial 1", cnpj: "06.265.226/0002-80" },
+  { codigo: "MS-0027-F2", nome: "Metalúrgica Sigma — Filial 2", cnpj: "06.265.226/0003-61" },
+];
 
-  <script src="../shared/js/icons.js"></script>
-  <script src="../shared/js/shell.js"></script>
-  <script src="../shared/js/ui.js"></script>
-  <script src="../shared/js/fab-tools.js"></script>
-  <script src="js/data.js"></script>
-  <script src="../empresas/js/data.js"></script>
-  <script src="js/convencao-detail.js"></script>
+const CONV_OPCOES = {
+  salarioMesAdmissao: [{ value: "sempre-30-dias", label: "Sempre 30 dias" }, { value: "dias-corridos", label: "Dias corridos do mês" }],
+  calcProporcionalidadeHorista: [{ value: "dias-do-mes", label: "Conforme dias do mês" }, { value: "conforme-dias-do-mes", label: "Conforme escala/dias trabalhados" }],
+  mesesFeriasProporcionais: Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1), label: String(i + 1) })),
+  simNao: [{ value: "sim", label: "Sim" }, { value: "nao", label: "Não" }],
+  proporcaoDSR: [{ value: "1/5", label: "1/5" }, { value: "1/6", label: "1/6" }],
+  formaApuracaoDias: [{ value: "dias-corridos-antecipados", label: "Dias corridos antecipados" }, { value: "dias-uteis", label: "Dias úteis" }],
+  meses: ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"],
+  formaContribuicao: [{ value: "percentual", label: "Percentual" }, { value: "valor-fixo", label: "Valor fixo" }],
+  tipoHistorico: ["Convenção Coletiva", "Acordo Coletivo", "Sentença normativa"],
+  tratamentoLei: [{ value: "aviso-indenizado", label: "Considerar como aviso indenizado" }, { value: "aviso-trabalhado", label: "Considerar como aviso trabalhado" }],
+  formaCalculoMedia: [{ value: "clt", label: "CLT" }, { value: "convencao", label: "Convenção Coletiva" }],
+};
+
+const CONVENCOES_MOCK = [
+  {
+    codigo: "CONV-0001", sindicatoCodigo: "SIND-0001",
+    descricao: "Convenção Coletiva 2026 — Comerciários de Goiânia",
+    configGerais: {
+      salarioMesAdmissao: "sempre-30-dias", calcProporcionalidadeHorista: "dias-do-mes", adicionalNoturno: "25,00", horaExtra: "60,00",
+      mesesFeriasProporcionais: "12", indenizar13FeriasAvisoReavido: "sim",
+      descontarDSRFaltaIntegral: { ativo: true, proporcao: "1/6" }, calcularDSRProfessorMensalista: false, calcularSalarioProporcionalDias: "nao",
+      regrasDiasReais: { semEventos: false, comAfastamento: false, comFerias: false, rescisao: false, admissao: false, divisor: false },
+    },
+    dataBasePrazos: {
+      dataBase: "01/05", calcularDiferencaContribAssistencial: true, diasAusenciaAbonados: { ativo: true, dias: "3" }, percentualMaxVT: "",
+      limiteCargaHoraria: { ativo: false, min: "", max: "" }, diasIndenizacaoDataBase: "30", naoPagarIndenizacaoAposDataLimite: "01/04",
+      diasAssistenciaHomologacao: "10", diasPagamentoRescisao: "", formaApuracaoDias: "dias-corridos-antecipados", regrasContratoExperiencia: true,
+    },
+    contribuicoes: {
+      assistencial: { ativa: true, mesFolha: "Maio", formaFolha: "percentual", diasFolha: "30", mes13: "Novembro", forma13: "percentual", dias13: "20", descontoAdmissaoPercentual: "1,00", semDescontarEmpregado: false },
+      associativa: { ativa: false, mesFolha: "", formaFolha: "", diasFolha: "", mes13: "", forma13: "", dias13: "" },
+      confederativa: { ativa: true, mesFolha: "Maio", formaFolha: "percentual", diasFolha: "30", mes13: "", forma13: "", dias13: "", naoCumular: true },
+      sindical: { ativa: true, mes: "Março", forma: "percentual", diasTotal: "30" },
+      mesContribuicaoSindicalAnual: "Março",
+      gradeConfiguracaoContribAssistencial: [
+        { faixa: "Até 1 salário mínimo", percentual: "1,00", valorFixo: "" },
+        { faixa: "Acima de 1 salário mínimo", percentual: "1,50", valorFixo: "" },
+      ],
+    },
+    empresasVinculadas: ["PA-0011", "CH-0042"],
+    pisoSalarial: [
+      { codigo: "PISO-01", descricao: "Balconista", valor: "1.750,00" },
+      { codigo: "PISO-02", descricao: "Caixa", valor: "1.820,00" },
+      { codigo: "PISO-03", descricao: "Repositor", valor: "1.680,00" },
+    ],
+    historico: [
+      { data: "01/05/2026", descricao: "Reajuste anual — data-base 2026", tipo: "Convenção Coletiva", numeroProcesso: "", percentualCCT: "5,20" },
+      { data: "01/05/2025", descricao: "Reajuste anual — data-base 2025", tipo: "Convenção Coletiva", numeroProcesso: "", percentualCCT: "4,60" },
+    ],
+    condicionais: {
+      calculos: {
+        ferias: { pagarAvosAfastamento180: true, novoPeriodoAquisitivoColetivas: false, adiantar13Ferias: true, fracaoMinimaAvos: { ativo: true, dias: "15" }, gratificacaoFerias: { ativo: false } },
+        decimoTerceiro: { avosLimitadosAfastamento: { ativo: true, dias: "180" }, maiorGradeProfessor: false, reaproveitarUltimoValorAdicional: true },
+        avisoPrevio: { avisoMisto: true, tratamentoLei12506: "indenizado", liminarInssAvisoIndenizado: false, suspensaoFeriasColetivas: true },
+        garantiaSemestral: { aplicacaoProfessorAulista: false },
+        licencaPremio: { possui: false, pagarMediaAdicional: false, indenizarNaoGozados: false },
+        resilicaoProfessor: { calcular13ReducaoGrade: false, calcularFeriasReducaoGrade: false },
+        adicionalTempoServico: { possuiGrade: true, grade: [
+          { periodicidade: "A cada 5 anos", percentual: "5,00", base: "Salário-base" },
+          { periodicidade: "A cada 10 anos", percentual: "10,00", base: "Salário-base" },
+        ] },
+      },
+      comissionado: { pagar13ProporcionalEntreRegimes: false, possuiGarantiaMinima: false },
+      medias: { considerarMaisFavoravel: true, mediasDiferenciadasModalidade13: false, reaproveitamentoMediaFerias: true, mediaDiferenciadaComissoes: false, formaCalculoMedia: "convencao" },
+      estabilidade: { extensaoAposFerias: false, projecaoAvisoPrevioIndenizado: true, dilatacaoFeriasGozadas: false },
+      indenizacaoEspecial: { possuiRescisao: false, possuiAfastamento: false },
+      plr: { proporcionalidadeMesesTrabalhados: true, regraMesCheio: true, plrNaRescisao: true, projecaoAvisoPrevio: false },
+      observacoes: "Convenção revisada em 2026 — pendente anexar cópia digitalizada do texto homologado no TRT-18.",
+    },
+  },
+  {
+    codigo: "CONV-0002", sindicatoCodigo: "SIND-0001",
+    descricao: "Convenção Coletiva 2026 — Vigilantes (categoria diferenciada)",
+    configGerais: {
+      salarioMesAdmissao: "sempre-30-dias", calcProporcionalidadeHorista: "", adicionalNoturno: "20,00", horaExtra: "50,00",
+      mesesFeriasProporcionais: "", indenizar13FeriasAvisoReavido: "",
+      descontarDSRFaltaIntegral: { ativo: false, proporcao: "" }, calcularDSRProfessorMensalista: false, calcularSalarioProporcionalDias: "",
+      regrasDiasReais: { semEventos: false, comAfastamento: false, comFerias: false, rescisao: false, admissao: false, divisor: false },
+    },
+    dataBasePrazos: {
+      dataBase: "01/09", calcularDiferencaContribAssistencial: false, diasAusenciaAbonados: { ativo: false, dias: "" }, percentualMaxVT: "",
+      limiteCargaHoraria: { ativo: false, min: "", max: "" }, diasIndenizacaoDataBase: "", naoPagarIndenizacaoAposDataLimite: "",
+      diasAssistenciaHomologacao: "", diasPagamentoRescisao: "", formaApuracaoDias: "", regrasContratoExperiencia: false,
+    },
+    contribuicoes: {
+      assistencial: { ativa: false, mesFolha: "", formaFolha: "", diasFolha: "", mes13: "", forma13: "", dias13: "", descontoAdmissaoPercentual: "", semDescontarEmpregado: false },
+      associativa: { ativa: false, mesFolha: "", formaFolha: "", diasFolha: "", mes13: "", forma13: "", dias13: "" },
+      confederativa: { ativa: false, mesFolha: "", formaFolha: "", diasFolha: "", mes13: "", forma13: "", dias13: "", naoCumular: false },
+      sindical: { ativa: false, mes: "", forma: "", diasTotal: "" },
+      mesContribuicaoSindicalAnual: "",
+      gradeConfiguracaoContribAssistencial: [],
+    },
+    empresasVinculadas: [],
+    pisoSalarial: [],
+    historico: [],
+    condicionais: {
+      calculos: {
+        ferias: { pagarAvosAfastamento180: false, novoPeriodoAquisitivoColetivas: false, adiantar13Ferias: false, fracaoMinimaAvos: { ativo: false, dias: "" }, gratificacaoFerias: { ativo: false } },
+        decimoTerceiro: { avosLimitadosAfastamento: { ativo: false, dias: "" }, maiorGradeProfessor: false, reaproveitarUltimoValorAdicional: false },
+        avisoPrevio: { avisoMisto: false, tratamentoLei12506: "", liminarInssAvisoIndenizado: false, suspensaoFeriasColetivas: false },
+        garantiaSemestral: { aplicacaoProfessorAulista: false },
+        licencaPremio: { possui: false, pagarMediaAdicional: false, indenizarNaoGozados: false },
+        resilicaoProfessor: { calcular13ReducaoGrade: false, calcularFeriasReducaoGrade: false },
+        adicionalTempoServico: { possuiGrade: false, grade: [] },
+      },
+      comissionado: { pagar13ProporcionalEntreRegimes: false, possuiGarantiaMinima: false },
+      medias: { considerarMaisFavoravel: false, mediasDiferenciadasModalidade13: false, reaproveitamentoMediaFerias: false, mediaDiferenciadaComissoes: false, formaCalculoMedia: "" },
+      estabilidade: { extensaoAposFerias: false, projecaoAvisoPrevioIndenizado: false, dilatacaoFeriasGozadas: false },
+      indenizacaoEspecial: { possuiRescisao: false, possuiAfastamento: false },
+      plr: { proporcionalidadeMesesTrabalhados: false, regraMesCheio: false, plrNaRescisao: false, projecaoAvisoPrevio: false },
+      observacoes: "",
+    },
+  },
+  {
+    codigo: "CONV-0003", sindicatoCodigo: "SIND-0002",
+    descricao: "Convenção Coletiva 2026 — Metalúrgicos de Goiânia",
+    configGerais: {
+      salarioMesAdmissao: "sempre-30-dias", calcProporcionalidadeHorista: "conforme-dias-do-mes", adicionalNoturno: "30,00", horaExtra: "70,00",
+      mesesFeriasProporcionais: "12", indenizar13FeriasAvisoReavido: "sim",
+      descontarDSRFaltaIntegral: { ativo: false, proporcao: "" }, calcularDSRProfessorMensalista: false, calcularSalarioProporcionalDias: "sim",
+      regrasDiasReais: { semEventos: true, comAfastamento: true, comFerias: false, rescisao: true, admissao: false, divisor: true },
+    },
+    dataBasePrazos: {
+      dataBase: "01/11", calcularDiferencaContribAssistencial: false, diasAusenciaAbonados: { ativo: false, dias: "" }, percentualMaxVT: "5,00",
+      limiteCargaHoraria: { ativo: true, min: "180", max: "220" }, diasIndenizacaoDataBase: "30", naoPagarIndenizacaoAposDataLimite: "01/10",
+      diasAssistenciaHomologacao: "10", diasPagamentoRescisao: "10", formaApuracaoDias: "dias-uteis", regrasContratoExperiencia: false,
+    },
+    contribuicoes: {
+      assistencial: { ativa: true, mesFolha: "Novembro", formaFolha: "percentual", diasFolha: "30", mes13: "Dezembro", forma13: "percentual", dias13: "20", descontoAdmissaoPercentual: "1,00", semDescontarEmpregado: true },
+      associativa: { ativa: true, mesFolha: "Novembro", formaFolha: "valor-fixo", diasFolha: "30", mes13: "", forma13: "", dias13: "" },
+      confederativa: { ativa: false, mesFolha: "", formaFolha: "", diasFolha: "", mes13: "", forma13: "", dias13: "", naoCumular: false },
+      sindical: { ativa: true, mes: "Março", forma: "percentual", diasTotal: "30" },
+      mesContribuicaoSindicalAnual: "Março",
+      gradeConfiguracaoContribAssistencial: [{ faixa: "Todos os salários", percentual: "2,00", valorFixo: "" }],
+    },
+    empresasVinculadas: ["MS-0027", "MS-0027-F1", "MS-0027-F2"],
+    pisoSalarial: [
+      { codigo: "PISO-01", descricao: "Ajudante de produção", valor: "1.690,00" },
+      { codigo: "PISO-02", descricao: "Soldador", valor: "2.340,00" },
+      { codigo: "PISO-03", descricao: "Torneiro mecânico", valor: "2.510,00" },
+      { codigo: "PISO-04", descricao: "Encarregado de produção", valor: "3.120,00" },
+    ],
+    historico: [
+      { data: "01/11/2026", descricao: "Dissídio coletivo — TRT 18ª Região", tipo: "Sentença normativa", numeroProcesso: "0010234-56.2026.5.18.0000", percentualCCT: "6,10" },
+      { data: "01/11/2025", descricao: "Acordo coletivo — reajuste antecipado", tipo: "Acordo Coletivo", numeroProcesso: "", percentualCCT: "5,00" },
+      { data: "01/11/2024", descricao: "Convenção coletiva — data-base 2024", tipo: "Convenção Coletiva", numeroProcesso: "", percentualCCT: "4,80" },
+    ],
+    condicionais: {
+      calculos: {
+        ferias: { pagarAvosAfastamento180: false, novoPeriodoAquisitivoColetivas: true, adiantar13Ferias: false, fracaoMinimaAvos: { ativo: false, dias: "" }, gratificacaoFerias: { ativo: true } },
+        decimoTerceiro: { avosLimitadosAfastamento: { ativo: false, dias: "" }, maiorGradeProfessor: false, reaproveitarUltimoValorAdicional: false },
+        avisoPrevio: { avisoMisto: false, tratamentoLei12506: "aviso-indenizado", liminarInssAvisoIndenizado: true, suspensaoFeriasColetivas: false },
+        garantiaSemestral: { aplicacaoProfessorAulista: false },
+        licencaPremio: { possui: true, pagarMediaAdicional: true, indenizarNaoGozados: false },
+        resilicaoProfessor: { calcular13ReducaoGrade: false, calcularFeriasReducaoGrade: false },
+        adicionalTempoServico: { possuiGrade: false, grade: [] },
+      },
+      comissionado: { pagar13ProporcionalEntreRegimes: true, possuiGarantiaMinima: true },
+      medias: { considerarMaisFavoravel: true, mediasDiferenciadasModalidade13: true, reaproveitamentoMediaFerias: false, mediaDiferenciadaComissoes: true, formaCalculoMedia: "clt" },
+      estabilidade: { extensaoAposFerias: true, projecaoAvisoPrevioIndenizado: false, dilatacaoFeriasGozadas: true },
+      indenizacaoEspecial: { possuiRescisao: true, possuiAfastamento: false },
+      plr: { proporcionalidadeMesesTrabalhados: true, regraMesCheio: true, plrNaRescisao: false, projecaoAvisoPrevio: true },
+      observacoes: "",
+    },
+  },
+];
+
+/* ============================================================
+   ESTADO
+   ============================================================ */
+let convIndex = 0;
+let convMode = "view"; // 'view' | 'edit'
+let convTab = "geral";
+let formConv = deepClone(CONVENCOES_MOCK[convIndex]);
+let pisoDrawerCodigo = null;   // código do piso em edição (null = novo)
+let histDrawerIndex = null;    // índice do histórico em edição (null = novo)
+
+function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
+function convAtual() { return CONVENCOES_MOCK[convIndex]; }
+function sindicatoDaConv(conv) { return CONV_SINDICATOS.find((s) => s.codigo === conv.sindicatoCodigo); }
+
+function getPath(obj, path) { return path.split(".").reduce((o, k) => (o == null ? o : o[k]), obj); }
+function setPath(obj, path, value) {
+  const keys = path.split(".");
+  let o = obj;
+  for (let i = 0; i < keys.length - 1; i++) o = o[keys[i]];
+  o[keys[keys.length - 1]] = value;
+}
+
+/* ============================================================
+   HELPERS DE CAMPO (view / edit)
+   ============================================================ */
+function optLabel(options, value) {
+  if (!value) return "";
+  const found = (options || []).find((o) => (o.value !== undefined ? o.value : o) === value);
+  return found ? (found.label !== undefined ? found.label : found) : value;
+}
+function fView(label, valueHtml, wide) {
+  return '<div class="field-item' + (wide ? " wide" : "") + '"><div class="field-label">' + label + '</div><div class="field-value' + (valueHtml ? "" : " empty") + '">' + (valueHtml || "—") + "</div></div>";
+}
+function fEdit(label, inputHtml, wide, required) {
+  return '<div class="ef-field' + (wide ? " wide" : "") + '"><div class="ef-label">' + label + (required ? ' <span style="color:var(--brand-pink)">*</span>' : "") + "</div>" + inputHtml + "</div>";
+}
+function fieldText(label, path, opts) {
+  opts = opts || {};
+  const value = getPath(formConv, path) || "";
+  if (convMode === "view") return fView(label, value ? esc(value) : "", opts.wide);
+  return fEdit(label, '<input class="ef-input" data-path="' + path + '" value="' + esc(value).replace(/"/g, "&quot;") + '" placeholder="' + (opts.placeholder || "") + '" />', opts.wide, opts.required);
+}
+function fieldSelect(label, path, options, opts) {
+  opts = opts || {};
+  const value = getPath(formConv, path) || "";
+  if (convMode === "view") return fView(label, value ? esc(optLabel(options, value)) : "", opts.wide);
+  const optsHtml = options.map((o) => {
+    const v = o.value !== undefined ? o.value : o;
+    const l = o.label !== undefined ? o.label : o;
+    return '<option value="' + v + '"' + (value === v ? " selected" : "") + ">" + l + "</option>";
+  }).join("");
+  return fEdit(label, '<select class="ef-select" data-path="' + path + '"><option value="">Selecione...</option>' + optsHtml + "</select>", opts.wide, opts.required);
+}
+function fieldTextarea(label, path, wide) {
+  const value = getPath(formConv, path) || "";
+  if (convMode === "view") return fView(label, value ? esc(value) : "", wide);
+  return fEdit(label, '<textarea class="ef-textarea" data-path="' + path + '" placeholder="Particularidades da convenção, contatos, ressalvas...">' + esc(value) + "</textarea>", wide, false);
+}
+function fieldCheckbox(path, label) {
+  const checked = !!getPath(formConv, path);
+  if (convMode === "view") {
+    return '<div class="cf-checkbox-view"><i data-lucide="' + (checked ? "check-circle-2" : "circle") + '" style="width:16px;height:16px;color:' + (checked ? "var(--success)" : "var(--text-tertiary)") + ';"></i><span style="' + (checked ? "" : "color:var(--text-tertiary)") + '">' + label + "</span></div>";
+  }
+  return '<label class="cf-checkbox"><input type="checkbox" data-path="' + path + '" ' + (checked ? "checked" : "") + " />" + label + "</label>";
+}
+function condRule(checkboxHtml, dependentHtml) {
+  const active = !!dependentHtml;
+  return '<div class="cf-rule' + (active ? " is-active" : "") + '">' + checkboxHtml + (dependentHtml ? '<div class="cf-rule-dependent">' + dependentHtml + "</div>" : "") + "</div>";
+}
+function notaPendente(html) {
+  return '<div class="conv-note"><i data-lucide="info"></i><span>' + html + "</span></div>";
+}
+function refList(items) {
+  if (!items.length) return "";
+  return '<div class="ref-tags-wrap"><span class="ref-tags-label">Demais parâmetros desta categoria (referência da especificação):</span><div class="ref-tags">' +
+    items.map(([label, tipo]) => '<span class="ref-tag" title="Tipo de campo: ' + tipo + '">' + label + "</span>").join("") + "</div></div>";
+}
+function sectionBlock(title, camposHtml, cols) {
+  return '<div class="subsection-title">' + title + '</div><div class="field-group' + (cols ? " field-group-" + cols : "") + '">' + camposHtml + "</div>";
+}
+
+/* ============================================================
+   ABA 1 — Configurações Gerais de Cálculo
+   ============================================================ */
+function tabConfigGerais() {
+  const cg = formConv.configGerais;
+  const O = CONV_OPCOES;
+  let html = sectionBlock(
+    "Cálculo do salário e proporcionalidade",
+    fieldSelect("Salário mês admissão", "configGerais.salarioMesAdmissao", O.salarioMesAdmissao, { required: true }) +
+      fieldSelect("Cálc. proporcionalidade Horista", "configGerais.calcProporcionalidadeHorista", O.calcProporcionalidadeHorista, {}) +
+      fieldText("Adicional noturno (%)", "configGerais.adicionalNoturno", { placeholder: "20,00", required: true }) +
+      fieldText("Hora extra (%)", "configGerais.horaExtra", { placeholder: "50,00", required: true }) +
+      fieldSelect("Meses férias proporcionais", "configGerais.mesesFeriasProporcionais", O.mesesFeriasProporcionais, { required: true }) +
+      fieldSelect("Indenizar 13º/férias no aviso reavido", "configGerais.indenizar13FeriasAvisoReavido", O.simNao, { required: true })
+  );
+
+  const dsrHtml = condRule(
+    fieldCheckbox("configGerais.descontarDSRFaltaIntegral.ativo", "Descontar DSR por falta integral"),
+    cg.descontarDSRFaltaIntegral.ativo ? '<div style="max-width:220px;">' + fieldSelect("Proporção", "configGerais.descontarDSRFaltaIntegral.proporcao", O.proporcaoDSR, { required: true }) + "</div>" : ""
+  );
+  const dsrProfessorHtml = condRule(fieldCheckbox("configGerais.calcularDSRProfessorMensalista", "Calcular DSR professor mensalista (1/6)"), "");
+
+  const diasReaisOpcoes = [
+    ["semEventos", "Competências sem eventos"], ["comAfastamento", "Competências com afastamento"], ["comFerias", "Competências com férias"],
+    ["rescisao", "Rescisão"], ["admissao", "Admissão"], ["divisor", "Divisor"],
+  ];
+  const diasReaisHtml = condRule(
+    fieldSelect("Calcular salário proporcional aos dias do mês", "configGerais.calcularSalarioProporcionalDias", O.simNao, { required: true }),
+    cg.calcularSalarioProporcionalDias === "sim"
+      ? '<div class="cf-rule-list" style="width:100%;"><span class="ref-tags-label">Regras de aplicação dos dias reais do mês:</span>' +
+        diasReaisOpcoes.map(([k, l]) => fieldCheckbox("configGerais.regrasDiasReais." + k, l)).join("") + "</div>"
+      : ""
+  );
+
+  html += '<div class="subsection-title">Regras condicionais</div><div class="cf-rule-list">' + dsrHtml + dsrProfessorHtml + diasReaisHtml + "</div>";
+  return '<div class="section-card"><div class="section-title"><i data-lucide="sliders-horizontal"></i>Configurações Gerais de Cálculo</div>' + html + "</div>";
+}
+
+/* ============================================================
+   ABA 2 — Data-base, Prazos e Regras Gerais
+   ============================================================ */
+function tabDataBasePrazos() {
+  const p = formConv.dataBasePrazos;
+  let html = sectionBlock(
+    "Data-base e prazos",
+    fieldText("Data-base", "dataBasePrazos.dataBase", { placeholder: "01/12", required: true }) +
+      fieldText("Dias para indenização data-base", "dataBasePrazos.diasIndenizacaoDataBase", { required: true }) +
+      fieldText("Não pagar indenização data-base após data-limite", "dataBasePrazos.naoPagarIndenizacaoAposDataLimite", { placeholder: "01/12", wide: true }) +
+      fieldText("Dias para assistência na homologação", "dataBasePrazos.diasAssistenciaHomologacao", {}) +
+      fieldText("Dias para pagamento da rescisão", "dataBasePrazos.diasPagamentoRescisao", {}) +
+      fieldSelect("Forma de apuração dos dias (rescisão)", "dataBasePrazos.formaApuracaoDias", CONV_OPCOES.formaApuracaoDias, { required: !!(p.diasAssistenciaHomologacao || p.diasPagamentoRescisao) })
+  );
+
+  const contribAssistHtml = condRule(fieldCheckbox("dataBasePrazos.calcularDiferencaContribAssistencial", "Calcular diferença de Contribuição Assistencial por alteração salarial"), "");
+  const experienciaHtml = condRule(fieldCheckbox("dataBasePrazos.regrasContratoExperiencia", "Regras para contrato de experiência (art. 479/480 CLT)"), "");
+  const ausenciaHtml = condRule(
+    fieldCheckbox("dataBasePrazos.diasAusenciaAbonados.ativo", "Dias de ausência justificada abonados pelo sindicato"),
+    p.diasAusenciaAbonados.ativo ? '<div style="max-width:160px;">' + fieldText("Quantidade de dias", "dataBasePrazos.diasAusenciaAbonados.dias", { required: true }) + "</div>" : ""
+  );
+  const cargaHtml = condRule(
+    fieldCheckbox("dataBasePrazos.limiteCargaHoraria.ativo", "Limite de carga horária mínima/máxima mensal"),
+    p.limiteCargaHoraria.ativo
+      ? '<div style="display:flex;gap:16px;max-width:340px;">' + fieldText("Mínima (horas)", "dataBasePrazos.limiteCargaHoraria.min", { required: true }) + fieldText("Máxima (horas)", "dataBasePrazos.limiteCargaHoraria.max", { required: true }) + "</div>"
+      : ""
+  );
+
+  html += '<div class="subsection-title">Regras condicionais</div><div class="cf-rule-list">' + contribAssistHtml + ausenciaHtml + cargaHtml + experienciaHtml + "</div>";
+  html += sectionBlock("Vale-transporte", fieldText("Percentual máximo para desconto de VT", "dataBasePrazos.percentualMaxVT", { placeholder: "Preencher só se diferente do padrão geral (6%)", wide: true }));
+  return '<div class="section-card"><div class="section-title"><i data-lucide="calendar-clock"></i>Data-base, Prazos e Regras Gerais</div>' + html + "</div>";
+}
+
+/* ============================================================
+   ABA 3 — Contribuições Sindicais
+   ============================================================ */
+function contribuicaoSubcard(titulo, path, temNaoCumular) {
+  const c = getPath(formConv, path);
+  let dependente = "";
+  if (c.ativa) {
+    dependente =
+      '<div class="field-group">' +
+      fieldSelect("Mês (folha mensal)", path + ".mesFolha", CONV_OPCOES.meses) +
+      fieldSelect("Forma (folha mensal)", path + ".formaFolha", CONV_OPCOES.formaContribuicao) +
+      fieldText("Dias (folha mensal)", path + ".diasFolha", {}) +
+      fieldSelect("Mês (13º salário)", path + ".mes13", CONV_OPCOES.meses) +
+      fieldSelect("Forma (13º salário)", path + ".forma13", CONV_OPCOES.formaContribuicao) +
+      fieldText("Dias (13º salário)", path + ".dias13", {}) +
+      "</div>" +
+      (temNaoCumular ? '<div style="margin-top:12px;">' + fieldCheckbox(path + ".naoCumular", "Não cumular desconto com Assistencial/Sindical na mesma competência") + "</div>" : "");
+  }
+  return '<div class="subcard2"><div class="subcard2-title">' + titulo + "</div>" + condRule(fieldCheckbox(path + ".ativa", "Esta contribuição é cobrada por este sindicato"), dependente) + "</div>";
+}
+
+function gradeContribHtml() {
+  const rows = formConv.contribuicoes.gradeConfiguracaoContribAssistencial;
+  let html =
+    '<div class="subcard2"><div class="subcard2-title"><span>Grade de configuração de Contribuição Assistencial</span>' +
+    (convMode !== "view" ? '<button type="button" class="btn btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="addGradeContrib()"><i data-lucide="plus" style="width:13px;height:13px;"></i>Adicionar linha</button>' : "") +
+    "</div>";
+  if (rows.length === 0) {
+    html += '<div class="empty-state" style="padding:22px 12px;"><span style="font-size:13px;color:var(--text-tertiary);">Nenhuma linha configurada.</span></div>';
+  } else {
+    html += '<table class="conv-mini-table"><thead><tr><th>Faixa salarial</th><th>Percentual</th><th>Valor fixo</th>' + (convMode !== "view" ? "<th></th>" : "") + "</tr></thead><tbody>" +
+      rows.map((r, i) => convMode === "view"
+        ? "<tr><td>" + esc(r.faixa) + "</td><td>" + (r.percentual || "—") + "</td><td>" + (r.valorFixo || "—") + "</td></tr>"
+        : "<tr>" +
+          '<td><input class="ef-input" data-grade-contrib="' + i + '" data-campo="faixa" value="' + esc(r.faixa) + '" /></td>' +
+          '<td><input class="ef-input" data-grade-contrib="' + i + '" data-campo="percentual" value="' + esc(r.percentual) + '" /></td>' +
+          '<td><input class="ef-input" data-grade-contrib="' + i + '" data-campo="valorFixo" value="' + esc(r.valorFixo) + '" /></td>' +
+          '<td><button type="button" class="conv-mini-remove" onclick="removeGradeContrib(' + i + ')">remover</button></td>' +
+          "</tr>").join("") + "</tbody></table>";
+  }
+  html += "</div>";
+  return html;
+}
+
+function tabContribuicoes() {
+  const sindicalDependente =
+    (formConv.contribuicoes.sindical.ativa
+      ? '<div class="field-group">' + fieldSelect("Mês", "contribuicoes.sindical.mes", CONV_OPCOES.meses) + fieldSelect("Forma", "contribuicoes.sindical.forma", CONV_OPCOES.formaContribuicao) + fieldText("Total de dias", "contribuicoes.sindical.diasTotal", {}) + "</div>"
+      : "") +
+    '<div style="max-width:300px;margin-top:12px;">' + fieldSelect("Mês de contribuição (Contribuição Sindical anual)", "contribuicoes.mesContribuicaoSindicalAnual", CONV_OPCOES.meses) + "</div>" +
+    '<span style="font-size:11.5px;color:var(--text-tertiary);display:block;margin-top:8px;">Referência ao art. 580 da CLT — observada a exigência de autorização prévia e expressa do empregado.</span>';
+  const sindicalHtml = '<div class="subcard2"><div class="subcard2-title">Contribuição Sindical</div>' + condRule(fieldCheckbox("contribuicoes.sindical.ativa", "Esta contribuição é cobrada por este sindicato"), sindicalDependente) + "</div>";
+
+  return (
+    '<div class="section-card"><div class="section-title"><i data-lucide="landmark"></i>Contribuições Sindicais</div>' +
+    '<p style="font-size:12.5px;color:var(--text-secondary);margin:-8px 0 18px;">Contribuições cobradas da categoria e o vencimento de cada uma, na folha mensal e no 13º salário.</p>' +
+    contribuicaoSubcard("Contribuição Assistencial", "contribuicoes.assistencial", false) +
+    gradeContribHtml() +
+    contribuicaoSubcard("Contribuição Associativa", "contribuicoes.associativa", false) +
+    contribuicaoSubcard("Contribuição Confederativa", "contribuicoes.confederativa", true) +
+    sindicalHtml +
+    "</div>"
+  );
+}
+
+/* ============================================================
+   ABA 4 — Empresas Vinculadas
+   ============================================================ */
+function tabEmpresas() {
+  const selecionadas = formConv.empresasVinculadas;
+  const alertaHtml = selecionadas.length === 0
+    ? '<div class="alert-banner conv-alert"><i data-lucide="alert-triangle"></i><span style="font-size:13px;">Esta convenção ainda não produz efeito na folha — <b>nenhuma empresa vinculada</b>.</span></div>'
+    : '<div style="font-size:12.5px;color:var(--text-secondary);margin-bottom:14px;">' + selecionadas.length + (selecionadas.length === 1 ? " empresa vinculada" : " empresas vinculadas") + "</div>";
+
+  const acoesHtml = convMode !== "view"
+    ? '<div style="display:flex;gap:8px;margin-bottom:14px;">' +
+      '<button type="button" class="btn btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="empresasSelecionarTodas()">Todas</button>' +
+      '<button type="button" class="btn btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="empresasSelecionarNenhuma()">Nenhuma</button>' +
+      '<button type="button" class="btn btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="empresasInverterSelecao()">Inverter</button>' +
+      "</div>"
+    : "";
+
+  const listaEmpresas = convMode === "view" ? CONV_EMPRESAS.filter((e) => selecionadas.includes(e.codigo)) : CONV_EMPRESAS;
+  let tabelaHtml;
+  if (listaEmpresas.length === 0) {
+    tabelaHtml = '<div class="empty-state"><span style="font-size:13px;color:var(--text-tertiary);">Nenhuma empresa vinculada a esta convenção.</span></div>';
+  } else {
+    const rows = listaEmpresas.map((e) => {
+      const marcada = selecionadas.includes(e.codigo);
+      return "<tr>" +
+        (convMode !== "view" ? '<td style="width:36px;"><input type="checkbox" class="dt-checkbox" ' + (marcada ? "checked" : "") + ' onclick="toggleEmpresa(\'' + e.codigo + '\')" /></td>' : "") +
+        "<td>" + esc(e.nome) + '</td><td class="font-mono" style="font-family:\'JetBrains Mono\',monospace;font-size:12.5px;color:var(--text-secondary);">' + e.cnpj + "</td>" +
+        '<td><span class="badge badge-neutral">' + e.codigo + "</span></td>" +
+        "</tr>";
+    }).join("");
+    tabelaHtml = '<table class="conv-emp-table"><thead><tr>' + (convMode !== "view" ? "<th></th>" : "") + "<th>Empresa</th><th>CNPJ</th><th>Código</th></tr></thead><tbody>" + rows + "</tbody></table>";
+  }
+
+  return (
+    '<div class="section-card"><div class="section-title"><i data-lucide="building-2"></i>Empresas Vinculadas</div>' +
+    '<p style="font-size:12.5px;color:var(--text-secondary);margin:-8px 0 16px;">Empresas cadastradas no sistema às quais esta convenção se aplica.</p>' +
+    alertaHtml + acoesHtml + tabelaHtml +
+    "</div>"
+  );
+}
+
+/* ============================================================
+   ABA 5 — Piso Salarial e Histórico de Alteração Salarial
+   ============================================================ */
+function tabPisoHistorico() {
+  const pisoActionsHtml = convMode !== "view" ? '<button type="button" class="btn btn-secondary" style="padding:7px 14px;font-size:12.5px;" onclick="abrirDrawerPiso()"><i data-lucide="plus" style="width:14px;height:14px;"></i>Adicionar piso</button>' : "";
+  let pisoHtml =
+    '<div class="section-card"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;">' +
+    '<div><div class="section-title" style="margin-bottom:6px;"><i data-lucide="wallet"></i>Piso Salarial</div><p style="font-size:12.5px;color:var(--text-secondary);margin:0;">Valor mínimo garantido pela convenção, quando houver piso normativo para a categoria.</p></div>' +
+    pisoActionsHtml + "</div><div id=\"dt-conv-piso\"></div></div>";
+
+  const histActionsHtml = convMode !== "view" ? '<button type="button" class="btn btn-secondary" style="padding:7px 14px;font-size:12.5px;" onclick="abrirDrawerHistorico()"><i data-lucide="plus" style="width:14px;height:14px;"></i>Registrar alteração</button>' : "";
+  let histHtml =
+    '<div class="section-card"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;">' +
+    '<div><div class="section-title" style="margin-bottom:6px;"><i data-lucide="history"></i>Histórico de Alteração Salarial</div><p style="font-size:12.5px;color:var(--text-secondary);margin:0;">Registro cronológico de convenções aplicadas à categoria — origem e percentual de reajuste.</p></div>' +
+    histActionsHtml + "</div><div id=\"dt-conv-historico\"></div>" +
+    notaPendente('A especificação chama este registro de "nova vigência da convenção", mas não define se isso deve versionar os demais blocos da parametrização. Neste protótipo, o histórico funciona apenas como um registro cronológico — sem esse efeito. <b>Decisão pendente.</b>') +
+    "</div>";
+
+  return pisoHtml + histHtml;
+}
+
+function montarTabelasPisoHistorico() {
+  const pisoCols = [
+    { key: "descricao", label: "Descrição", sortable: true },
+    { key: "valor", label: "Valor", render: (r) => "R$ " + r.valor },
+  ];
+  if (convMode !== "view") {
+    pisoCols.push({ key: "_acoes", label: "", render: (r) => '<div style="display:flex;gap:12px;justify-content:flex-end;"><button type="button" class="btn-link" style="background:none;border:none;color:var(--info);cursor:pointer;font-size:12.5px;" onclick="abrirDrawerPiso(\'' + r.codigo + '\')">editar</button><button type="button" class="btn-link" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:12.5px;" onclick="removerPiso(\'' + r.codigo + '\')">remover</button></div>' });
+  }
+  dtCreate("conv-piso", { columns: pisoCols, rows: formConv.pisoSalarial, rowKey: "codigo", pageSize: 8, searchable: formConv.pisoSalarial.length > 5, emptyMessage: "Nenhum piso salarial cadastrado." });
+
+  const histRows = formConv.historico.slice().sort((a, b) => (a.data < b.data ? 1 : -1)).map((h, i) => Object.assign({ _rowid: h.data + "|" + h.descricao }, h));
+  const histCols = [
+    { key: "data", label: "Data", sortable: true },
+    { key: "descricao", label: "Descrição" },
+    { key: "tipo", label: "Tipo" },
+    { key: "numeroProcesso", label: "Nº processo", render: (r) => r.numeroProcesso || "—" },
+    { key: "percentualCCT", label: "% CCT", render: (r) => (r.percentualCCT ? r.percentualCCT + "%" : "—") },
+  ];
+  if (convMode !== "view") {
+    histCols.push({ key: "_acoes", label: "", render: (r) => '<div style="display:flex;gap:12px;justify-content:flex-end;"><button type="button" class="btn-link" style="background:none;border:none;color:var(--info);cursor:pointer;font-size:12.5px;" onclick="abrirDrawerHistorico(\'' + r._rowid.replace(/'/g, "\\'") + '\')">editar</button><button type="button" class="btn-link" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:12.5px;" onclick="removerHistorico(\'' + r._rowid.replace(/'/g, "\\'") + '\')">remover</button></div>' });
+  }
+  dtCreate("conv-historico", { columns: histCols, rows: histRows, rowKey: "_rowid", pageSize: 8, searchable: histRows.length > 5, emptyMessage: "Nenhum histórico de alteração salarial registrado." });
+}
+
+/* ============================================================
+   ABA 6 — Parâmetros Condicionais
+   ============================================================ */
+function accItem(id, titulo, contentHtml, openByDefault) {
+  return '<details class="conv-acc" id="acc-' + id + '"' + (openByDefault ? " open" : "") + '><summary>' + titulo + '<i data-lucide="chevron-down"></i></summary><div class="conv-acc-body">' + contentHtml + "</div></details>";
+}
+
+function subcardFerias() {
+  const f = formConv.condicionais.calculos.ferias;
+  let html = '<div class="subcard2"><div class="subcard2-title">Férias</div><div class="cf-rule-list" style="margin-bottom:12px;">' +
+    fieldCheckbox("condicionais.calculos.ferias.pagarAvosAfastamento180", "Pagar avos com mais de 180 dias de afastamento previdenciário") +
+    fieldCheckbox("condicionais.calculos.ferias.novoPeriodoAquisitivoColetivas", "Regras de novo período aquisitivo em férias coletivas") +
+    fieldCheckbox("condicionais.calculos.ferias.adiantar13Ferias", "Adiantar 1ª parcela do 13º proporcional nas férias") +
+    "</div><div class=\"cf-rule-list\">" +
+    condRule(fieldCheckbox("condicionais.calculos.ferias.fracaoMinimaAvos.ativo", "Definir fração mínima de dias para avos de férias (demissão/rescisão)"),
+      f.fracaoMinimaAvos.ativo ? '<div style="max-width:160px;">' + fieldText("Fração mínima (dias)", "condicionais.calculos.ferias.fracaoMinimaAvos.dias", { placeholder: "15", required: true }) + "</div>" : "") +
+    condRule(fieldCheckbox("condicionais.calculos.ferias.gratificacaoFerias.ativo", "Gratificação de férias"),
+      f.gratificacaoFerias.ativo ? notaPendente("Detalhamento previsto na especificação: gozadas/indenizadas, exceções em férias coletivas, não cumulação com 1/3, exclusões por motivo de rescisão. <b>Estrutura de grade pendente de decisão.</b>") : "") +
+    "</div>";
+  html += refList([
+    ["Datas de não início de gozo de férias", "Grade/Tabela"], ["Adiantamento do 13º nas férias por mês", "Grade/Tabela"],
+    ["Maior grade salarial dos últimos meses (professor)", "Checkbox"], ["Calcular férias proporcionais para rescisão com justa causa", "Checkbox"],
+    ["Definir data de pagamento das férias (dias antes do gozo)", "Número"], ["Dias a não considerar nas férias (feriados/pontos facultativos)", "Grade/Tabela"],
+    ["Percentual de adicional sobre férias além do 1/3", "Grade/Tabela"], ["Dias de gozo diferenciados por condição", "Grade/Tabela"],
+  ]);
+  return html + "</div>";
+}
+function subcardDecimoTerceiro() {
+  const dt = formConv.condicionais.calculos.decimoTerceiro;
+  return '<div class="subcard2"><div class="subcard2-title">13º Salário</div>' +
+    condRule(fieldCheckbox("condicionais.calculos.decimoTerceiro.avosLimitadosAfastamento.ativo", "Limitar avos pagos durante afastamento previdenciário"),
+      dt.avosLimitadosAfastamento.ativo ? '<div style="max-width:160px;">' + fieldText("Dias-limite / avos", "condicionais.calculos.decimoTerceiro.avosLimitadosAfastamento.dias", { placeholder: "180", required: true }) + "</div>" : "") +
+    '<div class="cf-rule-list" style="margin-top:12px;">' +
+    fieldCheckbox("condicionais.calculos.decimoTerceiro.maiorGradeProfessor", "Maior grade salarial dos últimos meses (professor)") +
+    fieldCheckbox("condicionais.calculos.decimoTerceiro.reaproveitarUltimoValorAdicional", "Reaproveitar último valor de rubricas de adicional no 13º") +
+    "</div></div>";
+}
+function subcardAvisoPrevio() {
+  let html = '<div class="subcard2"><div class="subcard2-title">Aviso Prévio</div><div class="cf-rule-list" style="margin-bottom:12px;">' +
+    fieldCheckbox("condicionais.calculos.avisoPrevio.avisoMisto", "Aviso prévio misto (trabalhado/indenizado)") +
+    fieldCheckbox("condicionais.calculos.avisoPrevio.liminarInssAvisoIndenizado", "Liminar para não recolhimento de INSS sobre aviso indenizado") +
+    fieldCheckbox("condicionais.calculos.avisoPrevio.suspensaoFeriasColetivas", "Suspensão do aviso prévio em férias coletivas") +
+    '</div><div style="max-width:340px;">' + fieldSelect("Tratamento dos dias da Lei 12.506/2011", "condicionais.calculos.avisoPrevio.tratamentoLei12506", CONV_OPCOES.tratamentoLei) + "</div>";
+  html += refList([
+    ["Datas restritas para início do aviso prévio", "Grade/Tabela"], ["Base de cálculo do aviso prévio para avos indenizados", "Checkbox"],
+    ["Regras de contagem de prazo (notificação, mês completo, sábado/domingo/feriado)", "Seleção múltipla"], ["Modalidade padrão de aviso prévio para demissão sem justa causa", "Seleção (lista)"],
+    ["Proporcionalidade de dias do aviso (Lei 12.506/2011 ou regra própria)", "Grade/Tabela"], ["Redução de jornada/dias durante o aviso trabalhado", "Grade/Tabela"], ["Aviso prévio especial", "Grade/Tabela"],
+  ]);
+  return html + "</div>";
+}
+function subcardGarantiaSemestral() {
+  return '<div class="subcard2"><div class="subcard2-title">Garantia Semestral</div>' +
+    fieldCheckbox("condicionais.calculos.garantiaSemestral.aplicacaoProfessorAulista", "Aplicação a professores aulista variável") +
+    refList([["Grade de vigências e condições da garantia semestral", "Grade/Tabela"]]) + "</div>";
+}
+function subcardLicencaPremio() {
+  const lp = formConv.condicionais.calculos.licencaPremio;
+  return '<div class="subcard2"><div class="subcard2-title">Licença Prêmio</div>' +
+    condRule(fieldCheckbox("condicionais.calculos.licencaPremio.possui", "Possui licença prêmio"),
+      lp.possui ? '<div class="cf-rule-list">' + fieldCheckbox("condicionais.calculos.licencaPremio.pagarMediaAdicional", "Pagar média/adicional na licença prêmio") + fieldCheckbox("condicionais.calculos.licencaPremio.indenizarNaoGozados", "Indenizar na rescisão dias não gozados") + "</div>" : "") +
+    "</div>";
+}
+function subcardResilicaoProfessor() {
+  return '<div class="subcard2"><div class="subcard2-title">Resilição Professor</div><div class="cf-rule-list">' +
+    fieldCheckbox("condicionais.calculos.resilicaoProfessor.calcular13ReducaoGrade", "Calcular 13º proporcional à redução de grade") +
+    fieldCheckbox("condicionais.calculos.resilicaoProfessor.calcularFeriasReducaoGrade", "Calcular férias referente à redução de grade") +
+    "</div></div>";
+}
+function subcardAdicionalTempoServico() {
+  const grade = formConv.condicionais.calculos.adicionalTempoServico.grade;
+  let html = '<div class="subcard2"><div class="subcard2-title"><span>Adicional por Tempo de Serviço</span>' +
+    (convMode !== "view" ? '<button type="button" class="btn btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="addGradeTempoServico()"><i data-lucide="plus" style="width:13px;height:13px;"></i>Adicionar linha</button>' : "") + "</div>";
+  if (grade.length === 0) {
+    html += '<div class="empty-state" style="padding:22px 12px;"><span style="font-size:13px;color:var(--text-tertiary);">Nenhuma linha configurada.</span></div>';
+  } else {
+    html += '<table class="conv-mini-table"><thead><tr><th>Periodicidade</th><th>Percentual</th><th>Base de cálculo</th>' + (convMode !== "view" ? "<th></th>" : "") + "</tr></thead><tbody>" +
+      grade.map((r, i) => convMode === "view"
+        ? "<tr><td>" + esc(r.periodicidade) + "</td><td>" + r.percentual + "%</td><td>" + esc(r.base) + "</td></tr>"
+        : "<tr>" +
+          '<td><input class="ef-input" data-grade-tempo-servico="' + i + '" data-campo="periodicidade" value="' + esc(r.periodicidade) + '" /></td>' +
+          '<td><input class="ef-input" data-grade-tempo-servico="' + i + '" data-campo="percentual" value="' + esc(r.percentual) + '" /></td>' +
+          '<td><input class="ef-input" data-grade-tempo-servico="' + i + '" data-campo="base" value="' + esc(r.base) + '" /></td>' +
+          '<td><button type="button" class="conv-mini-remove" onclick="removeGradeTempoServico(' + i + ')">remover</button></td>' +
+          "</tr>").join("") + "</tbody></table>";
+  }
+  return html + "</div>";
+}
+function accordionCalculos() {
+  return subcardFerias() + subcardDecimoTerceiro() + subcardAvisoPrevio() + subcardGarantiaSemestral() + subcardLicencaPremio() + subcardResilicaoProfessor() + subcardAdicionalTempoServico();
+}
+function accordionComissionado() {
+  return '<div class="cf-rule-list">' +
+    fieldCheckbox("condicionais.comissionado.pagar13ProporcionalEntreRegimes", "Pagar 13º proporcional entre regimes (Mensalista/Comissionado)") +
+    condRule(fieldCheckbox("condicionais.comissionado.possuiGarantiaMinima", "Possui garantia mínima"),
+      formConv.condicionais.comissionado.possuiGarantiaMinima ? notaPendente("A especificação não detalha os campos do piso de remuneração garantido. <b>Decisão pendente.</b>") : "") +
+    "</div>";
+}
+function accordionMedias() {
+  return '<div class="cf-rule-list" style="margin-bottom:14px;">' +
+    fieldCheckbox("condicionais.medias.considerarMaisFavoravel", "Considerar a média mais favorável ao empregado") +
+    fieldCheckbox("condicionais.medias.mediasDiferenciadasModalidade13", "Médias diferenciadas por modalidade de 13º") +
+    fieldCheckbox("condicionais.medias.reaproveitamentoMediaFerias", "Reaproveitamento da média de férias para cálculos seguintes") +
+    fieldCheckbox("condicionais.medias.mediaDiferenciadaComissoes", "Média diferenciada para Comissões") +
+    '</div><div class="field-group field-group-3" style="max-width:400px;">' + fieldSelect("Forma de cálculo da média", "condicionais.medias.formaCalculoMedia", CONV_OPCOES.formaCalculoMedia, { required: true }) + "</div>" +
+    refList([
+      ["Médias diferentes para férias gozadas x pagas em rescisão", "Checkbox"], ["Cálculo individual por rubrica", "Checkbox"],
+      ["Regras de exclusão do mês de gozo de férias no cálculo de médias", "Checkbox"], ["Correção monetária das médias (índice de correção)", "Checkbox + Seleção"],
+      ["Regras de médias na rescisão", "Seleção múltipla"], ["Regras de médias em afastamento", "Seleção múltipla"],
+    ]);
+}
+function accordionEstabilidade() {
+  return '<div class="cf-rule-list">' +
+    fieldCheckbox("condicionais.estabilidade.extensaoAposFerias", "Extensão da estabilidade após retorno de férias") +
+    fieldCheckbox("condicionais.estabilidade.projecaoAvisoPrevioIndenizado", "Projeção do aviso prévio indenizado no cálculo da estabilidade") +
+    fieldCheckbox("condicionais.estabilidade.dilatacaoFeriasGozadas", "Dilatação da estabilidade por férias gozadas dentro do período") +
+    "</div>" + refList([
+      ["Vínculo de regras de estabilidade a motivo de rescisão", "Grade/Tabela"], ["Grade de hipóteses de estabilidade por afastamento", "Grade/Tabela"],
+      ["Multa por estabilidade decorrente de dissídio coletivo", "Grade/Tabela"], ["Demais estabilidades (CIPA, pré-aposentadoria etc.)", "Grade/Tabela"],
+    ]);
+}
+function accordionIndenizacaoEspecial() {
+  const ie = formConv.condicionais.indenizacaoEspecial;
+  return '<div class="cf-rule-list">' +
+    condRule(fieldCheckbox("condicionais.indenizacaoEspecial.possuiRescisao", "Indenização especial na rescisão"), ie.possuiRescisao ? notaPendente("Grade de indenizações por tempo de casa, faixa salarial ou vínculo — estrutura de colunas pendente de decisão.") : "") +
+    condRule(fieldCheckbox("condicionais.indenizacaoEspecial.possuiAfastamento", "Indenização especial em afastamento"), ie.possuiAfastamento ? notaPendente("Grade de indenizações por faixa salarial e tipo de folha — estrutura de colunas pendente de decisão.") : "") +
+    "</div>";
+}
+function accordionPlr() {
+  return '<div class="cf-rule-list">' +
+    fieldCheckbox("condicionais.plr.proporcionalidadeMesesTrabalhados", "Proporcionalidade dos meses trabalhados entre vigências") +
+    fieldCheckbox("condicionais.plr.regraMesCheio", "Regra de mês cheio (mínimo 15 dias)") +
+    fieldCheckbox("condicionais.plr.plrNaRescisao", "PLR na rescisão (antes ou dentro da vigência)") +
+    fieldCheckbox("condicionais.plr.projecaoAvisoPrevio", "Projeção do aviso prévio indenizado no cálculo do PLR") +
+    "</div>" + refList([
+      ["Tratamento de afastamentos como tempo trabalhado", "Grade/Tabela"], ["Exclusão por motivo de rescisão", "Seleção múltipla"],
+      ["Grade de pagamentos do PLR", "Grade/Tabela"], ["Grade de descontos sobre o PLR", "Grade/Tabela"],
+    ]);
+}
+function accordionObservacoes() {
+  return '<div class="field-group field-group-2">' + fieldTextarea("Observações", "condicionais.observacoes", true) + "</div>";
+}
+function tabCondicionais() {
+  return (
+    '<div class="section-card"><div class="section-title"><i data-lucide="list-tree"></i>Parâmetros Condicionais</div>' +
+    accItem("calculos", "Cálculos", accordionCalculos(), true) +
+    accItem("comissionado", "Comissionado", accordionComissionado()) +
+    accItem("medias", "Médias", accordionMedias()) +
+    accItem("estabilidade", "Estabilidade", accordionEstabilidade()) +
+    accItem("indenizacaoEspecial", "Indenização Especial", accordionIndenizacaoEspecial()) +
+    accItem("plr", "P.L.R.", accordionPlr()) +
+    accItem("observacoes", "Observações", accordionObservacoes()) +
+    "</div>"
+  );
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+const CONV_TABS = [
+  { key: "geral", label: "Config. Gerais", icon: "sliders-horizontal", render: tabConfigGerais },
+  { key: "databaseprazos", label: "Data-base e Prazos", icon: "calendar-clock", render: tabDataBasePrazos },
+  { key: "contribuicoes", label: "Contribuições", icon: "landmark", render: tabContribuicoes },
+  { key: "empresas", label: "Empresas Vinculadas", icon: "building-2", render: tabEmpresas },
+  { key: "pisohistorico", label: "Piso e Histórico", icon: "wallet", render: tabPisoHistorico },
+  { key: "condicionais", label: "Condicionais", icon: "list-tree", render: tabCondicionais },
+];
+
+/* ============================================================
+   RENDER PRINCIPAL
+   ============================================================ */
+function renderConv() {
+  const conv = convAtual();
+  const sind = sindicatoDaConv(formConv);
+  const tabAtual = CONV_TABS.find((t) => t.key === convTab);
+
+  const acoesHtml = convMode === "view"
+    ? '<button type="button" class="btn btn-secondary" onclick="editarConv()"><i data-lucide="pencil" style="width:14px;height:14px;"></i>Editar</button>'
+    : '<button type="button" class="btn btn-secondary" onclick="cancelarConv()">Cancelar</button><button type="button" class="btn btn-primary" onclick="salvarConv()"><i data-lucide="check" style="width:14px;height:14px;"></i>Salvar</button>';
+
+  const descBoxHtml = convMode === "view" ? "" :
+    '<div class="conv-desc-box"><label class="ef-label" for="conv-input-descricao">Descrição da convenção <span style="color:var(--brand-pink)">*</span></label>' +
+    '<input class="ef-input" id="conv-input-descricao" value="' + esc(formConv.descricao) + '" placeholder="Ex.: Convenção Coletiva 2026 — Comerciários de Goiânia" />' +
+    '<span style="font-size:11.5px;color:var(--text-tertiary);">Esse nome identifica a convenção em toda a experiência do Cockpit.</span></div>';
+
+  const pickerHtml = '<div class="conv-picker"><i data-lucide="shuffle" style="width:13px;height:13px;"></i>Convenção de exemplo (protótipo): <select id="conv-picker-select" onchange="trocarConvMock(this.value)">' +
+    CONVENCOES_MOCK.map((c, i) => '<option value="' + i + '"' + (i === convIndex ? " selected" : "") + ">" + c.codigo + " — " + esc(c.descricao) + "</option>").join("") + "</select></div>";
+
+  const tabsHtml = '<div class="conv-tabs">' + CONV_TABS.map((t) => '<button type="button" class="conv-tab' + (t.key === convTab ? " active" : "") + '" onclick="trocarConvTab(\'' + t.key + '\')"><span class="dot"></span>' + t.label + "</button>").join("") + "</div>";
+
+  document.getElementById("conv-root").innerHTML =
+    '<button type="button" class="conv-back" onclick="voltarParaSindicato()"><i data-lucide="chevron-left"></i>voltar para o sindicato</button>' +
+    pickerHtml +
+    '<div class="conv-header-row"><div><h1 class="conv-title">' + (formConv.descricao ? esc(formConv.descricao) : '<span style="color:var(--text-tertiary);">Nova convenção</span>') + "</h1>" +
+    '<div class="conv-subtitle">Sindicato: ' + esc(sind ? sind.nome : "—") + (formConv.codigo ? " · Código " + formConv.codigo : "") + "</div></div>" +
+    '<div class="conv-actions">' + acoesHtml + "</div></div>" +
+    descBoxHtml +
+    tabsHtml +
+    '<div id="conv-tab-panel">' + tabAtual.render() + "</div>";
+
+  wireConvEvents();
+  if (convTab === "pisohistorico") montarTabelasPisoHistorico();
+  garantirOverlaysConv();
+  refreshIcons();
+}
+
+/* ============================================================
+   NAVEGAÇÃO / MODO
+   ============================================================ */
+function trocarConvTab(key) { convTab = key; renderConv(); }
+function trocarConvMock(idx) {
+  convIndex = Number(idx);
+  convMode = "view";
+  convTab = "geral";
+  formConv = deepClone(CONVENCOES_MOCK[convIndex]);
+  renderConv();
+}
+function voltarParaSindicato() {
+  showAlertModal({ title: "Voltar para o sindicato", message: "Em um Cockpit real, este link levaria de volta à tela do sindicato \"" + esc(sindicatoDaConv(formConv).nome) + "\". Navegação desativada neste protótipo isolado." });
+}
+function editarConv() { convMode = "edit"; renderConv(); }
+function cancelarConv() {
+  showConfirmModal({
+    title: "Descartar alterações?",
+    message: "As alterações feitas nesta convenção desde a última vez que foi salva serão perdidas.",
+    confirmLabel: "Descartar",
+    cancelLabel: "Continuar editando",
+    danger: true,
+    onConfirm: () => {
+      formConv = deepClone(convAtual());
+      convMode = "view";
+      renderConv();
+    },
+  });
+}
+function salvarConv() {
+  CONVENCOES_MOCK[convIndex] = deepClone(formConv);
+  convMode = "view";
+  renderConv();
+  showConvToast("Convenção salva com sucesso.");
+}
+function showConvToast(msg) {
+  let el = document.getElementById("conv-toast");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "conv-toast";
+    el.className = "conv-toast";
+    document.body.appendChild(el);
+  }
+  el.innerHTML = '<i data-lucide="check-circle-2" style="width:16px;height:16px;"></i><span>' + msg + "</span>";
+  refreshIcons();
+  requestAnimationFrame(() => el.classList.add("show"));
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove("show"), 3200);
+}
+
+/* ============================================================
+   EVENTOS DE CAMPO (data-path genérico)
+   ============================================================ */
+function wireConvEvents() {
+  const inputDescricao = document.getElementById("conv-input-descricao");
+  if (inputDescricao) inputDescricao.addEventListener("change", () => { formConv.descricao = inputDescricao.value; renderConv(); });
+
+  document.querySelectorAll("#conv-tab-panel input[data-path], #conv-tab-panel textarea[data-path], #conv-tab-panel select[data-path]").forEach((el) => {
+    if (el.type === "checkbox") {
+      el.addEventListener("change", () => { setPath(formConv, el.getAttribute("data-path"), el.checked); renderConv(); });
+    } else {
+      el.addEventListener("change", () => { setPath(formConv, el.getAttribute("data-path"), el.value); renderConv(); });
+    }
+  });
+
+  document.querySelectorAll("[data-grade-contrib]").forEach((el) => {
+    el.addEventListener("change", () => {
+      const i = Number(el.getAttribute("data-grade-contrib"));
+      formConv.contribuicoes.gradeConfiguracaoContribAssistencial[i][el.getAttribute("data-campo")] = el.value;
+    });
+  });
+  document.querySelectorAll("[data-grade-tempo-servico]").forEach((el) => {
+    el.addEventListener("change", () => {
+      const i = Number(el.getAttribute("data-grade-tempo-servico"));
+      formConv.condicionais.calculos.adicionalTempoServico.grade[i][el.getAttribute("data-campo")] = el.value;
+    });
+  });
+
+  document.querySelectorAll(".conv-acc").forEach((d) => { d.ontoggle = null; });
+}
+
+function addGradeContrib() { formConv.contribuicoes.gradeConfiguracaoContribAssistencial.push({ faixa: "", percentual: "", valorFixo: "" }); renderConv(); }
+function removeGradeContrib(i) { formConv.contribuicoes.gradeConfiguracaoContribAssistencial.splice(i, 1); renderConv(); }
+function addGradeTempoServico() { formConv.condicionais.calculos.adicionalTempoServico.grade.push({ periodicidade: "", percentual: "", base: "" }); formConv.condicionais.calculos.adicionalTempoServico.possuiGrade = true; renderConv(); }
+function removeGradeTempoServico(i) { formConv.condicionais.calculos.adicionalTempoServico.grade.splice(i, 1); renderConv(); }
+
+/* Empresas vinculadas */
+function toggleEmpresa(codigo) {
+  const idx = formConv.empresasVinculadas.indexOf(codigo);
+  if (idx === -1) formConv.empresasVinculadas.push(codigo); else formConv.empresasVinculadas.splice(idx, 1);
+  renderConv();
+}
+function empresasSelecionarTodas() { formConv.empresasVinculadas = CONV_EMPRESAS.map((e) => e.codigo); renderConv(); }
+function empresasSelecionarNenhuma() { formConv.empresasVinculadas = []; renderConv(); }
+function empresasInverterSelecao() {
+  const todas = CONV_EMPRESAS.map((e) => e.codigo);
+  formConv.empresasVinculadas = todas.filter((c) => !formConv.empresasVinculadas.includes(c));
+  renderConv();
+}
+function removerPiso(codigo) {
+  showConfirmModal({
+    title: "Remover piso salarial?",
+    message: "Esta ação não pode ser desfeita.",
+    confirmLabel: "Remover",
+    danger: true,
+    onConfirm: () => {
+      formConv.pisoSalarial = formConv.pisoSalarial.filter((p) => p.codigo !== codigo);
+      renderConv();
+    },
+  });
+}
+function removerHistorico(rowid) {
+  showConfirmModal({
+    title: "Remover registro do histórico?",
+    message: "Esta ação não pode ser desfeita.",
+    confirmLabel: "Remover",
+    danger: true,
+    onConfirm: () => {
+      formConv.historico = formConv.historico.filter((h) => h.data + "|" + h.descricao !== rowid);
+      renderConv();
+    },
+  });
+}
+
+/* ============================================================
+   DRAWER LATERAL — Piso Salarial / Histórico Salarial
+   (painéis com edição/ação → drawer, conforme catálogo Cockpit)
+   ============================================================ */
+function garantirOverlaysConv() {
+  if (document.getElementById("conv-drawer-overlay")) return;
+  const wrap = document.createElement("div");
+  wrap.innerHTML =
+    '<div class="drawer-overlay" id="conv-drawer-overlay" onclick="fecharDrawerConv()"></div>' +
+    '<div class="drawer" id="conv-drawer">' +
+    '<div class="drawer-header"><div style="flex:1;min-width:0;"><div class="drawer-title" id="conv-drawer-title"></div><div class="drawer-desc" id="conv-drawer-desc"></div></div>' +
+    '<button type="button" class="btn btn-ghost" style="padding:6px;" onclick="fecharDrawerConv()"><i data-lucide="x" style="width:16px;height:16px;"></i></button></div>' +
+    '<div class="drawer-body" id="conv-drawer-body"></div>' +
+    '<div class="drawer-footer" id="conv-drawer-footer"></div>' +
+    "</div>";
+  document.body.appendChild(wrap);
+}
+function abrirDrawerBase() {
+  document.getElementById("conv-drawer-overlay").classList.add("open");
+  document.getElementById("conv-drawer").classList.add("open");
+  refreshIcons();
+}
+function fecharDrawerConv() {
+  document.getElementById("conv-drawer-overlay").classList.remove("open");
+  document.getElementById("conv-drawer").classList.remove("open");
+  pisoDrawerCodigo = null;
+  histDrawerIndex = null;
+}
+
+/* ---- Piso Salarial ---- */
+function abrirDrawerPiso(codigo) {
+  pisoDrawerCodigo = codigo || null;
+  const editando = !!codigo;
+  const piso = editando ? formConv.pisoSalarial.find((p) => p.codigo === codigo) : { descricao: "", valor: "" };
+  document.getElementById("conv-drawer-title").textContent = editando ? "Editar piso salarial" : "Adicionar piso salarial";
+  document.getElementById("conv-drawer-desc").textContent = "Valor mínimo garantido pela convenção para o cargo/nível descrito.";
+  document.getElementById("conv-drawer-body").innerHTML =
+    '<div class="ef-field"><div class="ef-label">Descrição <span style="color:var(--brand-pink)">*</span></div><input class="ef-input" id="drawer-piso-descricao" value="' + esc(piso.descricao) + '" placeholder="Ex.: Balconista" /></div>' +
+    '<div class="ef-field"><div class="ef-label">Valor <span style="color:var(--brand-pink)">*</span></div><input class="ef-input" id="drawer-piso-valor" value="' + esc(piso.valor) + '" placeholder="Ex.: 1.750,00" /></div>';
+  document.getElementById("conv-drawer-footer").innerHTML =
+    '<button type="button" class="btn btn-secondary" onclick="fecharDrawerConv()">Cancelar</button>' +
+    '<button type="button" class="btn btn-primary" onclick="salvarDrawerPiso()">Salvar</button>';
+  abrirDrawerBase();
+}
+function salvarDrawerPiso() {
+  const descricao = document.getElementById("drawer-piso-descricao").value.trim();
+  const valor = document.getElementById("drawer-piso-valor").value.trim();
+  if (!descricao || !valor) { showAlertModal({ title: "Campos obrigatórios", message: "Preencha descrição e valor do piso salarial." }); return; }
+  if (pisoDrawerCodigo) {
+    const p = formConv.pisoSalarial.find((x) => x.codigo === pisoDrawerCodigo);
+    p.descricao = descricao; p.valor = valor;
+  } else {
+    const proximo = formConv.pisoSalarial.length + 1;
+    formConv.pisoSalarial.push({ codigo: "PISO-" + String(proximo).padStart(2, "0"), descricao, valor });
+  }
+  fecharDrawerConv();
+  renderConv();
+  showConvToast("Piso salarial salvo.");
+}
+
+/* ---- Histórico salarial ---- */
+function abrirDrawerHistorico(rowid) {
+  histDrawerIndex = null;
+  const editando = !!rowid;
+  let hist = { data: "", descricao: "", tipo: "", numeroProcesso: "", percentualCCT: "" };
+  if (editando) {
+    const idx = formConv.historico.findIndex((h) => h.data + "|" + h.descricao === rowid);
+    histDrawerIndex = idx;
+    hist = formConv.historico[idx];
+  }
+  document.getElementById("conv-drawer-title").textContent = editando ? "Editar alteração salarial" : "Registrar alteração salarial";
+  document.getElementById("conv-drawer-desc").textContent = "Histórico de convenções aplicadas à categoria — origem e percentual de reajuste.";
+  document.getElementById("conv-drawer-body").innerHTML =
+    '<div class="ef-field"><div class="ef-label">Data do registro <span style="color:var(--brand-pink)">*</span></div><input class="ef-input" id="drawer-hist-data" value="' + esc(hist.data) + '" placeholder="dd/mm/aaaa" /></div>' +
+    '<div class="ef-field"><div class="ef-label">Descrição <span style="color:var(--brand-pink)">*</span></div><input class="ef-input" id="drawer-hist-descricao" value="' + esc(hist.descricao) + '" placeholder="Ex.: Reajuste anual — data-base 2026" /></div>' +
+    '<div class="ef-field"><div class="ef-label">Tipo <span style="color:var(--brand-pink)">*</span></div><select class="ef-select" id="drawer-hist-tipo"><option value="">Selecione...</option>' +
+    CONV_OPCOES.tipoHistorico.map((t) => '<option value="' + t + '"' + (hist.tipo === t ? " selected" : "") + ">" + t + "</option>").join("") + "</select></div>" +
+    '<div class="ef-field" id="drawer-hist-processo-wrap"' + (hist.tipo === "Sentença normativa" ? "" : ' style="display:none;"') + '><div class="ef-label">Número do processo</div><input class="ef-input" id="drawer-hist-processo" value="' + esc(hist.numeroProcesso || "") + '" placeholder="0000000-00.0000.0.00.0000" /></div>' +
+    '<div class="ef-field"><div class="ef-label">Percentual CCT</div><input class="ef-input" id="drawer-hist-percentual" value="' + esc(hist.percentualCCT || "") + '" placeholder="Ex.: 5,20" /></div>';
+  document.getElementById("conv-drawer-footer").innerHTML =
+    '<button type="button" class="btn btn-secondary" onclick="fecharDrawerConv()">Cancelar</button>' +
+    '<button type="button" class="btn btn-primary" onclick="salvarDrawerHistorico()">Salvar</button>';
+  abrirDrawerBase();
+  document.getElementById("drawer-hist-tipo").addEventListener("change", (e) => {
+    document.getElementById("drawer-hist-processo-wrap").style.display = e.target.value === "Sentença normativa" ? "" : "none";
+  });
+}
+function salvarDrawerHistorico() {
+  const data = document.getElementById("drawer-hist-data").value.trim();
+  const descricao = document.getElementById("drawer-hist-descricao").value.trim();
+  const tipo = document.getElementById("drawer-hist-tipo").value;
+  const numeroProcesso = document.getElementById("drawer-hist-processo").value.trim();
+  const percentualCCT = document.getElementById("drawer-hist-percentual").value.trim();
+  if (!data || !descricao || !tipo) { showAlertModal({ title: "Campos obrigatórios", message: "Preencha data, descrição e tipo do registro." }); return; }
+  if (histDrawerIndex !== null) {
+    Object.assign(formConv.historico[histDrawerIndex], { data, descricao, tipo, numeroProcesso, percentualCCT });
+  } else {
+    formConv.historico.push({ data, descricao, tipo, numeroProcesso, percentualCCT });
+  }
+  fecharDrawerConv();
+  renderConv();
+  showConvToast("Histórico de alteração salarial salvo.");
+}
+
+</script>
+
+<script src="../assets/core/cockpit-01-shell.js"></script>
+<script src="../assets/core/cockpit-02-state-helpers.js"></script>
+<script src="../assets/core/cockpit-05-timeline-actions.js"></script>
+<script src="../assets/core/cockpit-08-datatable.js"></script>
+<script src="../assets/core/cockpit-07-modals-init.js"></script>
+<script src="../assets/core/cockpit-09-cx-sidebar.js"></script>
+<script>
+  /* Só agora esc/refreshIcons/dtCreate/showConfirmModal (definidos nos
+     arquivos de core acima) existem — o primeiro render precisa vir depois
+     deles, não no <script> inline do topo. */
+  renderConv();
+</script>
 </body>
 </html>

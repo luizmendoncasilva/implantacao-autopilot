@@ -1,30 +1,91 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
-  <title>Empresa centralizadora — Empresas — AutoPilot</title>
-  <link rel="stylesheet" href="../shared/css/tokens.css" />
-  <link rel="stylesheet" href="../shared/css/base.css" />
-  <link rel="stylesheet" href="../shared/css/components.css" />
-  <link rel="stylesheet" href="../shared/css/layout.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Empresa centralizadora · Empresas · Autopilot Configs</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body { margin: 0; }
+.ap-crumb{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-tertiary);}
+.ap-crumb a{color:var(--text-tertiary);text-decoration:none;}
+.ap-crumb a:hover{color:var(--brand-pink);}
+.ap-page{padding:20px 28px 48px;max-width:1200px;margin:0 auto;width:100%;}
+.ap-topbar-inner{display:flex;align-items:center;height:56px;padding:0 28px;border-bottom:1px solid var(--border);background:#fff;}
+</style>
 </head>
 <body>
-  <div id="shell-root"></div>
 
-  <template id="page-content">
-    <div id="detail-shell-mount"></div>
-  </template>
+<div class="sidebar"></div>
+<div class="main">
+  <div class="ap-topbar-inner" id="ap-crumb"></div>
+  <div class="ap-page" id="ap-empresa-shell"></div>
+</div>
 
-  <script src="../shared/js/icons.js"></script>
-  <script src="../shared/js/shell.js"></script>
-  <script src="../shared/js/ui.js"></script>
-  <script src="../shared/js/fab-tools.js"></script>
-  <script src="js/data.js"></script>
-  <script src="js/detail-common.js"></script>
-  <script src="js/centralizadora.js"></script>
-  <script>window.ACTIVE_TAB = "centralizadora";</script>
-  <script src="js/boot-detail.js"></script>
+<script>window.FLOW_CONFIG = { standalone: true };</script>
+<script src="js/data.js"></script>
+<script src="../cadastros-auxiliares/js/contadores/data.js"></script>
+<script src="../assets/core/cockpit-01-shell.js"></script>
+<script src="../assets/core/cockpit-02-state-helpers.js"></script>
+<script src="../assets/core/cockpit-05-timeline-actions.js"></script>
+<script src="../assets/core/cockpit-08-datatable.js"></script>
+<script src="../assets/core/cockpit-07-modals-init.js"></script>
+<script src="../assets/core/cockpit-09-cx-sidebar.js"></script>
+<script src="js/empresa-shell-cockpit.js"></script>
+<script>
+(function () {
+  const D = window.EmpresasData;
+  let empresaAtual = null;
+
+  function classificacaoBadge(tipo) {
+    if (tipo === "matriz") return '<span class="badge badge-info">Matriz</span>';
+    if (tipo === "filial") return '<span class="badge badge-neutral">Filial</span>';
+    return '<span class="badge badge-neutral">Não se aplica</span>';
+  }
+
+  function render() {
+    const mapa = D.getCentralizacao();
+    const infoAtual = mapa[empresaAtual.codigo] || { tipo: "não se aplica", vinculoCodigo: null };
+    const matrizCodigo = infoAtual.tipo === "matriz" ? empresaAtual.codigo : infoAtual.vinculoCodigo;
+    const grupo = matrizCodigo
+      ? D.EMPRESAS.filter((e) => e.codigo === matrizCodigo || (mapa[e.codigo] || {}).vinculoCodigo === matrizCodigo)
+      : [empresaAtual];
+
+    const rows = grupo.map((e) => {
+      const info = mapa[e.codigo] || { tipo: "não se aplica" };
+      const destacada = e.codigo === empresaAtual.codigo;
+      return (
+        "<tr" + (destacada ? ' style="background:var(--brand-pink-soft);"' : "") + ">" +
+        "<td>" + e.codigo + "</td>" +
+        '<td><div class="flex items-center gap-2 min-w-0"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:240px;display:inline-block;" title="' + esc(e.dadosGerais.razaoSocial) + '">' + esc(e.dadosGerais.razaoSocial) + "</span>" +
+        (destacada ? '<span class="badge badge-neutral">Empresa atual</span>' : "") + "</div></td>" +
+        '<td class="dt-td-mono">' + e.dadosGerais.tipoInscricao + " " + e.dadosGerais.cnpj + "</td>" +
+        "<td>" + ApEmpresaShell.situacaoBadge(e.dadosGerais) + "</td>" +
+        "<td>" + classificacaoBadge(info.tipo) + "</td>" +
+        "</tr>"
+      );
+    }).join("");
+
+    const descricao = infoAtual.tipo === "não se aplica"
+      ? "Esta empresa não tem relação de matriz/filial cadastrada."
+      : "Grupo de " + esc((D.findEmpresaByCodigo(matrizCodigo) || {}).nome || "") + " — indica qual empresa centraliza as informações consolidadas das filiais.";
+
+    document.getElementById("tab-content").innerHTML =
+      '<div class="section-card"><div class="subsection-title" style="margin-top:0;">Empresa centralizadora</div>' +
+      '<p style="font-size:12.5px;color:var(--text-secondary);margin:-10px 0 16px;">' + descricao + "</p>" +
+      '<div class="dt-wrap"><div class="dt-scroll"><table class="dt-table">' +
+      "<thead><tr><th>Código</th><th>Razão social</th><th>Inscrição</th><th>Status</th><th>Classificação</th></tr></thead>" +
+      "<tbody>" + rows + "</tbody></table></div></div></div>";
+  }
+
+  window.renderTabContent = function (empresa) { empresaAtual = empresa; render(); refreshIcons(); };
+
+  ApEmpresaShell.boot("centralizadora");
+})();
+</script>
 </body>
 </html>
