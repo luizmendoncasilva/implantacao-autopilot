@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1280" />
+<title>{{TITULO}} · Protótipo</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Este é o template para quando o pedido é uma ADAPTAÇÃO de um layout/print/
+     HTML que já tem um design próprio (não o do Cockpit) — ou pra prototipar
+     um componente isolado, sem shell/sidebar/fila em volta.
+     Os tokens de :root e as classes de componentes do Cockpit (badges,
+     botões, modais, drawer, datatable) ainda ficam disponíveis pra reuso
+     pontual, mas o layout geral da página é seu, não o do shell. */
+  body { margin: 0; font-family: 'Inter', system-ui, sans-serif; }
+</style>
+</head>
+<body>
+
+<!-- Construa aqui o HTML da tela pedida (adaptado do print/HTML de referência,
+     usando os componentes do Cockpit onde fizer sentido — ver
+     design-tokens-and-components.md). -->
+
+<script>
+window.FLOW_CONFIG = { standalone: true };
+</script>
+<!-- Em modo standalone, cockpit-01-shell.js (tokens/CSS) e o datatable já
+     bastam na maioria dos casos. Só inclua os outros arquivos se for
+     reaproveitar algo específico deles (ex.: showConfirmModal está no
+     cockpit-07; renderFileItem está no cockpit-04). -->
+<script src="core/cockpit-01-shell.js"></script>
+<script src="core/cockpit-08-datatable.js"></script>
+<script src="core/cockpit-07-modals-init.js"></script>
+</body>
+</html>

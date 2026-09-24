@@ -1,79 +1,98 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
-  <title>Sindicatos — DP — AutoPilot</title>
-  <link rel="stylesheet" href="../shared/css/tokens.css" />
-  <link rel="stylesheet" href="../shared/css/base.css" />
-  <link rel="stylesheet" href="../shared/css/components.css" />
-  <link rel="stylesheet" href="../shared/css/layout.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1280" />
+<title>Sindicatos · Autopilot Configs</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: var(--surface-muted); }
+  .sd-wrap { max-width: 1180px; margin: 0 auto; padding: 32px 24px 64px; display: flex; flex-direction: column; gap: 20px; }
+  .sd-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .sd-title { font-size: 20px; font-weight: 700; color: var(--text-primary); margin: 0 0 4px; }
+  .sd-desc { font-size: 13px; color: var(--text-secondary); max-width: 560px; margin: 0; line-height: 1.5; }
+  .sd-field { display: flex; flex-direction: column; gap: 4px; }
+  .sd-field label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+  .sd-field input {
+    height: 36px; width: 300px; border: 1px solid var(--border); border-radius: 8px; padding: 0 10px; font-size: 13px;
+    font-family: 'Inter', sans-serif; background: var(--surface); color: var(--text-primary);
+  }
+  .sd-field input:focus { outline: none; border-color: var(--brand-pink); }
+  .sd-mono { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; }
+</style>
 </head>
 <body>
-  <div id="shell-root"></div>
 
-  <template id="page-content">
-    <section class="max-w-7xl flex flex-col gap-4">
-      <div class="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h1 class="text-xl font-semibold mb-1">Sindicatos</h1>
-          <p class="text-sm text-muted max-w-xl">
-            Cadastro das entidades sindicais e das convenções coletivas de trabalho vinculadas a cada uma.
-          </p>
-        </div>
-        <button type="button" class="btn btn-sm w-fit" id="btn-novo-sindicato">::icon-plus:: Novo sindicato</button>
-      </div>
+<div class="sd-wrap">
+  <div class="sd-head">
+    <div>
+      <h1 class="sd-title">Sindicatos</h1>
+      <p class="sd-desc">Cadastro das entidades sindicais e das convenções coletivas de trabalho vinculadas a cada uma.</p>
+    </div>
+    <button type="button" class="btn btn-primary" id="btn-novo-sindicato"><i data-lucide="plus" style="width:14px;height:14px"></i> Novo sindicato</button>
+  </div>
 
-      <div class="flex flex-wrap items-end gap-3">
-        <div class="flex flex-col gap-1">
-          <label class="field-label">Pesquisar</label>
-          <input id="f-busca" class="field-input w-72" placeholder="Pesquisar por nome" />
-        </div>
-      </div>
+  <div class="section-card" style="padding:16px 18px;">
+    <div class="sd-field">
+      <label>Pesquisar</label>
+      <input id="f-busca" placeholder="Pesquisar por nome" />
+    </div>
+  </div>
 
-      <div class="table-wrap">
-        <table class="dtable dtable-fixed" id="tabela-sindicatos">
-          <colgroup>
-            <col style="width:110px" />
-            <col />
-            <col style="width:180px" />
-            <col style="width:150px" />
-            <col style="width:130px" />
-            <col style="width:40px" />
-          </colgroup>
-          <thead>
-            <tr>
-              <th class="col-pad-sm">Código</th>
-              <th>Sindicato</th>
-              <th class="col-pad-md">CNPJ</th>
-              <th class="col-pad-md">Tipo da entidade</th>
-              <th class="col-pad-md">Cidade/UF</th>
-              <th class="col-pad-end"></th>
-            </tr>
-          </thead>
-          <tbody id="tabela-sindicatos-body"></tbody>
-        </table>
-      </div>
+  <div class="section-card" style="padding:0;">
+    <div id="dt-sindicatos"></div>
+  </div>
+</div>
 
-      <button type="button" class="btn btn-ghost btn-sm w-fit" id="btn-mostrar-mais" style="display:none;">Mostrar mais</button>
-    </section>
-  </template>
+<script>
+window.FLOW_CONFIG = { standalone: true };
 
-  <!-- O Drawer de cadastro de Sindicato (Novo/Editar) é injetado por
-       js/sindicato-form.js — compartilhado com sindicato.html ("Editar"),
-       mesmo princípio de dados editáveis em Drawer já usado em Empresas. -->
+// Mock — mesmo catálogo de sindicatos do protótipo original (sindicatos/js/data.js).
+const SINDICATOS_MOCK = [
+  { codigo: "SIND-0001", nome: "Sindicato dos Empregados no Comércio de Goiânia", cnpj: "01.234.567/0001-89", tipoEntidade: "Sindicato", cidade: "Goiânia", uf: "GO" },
+  { codigo: "SIND-0002", nome: "Sindicato dos Trabalhadores nas Indústrias Metalúrgicas de Goiânia", cnpj: "02.345.678/0001-70", tipoEntidade: "Sindicato", cidade: "Goiânia", uf: "GO" },
+  { codigo: "SIND-0003", nome: "Federação dos Professores do Estado de Goiás", cnpj: "03.456.789/0001-61", tipoEntidade: "Federação", cidade: "Goiânia", uf: "GO" },
+];
 
-  <script src="../shared/js/icons.js"></script>
-  <script src="../shared/js/shell.js"></script>
-  <script src="../shared/js/ui.js"></script>
-  <script src="../shared/js/fab-tools.js"></script>
-  <script src="js/data.js"></script>
-  <script src="js/sindicato-form.js"></script>
-  <script>
-    Shell.mount(document.getElementById("shell-root"), { base: "../", active: "sindicato", crumb: "sindicatos" });
-    document.getElementById("btn-novo-sindicato").innerHTML = Icon("plus", "size-3-5") + " Novo sindicato";
-  </script>
-  <script src="js/list.js"></script>
+function abrirSindicato(codigo) {
+  window.location.href = "sindicato.html?sindicato=" + encodeURIComponent(codigo);
+}
+
+function aplicarFiltroSindicatos() {
+  const busca = document.getElementById("f-busca").value.trim().toLowerCase();
+  const filtrados = SINDICATOS_MOCK.filter((s) => !busca || s.nome.toLowerCase().includes(busca));
+  dtSetRows('sindicatos', filtrados);
+}
+
+document.getElementById("btn-novo-sindicato").addEventListener("click", () => (window.location.href = "sindicato.html"));
+document.getElementById("f-busca").addEventListener("input", aplicarFiltroSindicatos);
+</script>
+<script src="../assets/core/cockpit-01-shell.js"></script>
+<script src="../assets/core/cockpit-02-state-helpers.js"></script>
+<script src="../assets/core/cockpit-08-datatable.js"></script>
+<script src="../assets/core/cockpit-07-modals-init.js"></script>
+<script src="../assets/core/cockpit-09-cx-sidebar.js"></script>
+<script>
+dtCreate('sindicatos', {
+  columns: [
+    { key: 'codigo', label: 'Código', sortable: true, render: (row) => '<span class="sd-mono">' + row.codigo + '</span>' },
+    { key: 'nome', label: 'Sindicato', sortable: true },
+    { key: 'cnpj', label: 'CNPJ', mono: true },
+    { key: 'tipoEntidade', label: 'Tipo da entidade' },
+    { key: 'cidade', label: 'Cidade/UF', render: (row) => row.cidade + '/' + row.uf },
+  ],
+  rows: SINDICATOS_MOCK,
+  rowKey: 'codigo',
+  pageSize: 25,
+  searchable: false,
+  onRowClick: (row) => abrirSindicato(row.codigo),
+  emptyMessage: 'Nenhum sindicato encontrado para a busca informada.',
+});
+refreshIcons();
+</script>
 </body>
 </html>

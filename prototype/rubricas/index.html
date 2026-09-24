@@ -1,97 +1,131 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
-  <title>Rubricas — DP — AutoPilot</title>
-  <link rel="stylesheet" href="../shared/css/tokens.css" />
-  <link rel="stylesheet" href="../shared/css/base.css" />
-  <link rel="stylesheet" href="../shared/css/components.css" />
-  <link rel="stylesheet" href="../shared/css/layout.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1280" />
+<title>Rubricas · Autopilot Configs</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: var(--surface-muted); }
+  .rb-wrap { max-width: 1180px; margin: 0 auto; padding: 32px 24px 64px; display: flex; flex-direction: column; gap: 20px; }
+  .rb-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .rb-title { font-size: 20px; font-weight: 700; color: var(--text-primary); margin: 0 0 4px; }
+  .rb-desc { font-size: 13px; color: var(--text-secondary); max-width: 560px; margin: 0; line-height: 1.5; }
+  .rb-filters { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+  .rb-field { display: flex; flex-direction: column; gap: 4px; }
+  .rb-field label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+  .rb-field input, .rb-field select {
+    height: 36px; border: 1px solid var(--border); border-radius: 8px; padding: 0 10px; font-size: 13px;
+    font-family: 'Inter', sans-serif; background: var(--surface); color: var(--text-primary); min-width: 180px;
+  }
+  .rb-field input:focus, .rb-field select:focus { outline: none; border-color: var(--brand-pink); }
+  .rb-mono { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; }
+</style>
 </head>
 <body>
-  <div id="shell-root"></div>
 
-  <template id="page-content">
-    <section class="max-w-7xl flex flex-col gap-4">
-      <div class="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h1 class="text-xl font-semibold mb-1">Rubricas</h1>
-          <p class="text-sm text-muted max-w-xl">
-            Cadastro das rubricas de folha de pagamento — proventos, descontos e informativas — que determinam como cada verba é calculada, tributada e apresentada no recibo.
-          </p>
-        </div>
-        <button type="button" class="btn btn-sm w-fit" id="btn-nova-rubrica">::icon-plus:: Nova rubrica</button>
+<div class="rb-wrap">
+  <div class="rb-head">
+    <div>
+      <h1 class="rb-title">Rubricas</h1>
+      <p class="rb-desc">Cadastro das rubricas de folha de pagamento — proventos, descontos e informativas — que determinam como cada verba é calculada, tributada e apresentada no recibo.</p>
+    </div>
+    <button type="button" class="btn btn-primary" id="btn-nova-rubrica"><i data-lucide="plus" style="width:14px;height:14px"></i> Nova rubrica</button>
+  </div>
+
+  <div class="section-card" style="padding:16px 18px;">
+    <div class="rb-filters">
+      <div class="rb-field">
+        <label>Pesquisar</label>
+        <input id="f-busca" placeholder="Pesquisar por código ou nome" />
       </div>
-
-      <div class="flex flex-wrap items-end gap-3">
-        <div class="flex flex-col gap-1">
-          <label class="field-label">Pesquisar</label>
-          <input id="f-busca" class="field-input w-72" placeholder="Pesquisar por código ou nome" />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="field-label">Situação</label>
-          <div class="field-select-wrap">
-            <select id="f-situacao" class="field-select">
-              <option value="">Todas</option>
-              <option value="Ativo">Ativo</option>
-              <option value="Inativo">Inativo</option>
-            </select>
-            <span class="chev">::chevron-down::</span>
-          </div>
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="field-label">Tipo</label>
-          <div class="field-select-wrap">
-            <select id="f-tipo" class="field-select">
-              <option value="">Todos</option>
-              <option value="provento">Provento</option>
-              <option value="desconto">Desconto</option>
-              <option value="informativo">Informativo</option>
-            </select>
-            <span class="chev">::chevron-down::</span>
-          </div>
-        </div>
+      <div class="rb-field">
+        <label>Situação</label>
+        <select id="f-situacao">
+          <option value="">Todas</option>
+          <option value="Ativo">Ativo</option>
+          <option value="Inativo">Inativo</option>
+        </select>
       </div>
-
-      <div class="table-wrap">
-        <table class="dtable dtable-fixed" id="tabela-rubricas">
-          <colgroup>
-            <col style="width:110px" />
-            <col />
-            <col style="width:150px" />
-            <col style="width:130px" />
-            <col style="width:40px" />
-          </colgroup>
-          <thead>
-            <tr>
-              <th class="col-pad-sm">Código</th>
-              <th>Nome</th>
-              <th class="col-pad-md">Tipo</th>
-              <th class="col-pad-md">Situação</th>
-              <th class="col-pad-end"></th>
-            </tr>
-          </thead>
-          <tbody id="tabela-rubricas-body"></tbody>
-        </table>
+      <div class="rb-field">
+        <label>Tipo</label>
+        <select id="f-tipo">
+          <option value="">Todos</option>
+          <option value="provento">Provento</option>
+          <option value="desconto">Desconto</option>
+          <option value="informativo">Informativo</option>
+        </select>
       </div>
+    </div>
+  </div>
 
-      <button type="button" class="btn btn-ghost btn-sm w-fit" id="btn-mostrar-mais" style="display:none;">Mostrar mais</button>
-    </section>
-  </template>
+  <div class="section-card" style="padding:0;">
+    <div id="dt-rubricas"></div>
+  </div>
+</div>
 
-  <script src="../shared/js/icons.js"></script>
-  <script src="../shared/js/shell.js"></script>
-  <script src="../shared/js/ui.js"></script>
-  <script src="../shared/js/fab-tools.js"></script>
-  <script src="js/data.js"></script>
-  <script>
-    Shell.mount(document.getElementById("shell-root"), { base: "../", active: "rubricas", crumb: "rubricas" });
-    document.getElementById("btn-nova-rubrica").innerHTML = Icon("plus", "size-3-5") + " Nova rubrica";
-    // troca placeholder do select nativo pelo ícone real (o texto "::chevron-down::" foi só reserva de espaço no template) — mesmo padrão de empresas/index.html.
-    document.querySelectorAll(".chev").forEach((el) => (el.innerHTML = Icon("chevron-down", "size-4")));
-  </script>
-  <script src="js/list.js"></script>
+<script>
+window.FLOW_CONFIG = { standalone: true };
+
+// Mock — mesmo catálogo de rubricas do protótipo original (rubricas/js/data.js),
+// simplificado para os campos usados nesta listagem.
+const RUBRICAS_MOCK = [
+  { codigo: "1000", nome: "Salário Base", tipo: "provento", situacao: "Ativo" },
+  { codigo: "1010", nome: "Hora Extra 50%", tipo: "provento", situacao: "Ativo" },
+  { codigo: "1020", nome: "Adicional Noturno", tipo: "provento", situacao: "Ativo" },
+  { codigo: "9010", nome: "Desconto Vale Transporte", tipo: "desconto", situacao: "Ativo" },
+  { codigo: "9020", nome: "Desconto Convênio Farmácia", tipo: "desconto", situacao: "Inativo" },
+  { codigo: "5000", nome: "Base de Cálculo INSS (Informativo)", tipo: "informativo", situacao: "Ativo" },
+];
+const TIPO_LABEL = { provento: "Provento", desconto: "Desconto", informativo: "Informativo" };
+
+function abrirRubrica(codigo) {
+  window.location.href = "rubrica.html?rubrica=" + encodeURIComponent(codigo);
+}
+
+function aplicarFiltrosRubricas() {
+  const busca = document.getElementById("f-busca").value.trim().toLowerCase();
+  const situacao = document.getElementById("f-situacao").value;
+  const tipo = document.getElementById("f-tipo").value;
+  const filtradas = RUBRICAS_MOCK.filter((r) => {
+    if (busca && !(r.codigo.toLowerCase().includes(busca) || r.nome.toLowerCase().includes(busca))) return false;
+    if (situacao && r.situacao !== situacao) return false;
+    if (tipo && r.tipo !== tipo) return false;
+    return true;
+  });
+  dtSetRows('rubricas', filtradas);
+}
+
+document.getElementById("btn-nova-rubrica").addEventListener("click", () => (window.location.href = "rubrica.html"));
+document.getElementById("f-busca").addEventListener("input", aplicarFiltrosRubricas);
+document.getElementById("f-situacao").addEventListener("change", aplicarFiltrosRubricas);
+document.getElementById("f-tipo").addEventListener("change", aplicarFiltrosRubricas);
+</script>
+<script src="../assets/core/cockpit-01-shell.js"></script>
+<script src="../assets/core/cockpit-02-state-helpers.js"></script>
+<script src="../assets/core/cockpit-08-datatable.js"></script>
+<script src="../assets/core/cockpit-07-modals-init.js"></script>
+<script src="../assets/core/cockpit-09-cx-sidebar.js"></script>
+<script>
+dtCreate('rubricas', {
+  columns: [
+    { key: 'codigo', label: 'Código', sortable: true, render: (row) => '<span class="rb-mono">' + row.codigo + '</span>' },
+    { key: 'nome', label: 'Nome', sortable: true },
+    { key: 'tipo', label: 'Tipo', render: (row) => TIPO_LABEL[row.tipo] || row.tipo },
+    { key: 'situacao', label: 'Situação', render: (row) => '<span class="badge ' + (row.situacao === 'Ativo' ? 'badge-success' : 'badge-neutral') + '">' + row.situacao + '</span>' },
+  ],
+  rows: RUBRICAS_MOCK,
+  rowKey: 'codigo',
+  pageSize: 25,
+  searchable: false,
+  onRowClick: (row) => abrirRubrica(row.codigo),
+  emptyMessage: 'Nenhuma rubrica encontrada para os filtros informados.',
+});
+refreshIcons();
+</script>
 </body>
 </html>

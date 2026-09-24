@@ -96,13 +96,21 @@
       // Exemplos de divergência de total (RF-DP-507) — o valor gravado não
       // bate com o total do relatório de origem, sempre falha, nunca aviso.
       const divergente = (i === 2 && empresaCodigo === "MS-0027") || (i === 1 && empresaCodigo === "CH-0042");
+      const proventos = 38000 + i * 900;
+      const descontos = 9200 + i * 150;
+      const liquido = 28800 + i * 750;
+      // Divergência de total (RF-DP-507) é sempre no Desconto/Líquido — o
+      // Provento bate nas duas fontes; comparar os 3 campos (não só o
+      // líquido) é o que deixa claro ONDE está a diferença.
       return {
         competencia,
         status: divergente ? "divergencia_total" : "carregada",
-        proventos: "R$ " + (38000 + i * 900).toLocaleString("pt-BR") + ",00",
-        descontos: "R$ " + (9200 + i * 150).toLocaleString("pt-BR") + ",00",
-        liquido: "R$ " + (28800 + i * 750).toLocaleString("pt-BR") + ",00",
-        totalOrigem: divergente ? "R$ " + (28800 + i * 750 + 120).toLocaleString("pt-BR") + ",00" : null,
+        proventos: "R$ " + proventos.toLocaleString("pt-BR") + ",00",
+        proventosOrigem: "R$ " + proventos.toLocaleString("pt-BR") + ",00",
+        descontos: "R$ " + descontos.toLocaleString("pt-BR") + ",00",
+        descontosOrigem: "R$ " + (divergente ? descontos - 120 : descontos).toLocaleString("pt-BR") + ",00",
+        liquido: "R$ " + liquido.toLocaleString("pt-BR") + ",00",
+        liquidoOrigem: "R$ " + (divergente ? liquido + 120 : liquido).toLocaleString("pt-BR") + ",00",
       };
     });
   }
@@ -194,12 +202,18 @@
     return total === 0 ? 1 : feito / total;
   }
 
-  function percentualConclusao(r) {
+  // 24/09/2026 (Andressa, validação Parte 3): parâmetros DP passou a
+  // contar como a 4ª frente do percentual, não só um gate à parte —
+  // "tem que incluir o parâmetro também" pra considerar 100%.
+  // empresaCodigo é opcional pra não quebrar chamadas antigas que ainda
+  // não repassam o código (nesse caso mantém as 3 frentes de antes).
+  function percentualConclusao(r, empresaCodigo) {
     const fracoes = [
       fracaoFrente(r.colaboradores.prontos, r.colaboradores.total),
       fracaoFrente(r.financeiro.carregadas, r.financeiro.necessarias),
       fracaoFrente(r.calculoParalelo.validadas, r.calculoParalelo.total),
     ];
+    if (empresaCodigo) fracoes.push(parametrosConfirmados(empresaCodigo) ? 1 : 0);
     const media = fracoes.reduce((a, b) => a + b, 0) / fracoes.length;
     return Math.round(media * 100);
   }
@@ -246,6 +260,68 @@
     }
   }
 
+  // ===== Relatórios personalizados (layouts) — alinhamento Andressa/
+  // Jeniffer, 10/09/2026: "pode ser separado, pode ser numa aba separada...
+  // não necessariamente são esses relatórios que ele subiu" na Ficha
+  // Financeira. Aba própria, por tipo de relatório usado no processo de DP
+  // (admissão, férias, rescisão), dizendo se a empresa usa o layout padrão
+  // da Domínio ou um personalizado — e, se personalizado, o arquivo do
+  // layout importado. "Isso ficar depois dentro da tela de parâmetros DP...
+  // a gente tem lá admissão é esse relatório, férias é esse relatório" —
+  // por ora só existe aqui, na implantação (Parâmetros DP é da Elaine e
+  // segue "em breve").
+  const TIPOS_RELATORIO = ["Admissão", "Férias", "Rescisão"];
+
+  const RELATORIOS_LAYOUT_SEED = {
+    "MS-0027": { Admissão: { arquivo: "Contrato_Admissao_MetalurgicaSigma.pdf", importadoEm: "12/08/2026" } },
+    "PA-0011": {
+      Admissão: { arquivo: "Contrato_Admissao_ComercioAurora.pdf", importadoEm: "20/03/2026" },
+      Férias: { arquivo: "Recibo_Ferias_ComercioAurora.pdf", importadoEm: "20/03/2026" },
+      Rescisão: { arquivo: "Termo_Rescisao_ComercioAurora.pdf", importadoEm: "20/03/2026" },
+    },
+  };
+
+  const RELATORIOS_LAYOUT_KEY = "autopilot_prototype_implantacao_relatorios_layout_v1";
+  function loadRelatoriosLayout() {
+    try {
+      const raw = window.localStorage.getItem(RELATORIOS_LAYOUT_KEY);
+      return raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(RELATORIOS_LAYOUT_SEED));
+    } catch (e) {
+      return JSON.parse(JSON.stringify(RELATORIOS_LAYOUT_SEED));
+    }
+  }
+  function saveRelatoriosLayout(dados) {
+    try {
+      window.localStorage.setItem(RELATORIOS_LAYOUT_KEY, JSON.stringify(dados));
+    } catch (e) {
+      /* localStorage indisponível — mudança vale só nesta renderização */
+    }
+  }
+
+  // Sem layout salvo = usa o padrão Domínio (comportamento atual, nenhuma
+  // ação necessária do operador) — mesma convenção de "ausência é o
+  // default" usada em parametrosConfirmados/camposPendentesParametros acima.
+  function layoutsRelatorios(empresaCodigo) {
+    const empresaDados = loadRelatoriosLayout()[empresaCodigo] || {};
+    return TIPOS_RELATORIO.map((tipo) => {
+      const l = empresaDados[tipo];
+      return { tipo: tipo, personalizado: !!l, arquivo: l ? l.arquivo : null, importadoEm: l ? l.importadoEm : null };
+    });
+  }
+
+  function importarLayoutRelatorio(empresaCodigo, tipo, nomeArquivo, dataImportacao) {
+    const dados = loadRelatoriosLayout();
+    if (!dados[empresaCodigo]) dados[empresaCodigo] = {};
+    dados[empresaCodigo][tipo] = { arquivo: nomeArquivo, importadoEm: dataImportacao };
+    saveRelatoriosLayout(dados);
+  }
+
+  function removerLayoutRelatorio(empresaCodigo, tipo) {
+    const dados = loadRelatoriosLayout();
+    if (dados[empresaCodigo]) delete dados[empresaCodigo][tipo];
+    saveRelatoriosLayout(dados);
+  }
+
   global.EmpresasImplantacaoData = {
     EMPRESAS_IMPLANTACAO,
     empresaImplantacao,
@@ -260,5 +336,9 @@
     camposPendentesParametros,
     parametrosConfirmados,
     confirmarParametros,
+    TIPOS_RELATORIO,
+    layoutsRelatorios,
+    importarLayoutRelatorio,
+    removerLayoutRelatorio,
   };
 })(window);

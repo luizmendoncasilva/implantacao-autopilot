@@ -1,78 +1,218 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
-  <title>Implantação de Empresas — AutoPilot</title>
-  <link rel="stylesheet" href="../shared/css/tokens.css" />
-  <link rel="stylesheet" href="../shared/css/base.css" />
-  <link rel="stylesheet" href="../shared/css/components.css?v=2" />
-  <link rel="stylesheet" href="../shared/css/layout.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1280" />
+<title>Implantação de Empresas · Protótipo</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: var(--surface-subtle, #fafafa); }
+
+  .ig-wrap { max-width: 1180px; margin: 0 auto; padding: 32px 24px 64px; display: flex; flex-direction: column; gap: 20px; }
+  .ig-crumb { font-size: 13px; color: var(--text-tertiary); }
+  .ig-crumb b { color: var(--text-primary); font-weight: 600; }
+  .ig-title { font-size: 20px; font-weight: 700; color: var(--text-primary); margin: 2px 0 4px; }
+  .ig-sub { font-size: 13.5px; color: var(--text-secondary); max-width: 640px; line-height: 1.5; }
+
+  /* Cards de resumo do topo — sem componente de "stat card" pronto no
+     catálogo; layout simples nos tokens do design system (surface/border). */
+  .ig-stats { display: flex; flex-wrap: wrap; gap: 12px; }
+  .ig-stat-card { flex: 1 1 220px; min-width: 200px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; }
+  .ig-stat-card.is-success { border-color: var(--success); background: var(--success-soft); }
+  .ig-stat-card.is-warning { border-color: var(--warning); background: var(--warning-soft); }
+  .ig-stat-value { font-size: 26px; font-weight: 700; color: var(--text-primary); line-height: 1.1; }
+  .ig-stat-card.is-success .ig-stat-value { color: var(--success); }
+  .ig-stat-card.is-warning .ig-stat-value { color: var(--warning); }
+  .ig-stat-label { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+
+  .ig-filters { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
+  .ig-field { display: flex; flex-direction: column; gap: 4px; }
+  .ig-field label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+  .ig-input { width: 300px; max-width: 100%; height: 36px; padding: 0 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; font-family: inherit; outline: none; background: #fff; color: var(--text-primary); }
+  .ig-input:focus { border-color: var(--brand-pink); box-shadow: 0 0 0 2px var(--brand-pink-soft); }
+
+  /* Barra de progresso compacta por módulo (DP) — sem componente pronto no
+     catálogo; réplica leve do padrão progress-bar do protótipo original. */
+  .ig-progress { display: flex; align-items: center; gap: 8px; }
+  .ig-progress-label { font-size: 11.5px; color: var(--text-tertiary); width: 30px; flex-shrink: 0; }
+  .ig-progress-track { flex: 1; height: 6px; border-radius: 999px; background: var(--surface-muted); overflow: hidden; }
+  .ig-progress-fill { height: 100%; border-radius: 999px; background: var(--text-tertiary); }
+  .ig-progress-fill.is-success { background: var(--success); }
+  .ig-progress-fill.is-warning { background: var(--warning); }
+  .ig-progress-pct { font-size: 12px; font-weight: 600; color: var(--text-secondary); width: 32px; text-align: right; flex-shrink: 0; }
+
+  .ig-em-breve { display: flex; align-items: center; gap: 8px; }
+  .ig-em-breve-label { font-size: 11.5px; color: var(--text-tertiary); width: 44px; flex-shrink: 0; }
+
+  #dt-implant-geral .dt-toolbar { display: none; } /* busca/toolbar próprias fora da tabela */
+</style>
 </head>
 <body>
-  <div id="shell-root"></div>
 
-  <!-- Dash geral de Implantação — as 3 frentes (DP/Fiscal/Contábil) lado a
-       lado por empresa, pedido pela Andressa (10/09/2026): "eu acho que tem
-       que ser o controle uma para cada, mas seria interessante a gente ter
-       uma aba geral... com percentual concluído". Hoje só DP tem console
-       próprio (implantacao-empresas.html) — Fiscal e Contábil aparecem como
-       "em breve", sem link, até terem o mesmo tratamento. -->
-  <template id="page-content">
-    <section class="max-w-7xl flex flex-col gap-4">
-      <div>
-        <h1 class="text-xl font-semibold mb-1">Implantação de Empresas</h1>
-        <p class="text-sm text-muted max-w-2xl">Visão geral por empresa, nas três frentes de implantação — DP, Fiscal e Contábil. Clique numa empresa para abrir a implantação de DP.</p>
-      </div>
+<div class="ig-wrap">
+  <div class="ig-crumb">Autopilot Configs <span style="opacity:.5">/</span> <b>Implantação de empresas</b></div>
 
-      <div class="flex flex-wrap items-end justify-between gap-3">
-        <div class="flex flex-col gap-1">
-          <label class="field-label">Empresa</label>
-          <input id="f-busca-empresa-geral" class="field-input w-72" placeholder="Pesquisar por nome ou CNPJ" />
-        </div>
-        <a href="implantacao-importar.html" class="btn btn-sm w-fit" id="btn-nova-implantacao-geral"><span id="icon-upload-geral"></span> Nova Implantação</a>
-      </div>
+  <div>
+    <h1 class="ig-title">Implantação de Empresas</h1>
+    <p class="ig-sub">Visão geral por empresa, nas três frentes de implantação — DP, Fiscal e Contábil. Clique numa empresa para abrir a implantação de DP.</p>
+  </div>
 
-      <div class="table-wrap">
-        <table class="dtable dtable-fixed" id="tabela-implantacao-geral">
-          <colgroup>
-            <col style="width:180px" />
-            <col style="width:150px" />
-            <col style="width:150px" />
-            <col style="width:150px" />
-            <col style="width:40px" />
-          </colgroup>
-          <thead>
-            <tr>
-              <th>Empresa</th>
-              <th class="col-pad-md">DP</th>
-              <th class="col-pad-md">Fiscal</th>
-              <th class="col-pad-md">Contábil</th>
-              <th class="col-pad-end"></th>
-            </tr>
-          </thead>
-          <tbody id="tabela-implantacao-geral-body"></tbody>
-        </table>
-      </div>
-    </section>
-  </template>
+  <div class="ig-stats" id="ig-stats-mount"></div>
 
-  <script src="../shared/js/icons.js"></script>
-  <script src="../shared/js/shell.js?v=2"></script>
-  <script src="../shared/js/ui.js?v=2"></script>
-  <script src="../shared/js/fab-tools.js"></script>
-  <script src="../empresas/js/data.js"></script>
-  <script src="js/implantacao/data.js?v=5"></script>
-  <script src="js/implantacao/empresas-data.js?v=7"></script>
-  <script>
-    Shell.mount(document.getElementById("shell-root"), {
-      base: "../",
-      active: "implantacao",
-      crumb: "implantação de empresas",
+  <div class="ig-filters">
+    <div class="ig-field">
+      <label for="ig-busca">Empresa</label>
+      <input id="ig-busca" class="ig-input" placeholder="Pesquisar por nome ou CNPJ" />
+    </div>
+    <a href="implantacao-importar.html" class="btn btn-primary btn-sm" style="width:fit-content;"><i data-lucide="upload" style="width:15px;height:15px;"></i> Nova Implantação</a>
+  </div>
+
+  <div id="dt-implant-geral"></div>
+</div>
+
+<script src="js/implantacao/data.js"></script>
+<script src="js/implantacao/empresas-data.js"></script>
+<script src="../empresas/js/data.js"></script>
+
+<script>
+/* =========================================================================
+   Migração visual (Cockpit) do dashboard geral de Implantação — as 3
+   frentes (DP/Fiscal/Contábil) lado a lado por empresa. Conteúdo, dados e
+   navegação idênticos ao original (prototype/cadastros-auxiliares/
+   implantacao-geral.html + js/implantacao/geral-list.js), só a camada de
+   apresentação muda para os componentes do Cockpit (datatable, badges).
+   Hoje só DP tem console próprio — Fiscal/Contábil seguem "em breve".
+   Sufixo do fluxo: "ImplantGeral" (evitar colisão com o core). ==================== */
+window.FLOW_CONFIG = { standalone: true };
+
+var stateImplantGeral = { busca: "" };
+
+function empresaNomeImplantGeral(codigo) {
+  var empresa = window.EmpresasData.findEmpresaByCodigo(codigo);
+  return empresa ? empresa.nome : codigo;
+}
+function empresaCnpjImplantGeral(codigo) {
+  var empresa = window.EmpresasData.findEmpresaByCodigo(codigo);
+  return empresa && empresa.dadosGerais ? empresa.dadosGerais.cnpj : "";
+}
+function apenasDigitosImplantGeral(v) {
+  return (v || "").replace(/\D/g, "");
+}
+
+function progressoModuloHtmlImplantGeral(label, percentual) {
+  var corClasse = percentual === 100 ? "is-success" : percentual > 0 ? "is-warning" : "";
+  return (
+    '<div class="ig-progress" title="' + label + ": " + percentual + '% concluído">' +
+    '<span class="ig-progress-label">' + label + "</span>" +
+    '<div class="ig-progress-track"><div class="ig-progress-fill ' + corClasse + '" style="width:' + Math.max(percentual, 2) + '%;"></div></div>' +
+    '<span class="ig-progress-pct">' + percentual + "%</span>" +
+    "</div>"
+  );
+}
+
+function moduloEmBreveHtmlImplantGeral(label) {
+  return (
+    '<div class="ig-em-breve">' +
+    '<span class="ig-em-breve-label">' + label + "</span>" +
+    '<span class="badge badge-neutral">Em breve</span>' +
+    "</div>"
+  );
+}
+
+function renderStatsImplantGeral() {
+  var D = window.EmpresasImplantacaoData;
+  var todas = D.EMPRESAS_IMPLANTACAO;
+  var resumoStatus = D.contarPorStatusEmpresa(todas);
+  var emAndamento = todas.filter(function (e) { return e.status === "em_andamento"; });
+  var mediaConclusao = emAndamento.length
+    ? Math.round(emAndamento.reduce(function (soma, e) { return soma + D.percentualConclusao(D.resumoCompleto(e), e.empresaCodigo); }, 0) / emAndamento.length)
+    : 0;
+  var cards = [
+    { label: "Empresas em implantação", value: resumoStatus.total, classe: "" },
+    { label: "Em andamento", value: resumoStatus.emAndamento, classe: "" },
+    { label: "Implantadas", value: resumoStatus.implantada, classe: "is-success" },
+    { label: "Média de conclusão (DP, em andamento)", value: mediaConclusao + "%", classe: mediaConclusao === 100 ? "is-success" : mediaConclusao > 0 ? "is-warning" : "" },
+  ];
+  document.getElementById("ig-stats-mount").innerHTML = cards.map(function (c) {
+    return '<div class="ig-stat-card' + (c.classe ? " " + c.classe : "") + '"><span class="ig-stat-value">' + c.value + '</span><span class="ig-stat-label">' + c.label + "</span></div>";
+  }).join("");
+}
+
+function linhasImplantGeral() {
+  var D = window.EmpresasImplantacaoData;
+  var buscaNormalizada = stateImplantGeral.busca.trim().toLowerCase();
+  var digitosBusca = apenasDigitosImplantGeral(buscaNormalizada);
+  return D.EMPRESAS_IMPLANTACAO
+    .filter(function (e) {
+      return (
+        !buscaNormalizada ||
+        empresaNomeImplantGeral(e.empresaCodigo).toLowerCase().indexOf(buscaNormalizada) !== -1 ||
+        (digitosBusca !== "" && apenasDigitosImplantGeral(empresaCnpjImplantGeral(e.empresaCodigo)).indexOf(digitosBusca) !== -1)
+      );
+    })
+    .sort(function (a, b) {
+      return empresaNomeImplantGeral(a.empresaCodigo).localeCompare(empresaNomeImplantGeral(b.empresaCodigo), "pt-BR", { sensitivity: "base" });
+    })
+    .map(function (empresaImplant) {
+      var D2 = window.EmpresasImplantacaoData;
+      var r = D2.resumoCompleto(empresaImplant);
+      var percentualDp = D2.percentualConclusao(r, empresaImplant.empresaCodigo);
+      return {
+        id: empresaImplant.empresaCodigo,
+        empresaCodigo: empresaImplant.empresaCodigo,
+        empresa: empresaNomeImplantGeral(empresaImplant.empresaCodigo),
+        etapaAtual: empresaImplant.etapaAtual,
+        percentualDp: percentualDp,
+      };
     });
-    document.getElementById("icon-upload-geral").innerHTML = Icon("upload", "size-4");
-  </script>
-  <script src="js/implantacao/geral-list.js?v=3"></script>
+}
+
+function renderTabelaImplantGeral() {
+  dtSetRows("implant-geral", linhasImplantGeral());
+}
+
+function irParaConsoleImplantGeral(row) {
+  window.location.href = "implantacao-console.html?empresa=" + encodeURIComponent(row.empresaCodigo);
+}
+
+function initImplantGeral() {
+  renderStatsImplantGeral();
+
+  dtCreate("implant-geral", {
+    columns: [
+      { key: "empresa", label: "Empresa", sortable: true, render: function (row) { return '<span class="font-medium">' + esc(row.empresa) + "</span>"; } },
+      { key: "etapaAtual", label: "Etapa atual (DP)", render: function (row) { return '<span style="color:var(--text-secondary);">' + esc(row.etapaAtual) + "</span>"; } },
+      { key: "dp", label: "DP", render: function (row) { return progressoModuloHtmlImplantGeral("DP", row.percentualDp); } },
+      { key: "fiscal", label: "Fiscal", render: function () { return moduloEmBreveHtmlImplantGeral("Fiscal"); } },
+      { key: "contabil", label: "Contábil", render: function () { return moduloEmBreveHtmlImplantGeral("Contábil"); } },
+      { key: "seta", label: "", render: function () { return '<i data-lucide="arrow-right" style="width:16px;height:16px;color:var(--text-tertiary);"></i>'; } },
+    ],
+    rows: linhasImplantGeral(),
+    rowKey: "id",
+    pageSize: 20,
+    searchable: false,
+    onRowClick: irParaConsoleImplantGeral,
+    emptyMessage: "Nenhuma empresa encontrada para os filtros selecionados.",
+  });
+
+  document.getElementById("ig-busca").addEventListener("input", function (e) {
+    stateImplantGeral.busca = e.target.value;
+    renderTabelaImplantGeral();
+  });
+
+  refreshIcons();
+}
+</script>
+
+<script src="../assets/core/cockpit-01-shell.js"></script>
+<script src="../assets/core/cockpit-02-state-helpers.js"></script>
+<script src="../assets/core/cockpit-08-datatable.js"></script>
+<script src="../assets/core/cockpit-07-modals-init.js"></script>
+<script src="../assets/core/cockpit-09-cx-sidebar.js"></script>
+<script>initImplantGeral();</script>
 </body>
 </html>

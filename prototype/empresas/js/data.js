@@ -432,27 +432,80 @@
   function findEmpresaByCodigo(codigo) {
     return EMPRESAS.find((e) => e.codigo === codigo);
   }
-  // Lê o registro mestre de contadores (ContadoresData, mora em
-  // cadastros-auxiliares/js/contadores/data.js) — toda página que chama esta
-  // função precisa incluir aquele script antes deste.
-  function findContadorDaEmpresa(codigoEmpresa) {
-    const contadores = global.ContadoresData ? global.ContadoresData.getContadores() : [];
-    return contadores.find((c) => c.empresasAtendidas.includes(codigoEmpresa));
+
+  // Data de vínculo contador↔empresa — metadado interno, não um campo do
+  // formulário de Contadores (RN-05: o vínculo em si não tem atributos
+  // próprios visíveis). Existe só para desempatar o fallback do Contador
+  // Responsável (RN-10: "vínculo mais antigo — menor data de entrada — entre
+  // os contadores vinculados"), quando uma empresa tiver mais de um contador
+  // vinculado. Datas-semente cobrem os vínculos já existentes no mock;
+  // registrarVinculoContador grava a data de vínculos criados na navegação
+  // (empresas/js/contadores.js → EmpresasData.registrarVinculoContador).
+  const VINCULO_CONTADOR_KEY = "autopilot_prototype_vinculo_contador_data_v1";
+  const VINCULOS_CONTADOR_SEED = {
+    "1|MS-0027": "10/02/2018", "1|MS-0027-F1": "10/02/2018", "1|MS-0027-F2": "05/09/2021",
+    "2|PA-0011": "15/03/2015", "2|CH-0042": "22/09/2020",
+  };
+  function getVinculosContadorSalvos() {
+    try {
+      const raw = window.localStorage.getItem(VINCULO_CONTADOR_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      return {};
+    }
+  }
+  function parseDataBr(data) {
+    const partes = (data || "").split("/").map(Number);
+    const d = partes[0], m = partes[1], y = partes[2];
+    return d && m && y ? new Date(y, m - 1, d).getTime() : null;
+  }
+  function registrarVinculoContador(contadorId, codigoEmpresa) {
+    const chave = contadorId + "|" + codigoEmpresa;
+    const salvos = getVinculosContadorSalvos();
+    if (salvos[chave] || VINCULOS_CONTADOR_SEED[chave]) return; // vínculo já tem data registrada
+    const agora = new Date();
+    salvos[chave] = pad2(agora.getDate()) + "/" + pad2(agora.getMonth() + 1) + "/" + agora.getFullYear();
+    try {
+      window.localStorage.setItem(VINCULO_CONTADOR_KEY, JSON.stringify(salvos));
+    } catch (e) {
+      /* localStorage indisponível — segue só em memória nesta renderização */
+    }
+  }
+  function dataVinculoContador(contadorId, codigoEmpresa) {
+    const chave = contadorId + "|" + codigoEmpresa;
+    return getVinculosContadorSalvos()[chave] || VINCULOS_CONTADOR_SEED[chave] || null;
   }
 
-  // Contador Responsável — seleção provisória e genérica (ver docs/cadastro-
-  // empresas-spec.md, pendência "Contador Responsável"). Independente do
-  // vínculo plural já existente na aba Contadores (empresasAtendidas, N
-  // contadores por empresa): aqui se guarda apenas QUAL contador do mesmo
-  // Registro de Contadores é considerado o responsável, quando escolhido
-  // explicitamente. Nenhum segundo cadastro de contador foi criado — a
-  // seleção sempre lê do mesmo ContadoresData.getContadores().
-  //
-  // Regra definitiva de vínculo NÃO fechada pelo Produto: se a seleção deve
-  // exigir vínculo prévio via aba Contadores, se pode haver mais de um
-  // responsável, prioridade entre eles, vigência etc. Esta implementação
-  // deliberadamente não assume nenhuma dessas regras — permite selecionar
-  // qualquer contador do registro, sem validar vínculo prévio.
+  // Lê o registro mestre de contadores (ContadoresData, mora em
+  // cadastros-auxiliares/js/contadores/data.js) — toda página que chama esta
+  // função precisa incluir aquele script antes deste. Entre os contadores
+  // vinculados à empresa, devolve o de vínculo mais antigo (RN-10) — usado
+  // como fallback implícito do Contador Responsável quando não há seleção
+  // explícita. Vínculo sem data registrada é tratado como o mais recente
+  // (não vence um vínculo com data conhecida), nunca deveria ocorrer fora de
+  // dados legados não migrados.
+  function findContadorDaEmpresa(codigoEmpresa) {
+    const contadores = global.ContadoresData ? global.ContadoresData.getContadores() : [];
+    const vinculados = contadores.filter((c) => c.empresasAtendidas.includes(codigoEmpresa));
+    if (vinculados.length <= 1) return vinculados[0];
+    return vinculados.slice().sort((a, b) => {
+      const da = parseDataBr(dataVinculoContador(a.id, codigoEmpresa));
+      const db = parseDataBr(dataVinculoContador(b.id, codigoEmpresa));
+      return (da == null ? Infinity : da) - (db == null ? Infinity : db);
+    })[0];
+  }
+
+  // Contador Responsável — RN-10 (proposta nesta revisão, confirmada por
+  // Thais Lima de Souza em 15/09/2026 — ver docs/RN-RF_CadastroEmpresasAuxiliares.md,
+  // seção 4-A): a seleção explícita só pode recair sobre um contador já
+  // vinculado à empresa via aba Contadores (enforced na tela, ver
+  // empresas/dados-gerais.html → contadorResponsavelOptions); só existe um
+  // responsável por empresa; sem seleção explícita, o fallback usa o vínculo
+  // mais antigo (findContadorDaEmpresa acima). Não há um segundo cadastro de
+  // contador — a seleção sempre lê do mesmo ContadoresData.getContadores().
+  // Vigência/histórico versionado por período não existe nesta versão: o Log
+  // de Histórico de Alterações (aba Histórico) já cobre o rastreio de trocas
+  // de responsável.
   const CONTADOR_RESPONSAVEL_KEY = "autopilot_prototype_contador_responsavel_v1";
   function getContadoresResponsaveisSalvos() {
     try {
@@ -464,15 +517,15 @@
   }
   // Resolve o contador exibido como responsável: prioriza a seleção
   // explícita feita por esta ação; na ausência dela, cai para a derivação
-  // implícita que já existia (findContadorDaEmpresa — primeiro contador do
-  // registro cujo empresasAtendidas inclui a empresa), preservando o valor
-  // hoje exibido para as empresas que já tinham essa relação, sem exigir uma
+  // implícita que já existia (findContadorDaEmpresa — vínculo mais antigo
+  // entre os contadores vinculados à empresa), preservando o valor hoje
+  // exibido para as empresas que já tinham essa relação, sem exigir uma
   // seleção manual retroativa.
   function resolveContadorResponsavel(codigoEmpresa) {
     const contadores = global.ContadoresData ? global.ContadoresData.getContadores() : [];
     const idExplicito = getContadoresResponsaveisSalvos()[codigoEmpresa];
     if (idExplicito != null) {
-      const explicito = contadores.find((c) => c.id === idExplicito);
+      const explicito = contadores.find((c) => c.id === idExplicito && c.empresasAtendidas.includes(codigoEmpresa));
       if (explicito) return explicito;
     }
     return findContadorDaEmpresa(codigoEmpresa);
@@ -499,6 +552,35 @@
         },
       ]);
     }
+  }
+  // Chamado ao desvincular um contador da empresa (empresas/js/contadores.js)
+  // — se o contador desvinculado era o responsável selecionado explicitamente,
+  // a seleção não pode sobreviver sem vínculo (RN-10) e volta a cair no
+  // fallback implícito.
+  function limparContadorResponsavelSeForEste(codigoEmpresa, contadorId) {
+    const salvos = getContadoresResponsaveisSalvos();
+    if (salvos[codigoEmpresa] !== contadorId) return;
+    delete salvos[codigoEmpresa];
+    try {
+      window.localStorage.setItem(CONTADOR_RESPONSAVEL_KEY, JSON.stringify(salvos));
+    } catch (e) {
+      /* localStorage indisponível — segue só em memória nesta renderização */
+    }
+  }
+
+  // Descrição textual do CNAE — RF-207 (fonte confirmada nesta revisão:
+  // Cockpit já possui o campo, sem necessidade de tabela própria de CNAEs no
+  // Autopilot). Mock local só para o protótipo exibir código + descrição
+  // lado a lado nas telas onde o CNAE aparece (hoje, só Atividades).
+  const CNAE_DESCRICOES = {
+    "1091-1/00": "Fabricação de produtos de panificação",
+    "4721-1/02": "Comércio varejista de produtos alimentícios em geral",
+    "5611-2/01": "Restaurantes e similares",
+    "2599-3/99": "Fabricação de outros produtos de metal não especificados anteriormente",
+    "2542-0/00": "Fabricação de tanques, reservatórios metálicos e caldeiras para aquecimento central",
+  };
+  function getCnaeDescricao(codigo) {
+    return CNAE_DESCRICOES[codigo] || null;
   }
   function formatarEndereco(dg) {
     const numeroComplemento = dg.complemento ? dg.numero + ", " + dg.complemento : dg.numero;
@@ -538,6 +620,9 @@
     findContadorDaEmpresa,
     resolveContadorResponsavel,
     setContadorResponsavel,
+    limparContadorResponsavelSeForEste,
+    registrarVinculoContador,
+    getCnaeDescricao,
     formatarEndereco,
     situacaoBadge,
     getQueryParam,

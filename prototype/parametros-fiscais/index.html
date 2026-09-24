@@ -1,58 +1,812 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
-  <title>Parâmetros Fiscais — AutoPilot</title>
-  <link rel="stylesheet" href="../shared/css/tokens.css" />
-  <link rel="stylesheet" href="../shared/css/base.css" />
-  <link rel="stylesheet" href="../shared/css/components.css" />
-  <link rel="stylesheet" href="../shared/css/layout.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1280" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
+<title>Parâmetros Fiscais — AutoPilot</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: var(--surface-muted); }
+  .fp-page { max-width: 1220px; margin: 0 auto; padding: 28px 24px 96px; }
+  .fp-crumb { font-size: 12px; color: var(--text-secondary); margin-bottom: 18px; }
+  .fp-crumb a { color: var(--text-secondary); text-decoration: none; }
+  .fp-crumb a:hover { color: var(--brand-pink); }
+
+  /* ---- Seleção de empresa ---- */
+  .fp-select-wrap { max-width: 440px; margin: 64px auto; }
+  .fp-select-preview { margin-top: 14px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-subtle); display: none; }
+  .fp-select-preview.show { display: block; }
+
+  /* ---- Cabeçalho ---- */
+  .fp-header-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 4px; }
+  .fp-h1 { font-size: 22px; font-weight: 700; color: var(--text-primary); margin: 0; }
+  .fp-context-line { font-size: 13px; color: var(--text-secondary); margin-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .fp-context-line strong { color: var(--text-primary); font-weight: 600; }
+  .fp-link-btn { background: none; border: none; color: var(--brand-blue); font-size: 12.5px; font-weight: 500; cursor: pointer; padding: 0; }
+  .fp-link-btn:hover { text-decoration: underline; }
+
+  /* ---- Vigência indicator ---- */
+  .fp-vig { display: inline-flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; background: #fff; }
+  .fp-vig-text { font-size: 12.5px; color: var(--text-primary); }
+  .fp-vig-text .lbl { font-weight: 600; }
+  .fp-vig-text .per { color: var(--text-secondary); margin-left: 4px; }
+
+  /* ---- Tabs ---- */
+  .fp-tabs { display: flex; gap: 4px; overflow-x: auto; border-bottom: 1px solid var(--border); margin: 20px 0 0; }
+  .fp-tab { padding: 10px 16px; font-size: 13px; font-weight: 500; color: var(--text-secondary); cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; display: inline-flex; align-items: center; gap: 6px; }
+  .fp-tab:hover { color: var(--text-primary); }
+  .fp-tab.active { color: var(--brand-pink); border-bottom-color: var(--brand-pink); font-weight: 600; }
+  .fp-action-row { display: flex; justify-content: flex-end; margin: 14px 0 10px; }
+
+  /* ---- Accordion ---- */
+  .fp-acc { border: 1px solid var(--border); border-radius: 12px; background: #fff; overflow: hidden; margin-bottom: 14px; }
+  .fp-acc-trigger { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: none; border: none; cursor: pointer; text-align: left; font-size: 14px; font-weight: 600; color: var(--text-primary); }
+  .fp-acc-trigger:hover { background: var(--surface-subtle); }
+  .fp-acc-chev { color: var(--text-tertiary); transition: transform .15s; flex-shrink: 0; }
+  .fp-acc-trigger.open .fp-acc-chev { transform: rotate(180deg); }
+  .fp-acc-body { padding: 4px 20px 22px; border-top: 1px solid var(--border); }
+  .fp-acc-body.hidden { display: none; }
+
+  .fp-field-full { grid-column: 1 / -1; }
+  .fp-lock-icon { color: var(--text-tertiary); width: 12px; height: 12px; vertical-align: -1px; margin-right: 4px; }
+
+  /* ---- Drawer lateral (padrão do design system do Cockpit) ---- */
+  .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.25); z-index: 40; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+  .drawer { position: fixed; top: 0; right: 0; height: 100%; width: 480px; background: var(--surface); border-left: 1px solid var(--border); z-index: 50; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .25s cubic-bezier(.25,.46,.45,.94); }
+  .drawer.open { transform: translateX(0); }
+  .drawer-header { padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; display: flex; align-items: flex-start; gap: 12px; }
+  .drawer-title { font-size: 15px; font-weight: 700; color: var(--text-primary); line-height: 1.3; }
+  .drawer-body { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
+  .drawer-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 8px; flex-shrink: 0; background: var(--surface); }
+  .drawer-block { background: var(--surface-subtle); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+
+  .fp-skeleton { height: 14px; width: 110px; border-radius: 4px; background: var(--surface-muted); border: 1px solid var(--border); animation: fp-pulse 1.3s ease-in-out infinite; }
+  @keyframes fp-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+  .fp-na { color: var(--text-secondary); font-weight: 500; font-size: 14px; }
+
+  .fp-vt { display: flex; flex-direction: column; }
+  .fp-vt-item { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; cursor: pointer; }
+  .fp-vt-item:hover { border-color: var(--brand-pink); }
+  .fp-vt-item.is-current { border-color: var(--brand-pink); background: var(--brand-pink-soft); }
+  .fp-vt-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border-strong); flex-shrink: 0; }
+  .fp-vt-item.is-current .fp-vt-dot { background: var(--brand-pink); }
+  .fp-vt-period { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+
+  .fp-toast-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 200; display: flex; flex-direction: column; gap: 8px; }
+  .fp-toast { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--border); border-left: 3px solid var(--success); border-radius: 10px; padding: 12px 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); font-size: 13px; color: var(--text-primary); min-width: 260px; }
+
+  .fp-cb { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13.5px; color: var(--text-primary); }
+  .fp-cb input { width: 16px; height: 16px; accent-color: var(--brand-pink); }
+</style>
 </head>
 <body>
-  <div id="shell-root"></div>
-  <template id="page-content"><div id="fiscal-page-mount" class="max-w-7xl"></div></template>
 
-  <script src="../shared/js/icons.js"></script>
-  <script src="../shared/js/shell.js"></script>
-  <script src="../shared/js/ui.js"></script>
-  <script src="../shared/js/fab-tools.js"></script>
-  <script src="../shared/js/vigencia.js"></script>
-  <script src="../shared/js/origem.js"></script>
-  <script src="../shared/js/indicador-calculado.js"></script>
-  <script src="../empresas/js/data.js"></script>
-  <script src="js/data.js"></script>
-  <script src="js/vigencias-data.js"></script>
-  <script src="js/empresa-selector.js"></script>
-  <script src="js/gerais-data.js"></script>
-  <script src="js/gerais.js"></script>
-  <script src="js/federais-data.js"></script>
-  <script src="js/federais.js"></script>
-  <script src="js/estaduais-municipais-data.js"></script>
-  <script src="js/estaduais-municipais.js"></script>
-  <script src="js/contabil-fiscal-data.js"></script>
-  <script src="js/contabil-fiscal.js"></script>
-  <script src="js/obrigacoes-documentos-data.js"></script>
-  <script src="js/obrigacoes-documentos.js"></script>
-  <script src="js/fiscal-page.js"></script>
-  <script>
-    const empresaAtual = FiscalPage.resolveEmpresa();
-    Shell.mount(document.getElementById("shell-root"), {
-      base: "../",
-      active: "fiscal",
-      crumbs: empresaAtual
-        ? [
-            { label: empresaAtual.nome, href: "../empresas/dados-gerais.html?empresa=" + encodeURIComponent(empresaAtual.codigo) },
-            { label: "parâmetros fiscais" },
-          ]
-        : [{ label: "parâmetros fiscais" }],
+<div class="fp-page" id="fp-root"></div>
+
+<script>
+window.FLOW_CONFIG = { standalone: true };
+
+/* =========================================================================
+   PARÂMETROS FISCAIS — migração visual pro design system do Cockpit.
+   Todas as funções/variáveis específicas deste fluxo levam o sufixo
+   "Fiscal" pra não colidir com nada global de assets/core/.
+   ========================================================================= */
+
+const EMPRESAS_FISCAL = {
+  'PA-0011': { codigo: 'PA-0011', razaoSocial: 'Padaria Aurora Ltda', cnpj: '12.345.678/0001-90', regime: 'Simples Nacional', optanteSimples: true },
+  'CH-0042': { codigo: 'CH-0042', razaoSocial: 'Cheiro de Café Comércio Ltda', cnpj: '98.765.432/0001-10', regime: 'Simples Nacional', optanteSimples: true },
+  'VF-0007': { codigo: 'VF-0007', razaoSocial: 'Metalúrgica Vale Forte Ltda', cnpj: '45.111.222/0001-33', regime: 'Lucro Real', optanteSimples: false },
+};
+
+const VIGENCIAS_FISCAL = {
+  'PA-0011': [
+    { id: 'v3', inicio: '01/01/2026', fim: null },
+    { id: 'v2', inicio: '01/07/2025', fim: '31/12/2025' },
+    { id: 'v1', inicio: '15/03/2015', fim: '30/06/2025' },
+  ],
+  'CH-0042': [{ id: 'v1', inicio: '02/01/2020', fim: null }],
+  'VF-0007': [{ id: 'v1', inicio: '01/01/2015', fim: null }],
+};
+
+const DADOS_FISCAL = {
+  'PA-0011': {
+    gerais: {
+      dataOpcaoSN: '15/03/2015', mei: 'Não',
+      anexo: 'Anexo I — Comércio · 100% da receita', anexoState: 'available',
+      rbt12: 'R$ 1.250.000,00', rbaRbaa: 'R$ 980.000,00', fatorR: '31,4%',
+      limiteInterno: 'R$ 4.800.000,00', limiteExportacao: 'R$ 4.800.000,00', sublimite: 'R$ 3.600.000,00',
+      avisoLimite: '80', avisoSublimite: '80', avisoTrocaFaixa: true,
+      regimeReconhecimento: 'Competência', codigoAcesso: '••••••••••••',
+    },
+    federais: { anexoCodigo: 'I' },
+    estaduaisMunicipais: {
+      condicaoIcms: 'Contribuinte',
+      issForma: 'Percentual sobre faturamento (dentro do DAS)',
+      issFixoClasse: 'Não aplicável',
+    },
+    contabilFiscal: { classifFornecedores: 'Uma conta por cadastro', classifClientes: 'Uma conta por cadastro' },
+    obrigacoesDocumentos: {
+      documentos: ['NF-e (modelo 55)', 'NFC-e (modelo 65)'],
+      series: [
+        { tipo: 'NF-e (modelo 55)', serie: '1', numeracao: '1 a 999999', estabelecimento: 'Matriz' },
+        { tipo: 'NFC-e (modelo 65)', serie: '2', numeracao: '1 a 999999', estabelecimento: 'Matriz' },
+      ],
+      esocial: true,
+    },
+  },
+  'CH-0042': {
+    gerais: {
+      dataOpcaoSN: '02/01/2020', mei: 'Não',
+      anexo: 'Anexo IV — Serviços · 100% da receita', anexoState: 'available',
+      rbt12: 'R$ 640.000,00', rbaRbaa: 'R$ 512.000,00', fatorR: null,
+      limiteInterno: 'R$ 4.800.000,00', limiteExportacao: 'R$ 4.800.000,00', sublimite: 'R$ 3.600.000,00',
+      avisoLimite: '80', avisoSublimite: '70', avisoTrocaFaixa: false,
+      regimeReconhecimento: 'Caixa', codigoAcesso: '••••••••••••',
+    },
+    federais: { anexoCodigo: 'IV', inssValor: 'R$ 1.840,00' },
+    estaduaisMunicipais: {
+      condicaoIcms: 'Não contribuinte',
+      issForma: 'Retido na fonte pelo tomador',
+      issFixoClasse: 'Não aplicável',
+    },
+    contabilFiscal: { classifFornecedores: 'Conta única para todos', classifClientes: 'Uma conta por cadastro' },
+    obrigacoesDocumentos: {
+      documentos: ['NFS-e'],
+      series: [],
+      esocial: true,
+    },
+  },
+};
+
+let empresaAtualFiscal = null;
+let vigenciaSelecionadaFiscal = null; // id, null = atual
+let abaAtivaFiscal = 'gerais';
+let acordeonAbertoFiscal = { estaduaisMunicipais: 'estaduais', obrigacoesDocumentos: 'documentos' };
+let indicadoresCarregandoFiscal = true;
+
+const ABAS_FISCAL = [
+  { key: 'gerais', label: 'Gerais' },
+  { key: 'federais', label: 'Federais' },
+  { key: 'estaduaisMunicipais', label: 'Estaduais e Municipais' },
+  { key: 'contabilFiscal', label: 'Contábil × Fiscal' },
+  { key: 'obrigacoesDocumentos', label: 'Obrigações e Documentos Fiscais' },
+  { key: 'reformaTributaria', label: 'Reforma Tributária', badge: 'Em construção' },
+];
+const ABAS_COM_EDICAO_FISCAL = ['gerais', 'estaduaisMunicipais', 'contabilFiscal', 'obrigacoesDocumentos'];
+
+function empresaAtualObjFiscal() { return EMPRESAS_FISCAL[empresaAtualFiscal]; }
+function vigenciasEmpresaFiscal() { return VIGENCIAS_FISCAL[empresaAtualFiscal] || []; }
+function vigenciaAtualObjFiscal() { return vigenciasEmpresaFiscal().find((v) => !v.fim); }
+function vigenciaSelecionadaObjFiscal() {
+  if (!vigenciaSelecionadaFiscal) return vigenciaAtualObjFiscal();
+  return vigenciasEmpresaFiscal().find((v) => v.id === vigenciaSelecionadaFiscal) || vigenciaAtualObjFiscal();
+}
+function historicoAtivoFiscal() { return vigenciaSelecionadaFiscal !== null && vigenciaSelecionadaFiscal !== (vigenciaAtualObjFiscal() || {}).id; }
+
+/* ---- Helpers de badge/indicador (mesmo padrão recomposto nas páginas de exploração) ---- */
+function origemBadgeFiscal(label) {
+  return `<span class="badge badge-neutral">${label}</span>`;
+}
+function campoFiscal(label, valueHtml, origem, opts) {
+  opts = opts || {};
+  return `<div class="${opts.wide ? 'fp-field-full' : ''}">
+    <div class="field-label">${label}</div>
+    ${valueHtml}
+    ${origem ? `<div style="margin-top:6px;">${origemBadgeFiscal(origem)}</div>` : ''}
+  </div>`;
+}
+function indicadorFiscal(label, state, value, origem, opts) {
+  opts = opts || {};
+  let val;
+  if (state === 'loading') val = '<div class="fp-skeleton"></div>';
+  else if (state === 'unavailable') val = `<div class="field-value empty">${opts.unavailableText || 'Não disponível no momento'}</div>`;
+  else if (state === 'not-applicable') val = `<div class="fp-na">${opts.naText || 'Não aplicável ao enquadramento'}</div>`;
+  else val = `<div class="field-value font-mono">${value}</div>`;
+  return campoFiscal(label, val, state !== 'loading' ? origem : null, opts);
+}
+function lockedFieldFiscal(label, value) {
+  return `<div class="drawer-block">
+    <div class="field-label"><i data-lucide="lock" class="fp-lock-icon"></i>${label}</div>
+    <div class="field-value" style="margin-top:4px;">${value}</div>
+  </div>`;
+}
+
+/* ---- Gate "não aplicável ao regime" (Gerais/Federais/Estaduais-Municipais/Contábil-Fiscal/Obrigações) ---- */
+function gateNaoAplicavelFiscal() {
+  const e = empresaAtualObjFiscal();
+  return `<div class="section-card">
+    <div class="empty-state">
+      <div class="icon-wrap"><i data-lucide="info" class="w-6 h-6"></i></div>
+      <div style="font-size:14.5px; font-weight:600; color:var(--text-primary); margin-bottom:6px;">Esta empresa está no regime ${e.regime}</div>
+      <div style="font-size:13px; color:var(--text-secondary); max-width:440px; margin:0 auto; line-height:1.6;">Os campos desta versão de Parâmetros Fiscais cobrem apenas o Simples Nacional. Suporte a outros regimes tributários entra em etapa futura.</div>
+    </div>
+  </div>`;
+}
+
+/* ---- Render de cada aba ---- */
+function renderGeraisFiscal() {
+  if (!empresaAtualObjFiscal().optanteSimples) return gateNaoAplicavelFiscal();
+  const d = DADOS_FISCAL[empresaAtualFiscal].gerais;
+  const loading = indicadoresCarregandoFiscal;
+  return `
+  <div class="section-card">
+    <div class="section-title"><i data-lucide="badge-check"></i>Enquadramento no Simples Nacional</div>
+    <div class="field-group">
+      ${campoFiscal('Data de opção pelo Simples Nacional', `<div class="field-value">${d.dataOpcaoSN}</div>`, 'API gov. · Cockpit')}
+      ${campoFiscal('MEI (Microempreendedor Individual)', `<div class="field-value">${d.mei}</div>`, 'Cockpit')}
+      ${indicadorFiscal('Anexo(s) e % de receita por atividade', loading ? 'loading' : d.anexoState, d.anexo, 'Motor de cálculo', { wide: true })}
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-title"><i data-lucide="calculator"></i>Indicadores de apuração</div>
+    <div class="field-group">
+      ${indicadorFiscal('RBT12', loading ? 'loading' : 'available', d.rbt12, 'Motor de cálculo')}
+      ${indicadorFiscal('RBA / RBAA', loading ? 'loading' : 'available', d.rbaRbaa, 'Motor de cálculo')}
+      ${indicadorFiscal('Fator R', loading ? 'loading' : (d.fatorR ? 'available' : 'unavailable'), d.fatorR, 'Motor de cálculo')}
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-title"><i data-lucide="ruler"></i>Limites e sublimite</div>
+    <div class="field-group">
+      ${campoFiscal('Limite de receita — mercado interno', `<div class="field-value font-mono">${d.limiteInterno}</div>`, 'Legislação')}
+      ${campoFiscal('Limite adicional — exportação', `<div class="field-value font-mono">${d.limiteExportacao}</div>`, 'Legislação')}
+      ${campoFiscal('Sublimite estadual de ICMS/ISS', `<div class="field-value font-mono">${d.sublimite}</div>`, 'Legislação')}
+      ${campoFiscal('Aviso de proximidade do limite de enquadramento', `<div class="field-value">${d.avisoLimite}%</div>`, 'Manual')}
+      ${campoFiscal('Aviso de proximidade do sublimite', `<div class="field-value">${d.avisoSublimite}%</div>`, 'Manual')}
+      ${campoFiscal('Aviso de troca de faixa de receita bruta', `<div class="field-value">${d.avisoTrocaFaixa ? 'Ativo' : 'Inativo'}</div>`, 'Manual')}
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-title"><i data-lucide="key-round"></i>Regime e credenciais</div>
+    <div class="field-group">
+      ${campoFiscal('Regime de reconhecimento de receita', `<div class="field-value">${d.regimeReconhecimento}</div>`, 'Manual')}
+      ${campoFiscal('Código de acesso ao PGDAS-D', `<div class="field-value font-mono">${d.codigoAcesso}</div>`, 'Manual')}
+    </div>
+  </div>
+
+  <div class="section-card" style="margin-bottom:0;">
+    <div class="section-title"><i data-lucide="layers"></i>Segmentação — Fase 2</div>
+    <div class="field-group">
+      <div>
+        <div class="field-label">Segmento de atividade especial</div>
+        <div class="field-value empty" style="font-style:italic;">Aguardando mapeamento da carteira do Simples Nacional</div>
+        <div style="margin-top:6px;"><span class="badge badge-warning">Fase 2</span></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderFederaisFiscal() {
+  if (!empresaAtualObjFiscal().optanteSimples) return gateNaoAplicavelFiscal();
+  const dGerais = DADOS_FISCAL[empresaAtualFiscal].gerais;
+  const dFed = DADOS_FISCAL[empresaAtualFiscal].federais;
+  const loading = indicadoresCarregandoFiscal;
+  let state, value;
+  if (loading) state = 'loading';
+  else if (dFed.anexoCodigo !== 'IV') state = 'not-applicable';
+  else if (dFed.inssValor) state = 'available';
+  else state = 'unavailable';
+  return `
+  <div class="section-card" style="margin-bottom:0;">
+    <div class="section-title"><i data-lucide="landmark"></i>Federais</div>
+    <div class="field-group">
+      ${indicadorFiscal('INSS patronal fora do DAS', state, dFed.inssValor, 'Motor de cálculo', { wide: true, naText: `Não aplicável — enquadrada no Anexo ${dGerais.anexo.split(' ')[1] || dFed.anexoCodigo}` })}
+    </div>
+  </div>`;
+}
+
+function accTriggerFiscal(sectionKey, groupKey, label, isOpen) {
+  return `<button class="fp-acc-trigger${isOpen ? ' open' : ''}" onclick="toggleAccordionFiscal('${groupKey}','${sectionKey}')">
+    <span>${label}</span>
+    <i data-lucide="chevron-down" class="fp-acc-chev w-4 h-4"></i>
+  </button>`;
+}
+
+function renderEstaduaisMunicipaisFiscal() {
+  if (!empresaAtualObjFiscal().optanteSimples) return gateNaoAplicavelFiscal();
+  const d = DADOS_FISCAL[empresaAtualFiscal].estaduaisMunicipais;
+  const loading = indicadoresCarregandoFiscal;
+  const open = acordeonAbertoFiscal.estaduaisMunicipais;
+  return `
+  <div class="fp-acc">
+    ${accTriggerFiscal('estaduais', 'estaduaisMunicipais', 'Estaduais', open === 'estaduais')}
+    <div class="fp-acc-body${open === 'estaduais' ? '' : ' hidden'}">
+      <div class="field-group" style="margin-top:14px;">
+        ${indicadorFiscal('Condição de contribuinte de ICMS', loading ? 'loading' : 'available', d.condicaoIcms, 'Cockpit')}
+      </div>
+    </div>
+  </div>
+  <div class="fp-acc">
+    ${accTriggerFiscal('municipais', 'estaduaisMunicipais', 'Municipais', open === 'municipais')}
+    <div class="fp-acc-body${open === 'municipais' ? '' : ' hidden'}">
+      <div class="field-group" style="margin-top:14px;">
+        ${campoFiscal('Forma de cálculo do ISS', `<div class="field-value">${d.issForma}</div>`, 'Manual')}
+        ${campoFiscal('ISS fixo por classe profissional', `<div class="field-value">${d.issFixoClasse}</div>`, 'Manual')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderContabilFiscalFiscal() {
+  if (!empresaAtualObjFiscal().optanteSimples) return gateNaoAplicavelFiscal();
+  const d = DADOS_FISCAL[empresaAtualFiscal].contabilFiscal;
+  return `
+  <div class="section-card">
+    <div class="section-title"><i data-lucide="settings-2"></i>Regras do sistema</div>
+    <div class="field-group">
+      ${campoFiscal('Gerar lançamentos contábeis automaticamente', `<div class="field-value">Entradas, Saídas e Serviços geram lançamento automático nos três departamentos.</div>`, 'Sistema', { wide: true })}
+      ${campoFiscal('Tipo de lançamento contábil', `<div class="field-value">Analítico, na data do movimento.</div>`, 'Sistema')}
+      ${campoFiscal('Conta cliente/fornecedor em pagamento à vista', `<div class="field-value">Evita conta transitória quando não há parcelamento.</div>`, 'Sistema', { wide: true })}
+    </div>
+  </div>
+  <div class="section-card" style="margin-bottom:0;">
+    <div class="section-title"><i data-lucide="folder-tree"></i>Classificação de conta</div>
+    <div class="field-group">
+      ${campoFiscal('Classificação de conta — Fornecedores', `<div class="field-value">${d.classifFornecedores}</div>`, 'Manual')}
+      ${campoFiscal('Classificação de conta — Clientes', `<div class="field-value">${d.classifClientes}</div>`, 'Manual')}
+    </div>
+  </div>`;
+}
+
+function renderObrigacoesDocumentosFiscal() {
+  if (!empresaAtualObjFiscal().optanteSimples) return gateNaoAplicavelFiscal();
+  const d = DADOS_FISCAL[empresaAtualFiscal].obrigacoesDocumentos;
+  const open = acordeonAbertoFiscal.obrigacoesDocumentos;
+  const docsHtml = d.documentos.length
+    ? d.documentos.map((doc) => `<span class="badge badge-neutral" style="margin:0 6px 6px 0;">${doc}</span>`).join('')
+    : `<div class="field-value empty" style="font-style:italic;">Nenhum documento fiscal emitido.</div>`;
+  return `
+  <div class="fp-acc">
+    ${accTriggerFiscal('documentos', 'obrigacoesDocumentos', 'Documentos Fiscais', open === 'documentos')}
+    <div class="fp-acc-body${open === 'documentos' ? '' : ' hidden'}">
+      <div class="field-group" style="margin-top:14px;">
+        <div class="fp-field-full">
+          <div class="field-label">Documentos fiscais emitidos</div>
+          <div style="margin-top:6px;">${docsHtml}</div>
+          <div style="margin-top:6px;">${origemBadgeFiscal('BHules')}</div>
+        </div>
+        <div class="fp-field-full">
+          <div class="field-label" style="margin-bottom:8px;">Série e numeração</div>
+          <div style="margin-bottom:8px;">${origemBadgeFiscal('BHules')}</div>
+          <div id="dt-fiscal-series"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="fp-acc">
+    ${accTriggerFiscal('obrigacoes', 'obrigacoesDocumentos', 'Obrigações Acessórias', open === 'obrigacoes')}
+    <div class="fp-acc-body${open === 'obrigacoes' ? '' : ' hidden'}">
+      <div class="field-group" style="margin-top:14px;">
+        ${campoFiscal('PGDAS-D e DAS', `<div class="field-value">Apuração mensal, obrigatória mesmo sem movimento.</div>`, 'Motor de cálculo', { wide: true })}
+        ${campoFiscal('Guias avulsas de ICMS e ISS', `<div class="field-value">Habilitadas automaticamente com excesso de sublimite; geradas por ação humana a partir da pendência de sublimite.</div>`, 'Sistema', { wide: true })}
+        ${campoFiscal('DEFIS', `<div class="field-value">Habilitada — optante do Simples Nacional.</div>`, 'Sistema', { wide: true })}
+        ${campoFiscal('DASN-SIMEI', `<div class="field-value">Não habilitada — empresa não é MEI.</div>`, 'Sistema', { wide: true })}
+        ${campoFiscal('eSocial — parametrização básica', `<div class="field-value">${d.esocial ? 'Ativo' : 'Inativo'}</div>`, 'Manual')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderReformaTributariaFiscal() {
+  return `<div class="section-card" style="margin-bottom:0;">
+    <div class="empty-state">
+      <div class="icon-wrap"><i data-lucide="clock" class="w-6 h-6"></i></div>
+      <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:6px;">
+        <span style="font-size:14.5px; font-weight:600; color:var(--text-primary);">Reforma Tributária</span>
+        <span class="badge badge-warning">Em construção</span>
+      </div>
+      <div style="font-size:13px; color:var(--text-secondary); max-width:460px; margin:0 auto; line-height:1.6;">
+        Levantamento em andamento para parametrizar CBS, IBS e a transição do Simples Nacional. A estrutura desta aba é preservada para não perder o levantamento — sem controles funcionais nesta etapa.
+      </div>
+    </div>
+  </div>`;
+}
+
+const RENDER_ABA_FISCAL = {
+  gerais: renderGeraisFiscal,
+  federais: renderFederaisFiscal,
+  estaduaisMunicipais: renderEstaduaisMunicipaisFiscal,
+  contabilFiscal: renderContabilFiscalFiscal,
+  obrigacoesDocumentos: renderObrigacoesDocumentosFiscal,
+  reformaTributaria: renderReformaTributariaFiscal,
+};
+
+function toggleAccordionFiscal(groupKey, sectionKey) {
+  acordeonAbertoFiscal[groupKey] = acordeonAbertoFiscal[groupKey] === sectionKey ? null : sectionKey;
+  renderTabContentFiscal();
+}
+
+/* ---- Shell / navegação ---- */
+function selecionarAbaFiscal(key) {
+  abaAtivaFiscal = key;
+  indicadoresCarregandoFiscal = true;
+  renderTabsFiscal();
+  renderTabContentFiscal();
+  setTimeout(() => { indicadoresCarregandoFiscal = false; renderTabContentFiscal(); }, 500);
+}
+
+function renderTabsFiscal() {
+  const wrap = document.getElementById('fp-tabs');
+  if (!wrap) return;
+  wrap.innerHTML = ABAS_FISCAL.map((t) => `
+    <div class="fp-tab${t.key === abaAtivaFiscal ? ' active' : ''}" onclick="selecionarAbaFiscal('${t.key}')">
+      ${t.label}${t.badge ? `<span class="badge badge-warning" style="font-size:10px; padding:2px 7px;">${t.badge}</span>` : ''}
+    </div>`).join('');
+  refreshIcons();
+}
+
+function renderTabContentFiscal() {
+  const wrap = document.getElementById('fp-tab-content');
+  if (!wrap) return;
+  wrap.innerHTML = RENDER_ABA_FISCAL[abaAtivaFiscal]();
+
+  const actionWrap = document.getElementById('fp-action-row');
+  const podeEditar = ABAS_COM_EDICAO_FISCAL.includes(abaAtivaFiscal) && !historicoAtivoFiscal() && empresaAtualObjFiscal().optanteSimples;
+  actionWrap.innerHTML = podeEditar
+    ? `<button class="btn btn-secondary" onclick="abrirDrawerFiscal('edit-${abaAtivaFiscal}')"><i data-lucide="pencil" class="w-4 h-4"></i>Editar</button>`
+    : '';
+
+  if (abaAtivaFiscal === 'obrigacoesDocumentos') {
+    const rows = DADOS_FISCAL[empresaAtualFiscal].obrigacoesDocumentos.series;
+    dtCreate('fiscal-series', {
+      columns: [
+        { key: 'tipo', label: 'Tipo de documento' },
+        { key: 'serie', label: 'Série', mono: true },
+        { key: 'numeracao', label: 'Numeração', mono: true },
+        { key: 'estabelecimento', label: 'Estabelecimento' },
+      ],
+      rows,
+      rowKey: 'serie',
+      pageSize: 10,
+      searchable: false,
+      emptyMessage: 'Nenhuma série cadastrada no BHules.',
     });
-    if (empresaAtual) {
-      FiscalPage.mount(empresaAtual);
-    } else {
-      FiscalPage.mountSelecaoEmpresa();
-    }
-  </script>
+  }
+  refreshIcons();
+}
+
+function renderVigenciaIndicatorFiscal() {
+  const v = vigenciaSelecionadaObjFiscal();
+  const isAtual = !historicoAtivoFiscal();
+  const periodo = v.fim ? `${v.inicio} – ${v.fim}` : `desde ${v.inicio}`;
+  return `<div class="fp-vig">
+    <i data-lucide="calendar-clock" style="width:16px;height:16px;color:var(--text-secondary);"></i>
+    <div class="fp-vig-text"><span class="lbl">${isAtual ? 'Vigência atual' : 'Vigência histórica'}</span><span class="per">${periodo}</span></div>
+    <span class="badge ${isAtual ? 'badge-success' : 'badge-neutral'}">${isAtual ? 'Atual' : 'Somente leitura'}</span>
+    <button class="btn btn-ghost" style="padding:6px 10px;" onclick="abrirDrawerFiscal('vigencia-historico')"><i data-lucide="history" class="w-4 h-4"></i>Ver histórico</button>
+  </div>`;
+}
+
+function renderShellFiscal() {
+  const root = document.getElementById('fp-root');
+  const e = empresaAtualObjFiscal();
+
+  if (!e) {
+    root.innerHTML = `
+    <div class="fp-crumb"><a href="#" onclick="return false;">parâmetros fiscais</a></div>
+    <div class="fp-select-wrap">
+      <div class="section-card">
+        <div class="section-title" style="margin-bottom:6px;"><i data-lucide="landmark"></i>Parâmetros Fiscais</div>
+        <div style="font-size:13px; color:var(--text-secondary); margin-bottom:18px;">Selecione uma empresa para continuar.</div>
+        <div class="ef-field">
+          <label class="ef-label">Empresa</label>
+          <select class="ef-select" id="fp-select-empresa" onchange="previewEmpresaFiscal(this.value)">
+            <option value="">Buscar por nome, código ou CNPJ…</option>
+            ${Object.values(EMPRESAS_FISCAL).map((emp) => `<option value="${emp.codigo}">${emp.razaoSocial} — ${emp.codigo}</option>`).join('')}
+          </select>
+        </div>
+        <div class="fp-select-preview" id="fp-select-preview"></div>
+        <button class="btn btn-primary btn-lg" style="width:100%; justify-content:center; margin-top:18px;" id="fp-select-confirm" disabled onclick="confirmarSelecaoEmpresaFiscal()">Selecionar empresa</button>
+      </div>
+    </div>`;
+    refreshIcons();
+    return;
+  }
+
+  root.innerHTML = `
+    <div class="fp-crumb"><a href="#" onclick="abrirDrawerFiscal('trocar-empresa'); return false;">${e.razaoSocial}</a> / parâmetros fiscais</div>
+
+    <div class="fp-header-top">
+      <div>
+        <h1 class="fp-h1">Parâmetros Fiscais</h1>
+        <div class="fp-context-line">
+          <strong>${e.razaoSocial}</strong>
+          <span class="font-mono">${e.cnpj}</span>
+          <span class="badge badge-neutral">${e.regime}</span>
+          <span style="color:var(--text-tertiary); font-size:12px;">Definido no Cadastro de Empresas</span>
+          <button class="fp-link-btn" onclick="abrirDrawerFiscal('trocar-empresa')">Trocar empresa</button>
+        </div>
+      </div>
+      <div id="fp-vig-indicator"></div>
+    </div>
+
+    <div id="fp-vig-banner"></div>
+    <div class="fp-tabs" id="fp-tabs"></div>
+    <div class="fp-action-row" id="fp-action-row"></div>
+    <div id="fp-tab-content"></div>`;
+
+  document.getElementById('fp-vig-indicator').innerHTML = renderVigenciaIndicatorFiscal();
+  document.getElementById('fp-vig-banner').innerHTML = historicoAtivoFiscal()
+    ? `<div class="alert-banner"><i data-lucide="alert-triangle" style="color:var(--warning); width:18px; height:18px; flex-shrink:0;"></i><div style="font-size:13px; color:var(--text-secondary);"><strong style="color:var(--text-primary);">Vigência histórica</strong> — encerrada em ${vigenciaSelecionadaObjFiscal().fim}. Os valores exibidos são os desta vigência; nenhum campo pode ser editado enquanto uma vigência histórica estiver selecionada.</div></div>`
+    : '';
+
+  renderTabsFiscal();
+  renderTabContentFiscal();
+  refreshIcons();
+}
+
+function previewEmpresaFiscal(codigo) {
+  const preview = document.getElementById('fp-select-preview');
+  const confirmBtn = document.getElementById('fp-select-confirm');
+  if (!codigo) { preview.classList.remove('show'); confirmBtn.disabled = true; return; }
+  const e = EMPRESAS_FISCAL[codigo];
+  preview.innerHTML = `<div style="font-size:13.5px; font-weight:600; color:var(--text-primary);">${e.razaoSocial}</div><div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">CNPJ ${e.cnpj} · ${e.regime}</div>`;
+  preview.classList.add('show');
+  confirmBtn.disabled = false;
+  confirmBtn.dataset.codigo = codigo;
+}
+
+function confirmarSelecaoEmpresaFiscal() {
+  const codigo = document.getElementById('fp-select-confirm').dataset.codigo;
+  empresaAtualFiscal = codigo;
+  vigenciaSelecionadaFiscal = null;
+  abaAtivaFiscal = 'gerais';
+  indicadoresCarregandoFiscal = true;
+  renderShellFiscal();
+  setTimeout(() => { indicadoresCarregandoFiscal = false; renderTabContentFiscal(); }, 500);
+}
+
+/* ---- Drawer lateral (nomes sufixados "Fiscal" pra não colidir com openDrawer/closeDrawer do core) ---- */
+function garantirOverlaysFiscal() {
+  if (document.getElementById('fiscal-drawer-overlay')) return;
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+    <div class="drawer-overlay" id="fiscal-drawer-overlay" onclick="fecharDrawerFiscal()"></div>
+    <div class="drawer" id="fiscal-drawer">
+      <div class="drawer-header">
+        <div style="flex:1;min-width:0" id="fiscal-drawer-header-content"></div>
+        <button class="btn btn-ghost btn-xs" onclick="fecharDrawerFiscal()"><i data-lucide="x" style="width:14px;height:14px"></i></button>
+      </div>
+      <div class="drawer-body" id="fiscal-drawer-body"></div>
+      <div class="drawer-footer" id="fiscal-drawer-footer"></div>
+    </div>`;
+  document.body.appendChild(wrap);
+}
+
+function abrirDrawerFiscal(kind) {
+  garantirOverlaysFiscal();
+  const header = document.getElementById('fiscal-drawer-header-content');
+  const body = document.getElementById('fiscal-drawer-body');
+  const footer = document.getElementById('fiscal-drawer-footer');
+
+  if (kind === 'trocar-empresa') {
+    header.innerHTML = `<div class="drawer-title">Trocar empresa</div>`;
+    body.innerHTML = `
+      <div class="ef-field">
+        <label class="ef-label">Empresa</label>
+        <select class="ef-select" id="fd-trocar-empresa">
+          ${Object.values(EMPRESAS_FISCAL).map((emp) => `<option value="${emp.codigo}" ${emp.codigo === empresaAtualFiscal ? 'selected' : ''}>${emp.razaoSocial} — ${emp.codigo}</option>`).join('')}
+        </select>
+      </div>`;
+    footer.innerHTML = `<button class="btn btn-secondary" onclick="fecharDrawerFiscal()">Cancelar</button><button class="btn btn-primary" onclick="confirmarTrocaEmpresaFiscal()">Confirmar</button>`;
+  }
+
+  if (kind === 'vigencia-historico') {
+    header.innerHTML = `<div class="drawer-title">Histórico de vigências</div><div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">Selecione um período para consultar em modo somente leitura.</div>`;
+    const vigs = vigenciasEmpresaFiscal();
+    body.innerHTML = `<div class="fp-vt">${vigs.map((v) => {
+      const isCurrent = !v.fim;
+      const isSelected = (vigenciaSelecionadaFiscal || vigenciaAtualObjFiscal().id) === v.id;
+      return `<div class="fp-vt-item${isSelected ? ' is-current' : ''}" onclick="selecionarVigenciaFiscal('${v.id}')">
+        <div class="fp-vt-dot"></div>
+        <div style="flex:1;">
+          <div class="fp-vt-period">${v.fim ? v.inicio + ' – ' + v.fim : 'desde ' + v.inicio}</div>
+        </div>
+        <span class="badge ${isCurrent ? 'badge-success' : 'badge-neutral'}">${isCurrent ? 'Atual' : 'Encerrada'}</span>
+      </div>`;
+    }).join('')}</div>`;
+    footer.innerHTML = `<button class="btn btn-secondary" onclick="voltarVigenciaAtualFiscal()" ${!historicoAtivoFiscal() ? 'disabled' : ''}>Voltar à vigência atual</button><button class="btn btn-primary" onclick="abrirNovaVigenciaFiscal()" ${historicoAtivoFiscal() ? 'disabled' : ''}>Iniciar nova vigência</button>`;
+  }
+
+  if (kind.startsWith('edit-')) {
+    renderEditDrawerFiscal(kind.replace('edit-', ''), header, body, footer);
+  }
+
+  document.getElementById('fiscal-drawer-overlay').classList.add('open');
+  document.getElementById('fiscal-drawer').classList.add('open');
+  refreshIcons();
+}
+function fecharDrawerFiscal() {
+  document.getElementById('fiscal-drawer-overlay').classList.remove('open');
+  document.getElementById('fiscal-drawer').classList.remove('open');
+}
+
+function selecionarVigenciaFiscal(id) {
+  const atual = vigenciaAtualObjFiscal();
+  vigenciaSelecionadaFiscal = id === atual.id ? null : id;
+  fecharDrawerFiscal();
+  renderShellFiscal();
+}
+function voltarVigenciaAtualFiscal() {
+  vigenciaSelecionadaFiscal = null;
+  fecharDrawerFiscal();
+  renderShellFiscal();
+}
+function abrirNovaVigenciaFiscal() {
+  fecharDrawerFiscal();
+  document.getElementById('fiscal-nova-vig-backdrop').classList.remove('hidden');
+}
+
+function confirmarTrocaEmpresaFiscal() {
+  const codigo = document.getElementById('fd-trocar-empresa').value;
+  empresaAtualFiscal = codigo;
+  vigenciaSelecionadaFiscal = null;
+  abaAtivaFiscal = 'gerais';
+  indicadoresCarregandoFiscal = true;
+  fecharDrawerFiscal();
+  renderShellFiscal();
+  setTimeout(() => { indicadoresCarregandoFiscal = false; renderTabContentFiscal(); }, 500);
+  showToastFiscal('Empresa alterada', `Exibindo parâmetros fiscais de ${EMPRESAS_FISCAL[codigo].razaoSocial}.`);
+}
+
+function renderEditDrawerFiscal(aba, header, body, footer) {
+  const d = DADOS_FISCAL[empresaAtualFiscal];
+  const titles = { gerais: 'Editar parâmetros gerais', estaduaisMunicipais: 'Editar parâmetros municipais', contabilFiscal: 'Editar Contábil × Fiscal', obrigacoesDocumentos: 'Editar obrigações acessórias' };
+  header.innerHTML = `<div class="drawer-title">${titles[aba]}</div><div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">Altere os parâmetros de origem Manual desta aba. Os demais campos são exibidos apenas para contexto.</div>`;
+
+  if (aba === 'gerais') {
+    const g = d.gerais;
+    body.innerHTML = `
+      ${lockedFieldFiscal('Data de opção pelo Simples Nacional', g.dataOpcaoSN)}
+      ${lockedFieldFiscal('Anexo(s) e % de receita', g.anexo)}
+      ${lockedFieldFiscal('RBT12', g.rbt12)}
+      <div class="ef-field"><label class="ef-label">Aviso de proximidade do limite de enquadramento (%)</label><input class="ef-input" id="fd-avisoLimite" type="number" value="${g.avisoLimite}" /></div>
+      <div class="ef-field"><label class="ef-label">Aviso de proximidade do sublimite (%)</label><input class="ef-input" id="fd-avisoSublimite" type="number" value="${g.avisoSublimite}" /></div>
+      <label class="fp-cb"><input type="checkbox" id="fd-avisoTrocaFaixa" ${g.avisoTrocaFaixa ? 'checked' : ''} /> Aviso de troca de faixa de receita bruta — ativo</label>
+      <div class="ef-field"><label class="ef-label">Regime de reconhecimento de receita</label><select class="ef-select" id="fd-regimeReconhecimento"><option ${g.regimeReconhecimento === 'Competência' ? 'selected' : ''}>Competência</option><option ${g.regimeReconhecimento === 'Caixa' ? 'selected' : ''}>Caixa</option></select></div>
+      <div class="ef-field"><label class="ef-label">Código de acesso ao PGDAS-D</label><input class="ef-input" id="fd-codigoAcesso" type="text" value="${g.codigoAcesso}" /></div>`;
+    footer.innerHTML = `<button class="btn btn-secondary" onclick="fecharDrawerFiscal()">Cancelar</button><button class="btn btn-primary" onclick="salvarEdicaoFiscal('gerais')">Salvar</button>`;
+  }
+
+  if (aba === 'estaduaisMunicipais') {
+    const m = d.estaduaisMunicipais;
+    const opcoesIss = ['Percentual sobre faturamento (dentro do DAS)', 'Retido na fonte pelo tomador', 'Valor fixo mensal', 'Isento'];
+    const opcoesClasse = ['Advocacia', 'Contabilidade', 'Medicina', 'Odontologia', 'Engenharia', 'Arquitetura', 'Psicologia', 'Fisioterapia', 'Veterinária', 'Outra', 'Não aplicável'];
+    body.innerHTML = `
+      <div class="ef-field"><label class="ef-label">Forma de cálculo do ISS</label><select class="ef-select" id="fd-issForma">${opcoesIss.map((o) => `<option ${o === m.issForma ? 'selected' : ''}>${o}</option>`).join('')}</select></div>
+      <div class="ef-field"><label class="ef-label">ISS fixo por classe profissional</label><select class="ef-select" id="fd-issFixoClasse">${opcoesClasse.map((o) => `<option ${o === m.issFixoClasse ? 'selected' : ''}>${o}</option>`).join('')}</select></div>`;
+    footer.innerHTML = `<button class="btn btn-secondary" onclick="fecharDrawerFiscal()">Cancelar</button><button class="btn btn-primary" onclick="salvarEdicaoFiscal('estaduaisMunicipais')">Salvar</button>`;
+  }
+
+  if (aba === 'contabilFiscal') {
+    const c = d.contabilFiscal;
+    const opcoes = ['Conta única para todos', 'Uma conta por cadastro', 'Uma conta por cadastro, código igual ao da conta'];
+    body.innerHTML = `
+      ${lockedFieldFiscal('Gerar lançamentos contábeis automaticamente', 'Entradas, Saídas e Serviços geram lançamento automático nos três departamentos.')}
+      ${lockedFieldFiscal('Tipo de lançamento contábil', 'Analítico, na data do movimento.')}
+      ${lockedFieldFiscal('Conta cliente/fornecedor em pagamento à vista', 'Evita conta transitória quando não há parcelamento.')}
+      <div class="ef-field"><label class="ef-label">Classificação de conta — Fornecedores</label><select class="ef-select" id="fd-classifFornecedores">${opcoes.map((o) => `<option ${o === c.classifFornecedores ? 'selected' : ''}>${o}</option>`).join('')}</select></div>
+      <div class="ef-field"><label class="ef-label">Classificação de conta — Clientes</label><select class="ef-select" id="fd-classifClientes">${opcoes.map((o) => `<option ${o === c.classifClientes ? 'selected' : ''}>${o}</option>`).join('')}</select></div>`;
+    footer.innerHTML = `<button class="btn btn-secondary" onclick="fecharDrawerFiscal()">Cancelar</button><button class="btn btn-primary" onclick="salvarEdicaoFiscal('contabilFiscal')">Salvar</button>`;
+  }
+
+  if (aba === 'obrigacoesDocumentos') {
+    const o = d.obrigacoesDocumentos;
+    body.innerHTML = `
+      ${lockedFieldFiscal('PGDAS-D e DAS', 'Apuração mensal, obrigatória mesmo sem movimento.')}
+      ${lockedFieldFiscal('Guias avulsas de ICMS e ISS', 'Habilitadas automaticamente com excesso de sublimite.')}
+      ${lockedFieldFiscal('DEFIS', 'Habilitada — optante do Simples Nacional.')}
+      ${lockedFieldFiscal('DASN-SIMEI', 'Não habilitada — empresa não é MEI.')}
+      <label class="fp-cb"><input type="checkbox" id="fd-esocial" ${o.esocial ? 'checked' : ''} /> eSocial — parametrização básica ativa</label>`;
+    footer.innerHTML = `<button class="btn btn-secondary" onclick="fecharDrawerFiscal()">Cancelar</button><button class="btn btn-primary" onclick="salvarEdicaoFiscal('obrigacoesDocumentos')">Salvar</button>`;
+  }
+}
+
+function salvarEdicaoFiscal(aba) {
+  const d = DADOS_FISCAL[empresaAtualFiscal];
+  if (aba === 'gerais') {
+    d.gerais.avisoLimite = document.getElementById('fd-avisoLimite').value;
+    d.gerais.avisoSublimite = document.getElementById('fd-avisoSublimite').value;
+    d.gerais.avisoTrocaFaixa = document.getElementById('fd-avisoTrocaFaixa').checked;
+    d.gerais.regimeReconhecimento = document.getElementById('fd-regimeReconhecimento').value;
+    d.gerais.codigoAcesso = document.getElementById('fd-codigoAcesso').value;
+  }
+  if (aba === 'estaduaisMunicipais') {
+    d.estaduaisMunicipais.issForma = document.getElementById('fd-issForma').value;
+    d.estaduaisMunicipais.issFixoClasse = document.getElementById('fd-issFixoClasse').value;
+  }
+  if (aba === 'contabilFiscal') {
+    d.contabilFiscal.classifFornecedores = document.getElementById('fd-classifFornecedores').value;
+    d.contabilFiscal.classifClientes = document.getElementById('fd-classifClientes').value;
+  }
+  if (aba === 'obrigacoesDocumentos') {
+    d.obrigacoesDocumentos.esocial = document.getElementById('fd-esocial').checked;
+  }
+  fecharDrawerFiscal();
+  renderTabContentFiscal();
+  showToastFiscal('Parâmetros salvos', 'As alterações foram aplicadas à vigência atual.');
+}
+
+/* ---- Modal "Iniciar nova vigência" (estrutura manual .modal-backdrop, ver catálogo) ---- */
+function garantirModalNovaVigenciaFiscal() {
+  if (document.getElementById('fiscal-nova-vig-backdrop')) return;
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+  <div class="modal-backdrop hidden" id="fiscal-nova-vig-backdrop">
+    <div class="modal-panel" style="max-width:440px;">
+      <div class="modal-header">
+        <div style="font-size:15px; font-weight:700;">Iniciar nova vigência</div>
+        <button class="btn btn-ghost btn-xs" onclick="document.getElementById('fiscal-nova-vig-backdrop').classList.add('hidden')"><i data-lucide="x" style="width:14px;height:14px"></i></button>
+      </div>
+      <div class="modal-body">
+        <div style="font-size:13px; color:var(--text-secondary); margin-bottom:14px; line-height:1.55;">Informe a data de início da nova vigência. Ela passa a ser a vigência atual e recebe uma cópia dos parâmetros da vigência vigente até então; a vigência atual é encerrada no dia anterior.</div>
+        <div class="ef-field">
+          <label class="ef-label">Data de início</label>
+          <input class="ef-input" id="fiscal-nova-vig-data" placeholder="dd/mm/aaaa" />
+        </div>
+        <div id="fiscal-nova-vig-erro" style="display:none; color:var(--danger); font-size:12px; margin-top:6px;">Informe uma data válida, posterior ao início da vigência atual.</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="document.getElementById('fiscal-nova-vig-backdrop').classList.add('hidden')">Cancelar</button>
+        <button class="btn btn-primary" onclick="salvarNovaVigenciaFiscal()">Iniciar vigência</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(wrap);
+}
+function salvarNovaVigenciaFiscal() {
+  const val = document.getElementById('fiscal-nova-vig-data').value.trim();
+  const erro = document.getElementById('fiscal-nova-vig-erro');
+  const valid = /^\d{2}\/\d{2}\/\d{4}$/.test(val);
+  if (!valid) { erro.style.display = 'block'; return; }
+  erro.style.display = 'none';
+  const atual = vigenciaAtualObjFiscal();
+  atual.fim = 'dia anterior a ' + val;
+  vigenciasEmpresaFiscal().unshift({ id: 'v' + Date.now(), inicio: val, fim: null });
+  document.getElementById('fiscal-nova-vig-backdrop').classList.add('hidden');
+  vigenciaSelecionadaFiscal = null;
+  renderShellFiscal();
+  showToastFiscal('Nova vigência iniciada', `Vigente a partir de ${val}.`);
+}
+
+/* ---- Toast (padrão replicado — core não tem um global) ---- */
+function showToastFiscal(title, desc) {
+  let wrap = document.getElementById('fp-toast-wrap');
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.className = 'fp-toast-wrap';
+    wrap.id = 'fp-toast-wrap';
+    document.body.appendChild(wrap);
+  }
+  const el = document.createElement('div');
+  el.className = 'fp-toast';
+  el.innerHTML = `<i data-lucide="check-circle-2" style="color:var(--success); width:18px; height:18px; flex-shrink:0;"></i><div><div style="font-weight:600;">${title}</div><div style="color:var(--text-secondary); font-size:12px; margin-top:2px;">${desc}</div></div>`;
+  wrap.appendChild(el);
+  refreshIcons();
+  setTimeout(() => el.remove(), 5000);
+}
+
+</script>
+<script src="../assets/core/cockpit-01-shell.js"></script>
+<script src="../assets/core/cockpit-02-state-helpers.js"></script>
+<script src="../assets/core/cockpit-08-datatable.js"></script>
+<script src="../assets/core/cockpit-07-modals-init.js"></script>
+<script src="../assets/core/cockpit-09-cx-sidebar.js"></script>
+<script>
+/* ---- Boot ----
+   Precisa rodar DEPOIS dos scripts de assets/core/ acima (refreshIcons,
+   dtCreate etc. só existem depois deles serem carregados). */
+renderShellFiscal();
+garantirModalNovaVigenciaFiscal();
+</script>
 </body>
 </html>

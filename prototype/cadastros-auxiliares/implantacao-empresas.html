@@ -1,80 +1,277 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
-  <title>Implantação DP — AutoPilot</title>
-  <link rel="stylesheet" href="../shared/css/tokens.css" />
-  <link rel="stylesheet" href="../shared/css/base.css" />
-  <link rel="stylesheet" href="../shared/css/components.css?v=2" />
-  <link rel="stylesheet" href="../shared/css/layout.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1280" />
+<title>Implantação DP · Protótipo</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: var(--surface-subtle, #fafafa); }
+
+  .ie-wrap { max-width: 1180px; margin: 0 auto; padding: 32px 24px 64px; display: flex; flex-direction: column; gap: 20px; }
+  .ie-crumb { font-size: 13px; color: var(--text-tertiary); display: flex; align-items: center; gap: 6px; }
+  .ie-crumb a { color: var(--brand-blue); text-decoration: none; font-weight: 500; }
+  .ie-crumb a:hover { text-decoration: underline; }
+  .ie-crumb b { color: var(--text-primary); font-weight: 600; }
+  .ie-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .ie-title { font-size: 20px; font-weight: 700; color: var(--text-primary); margin: 2px 0 4px; }
+  .ie-sub { font-size: 13.5px; color: var(--text-secondary); max-width: 640px; line-height: 1.5; }
+
+  .ie-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
+  .ie-field { display: flex; flex-direction: column; gap: 4px; position: relative; }
+  .ie-field label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+  .ie-input { width: 300px; max-width: 100%; height: 36px; padding: 0 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; font-family: inherit; outline: none; background: #fff; color: var(--text-primary); }
+  .ie-input:focus { border-color: var(--brand-pink); box-shadow: 0 0 0 2px var(--brand-pink-soft); }
+
+  /* Filtro de status — padrão .flt-bar/.flt-trigger/.flt-menu do catálogo do
+     Cockpit (dropdown neutro estilo shadcn/Radix), adaptado para multi-seleção
+     (o original também é multi-select — UI.initMultiSelect). */
+  .ie-flt-trigger { min-width: 220px; justify-content: space-between; }
+  .ie-flt-menu { display: none; width: 260px; }
+  .ie-flt-menu.open { display: block; }
+  .ie-flt-item { justify-content: space-between; }
+  .ie-flt-item-count { font-size: 12px; color: var(--text-tertiary); }
+
+  /* Progresso das 3 frentes que bloqueiam a implantação (colaboradores,
+     histórico financeiro, cálculo em paralelo) — réplica leve do segbar do
+     protótipo original; sem componente pronto equivalente no catálogo. */
+  .ie-segbar { display: flex; gap: 3px; width: 110px; flex-shrink: 0; }
+  .ie-segbar-seg { flex: 1; height: 6px; border-radius: 3px; background: var(--border-strong); }
+  .ie-segbar-seg.is-success { background: var(--success); }
+  .ie-segbar-seg.is-warning { background: var(--warning); }
+  .ie-progress-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+  .ie-progress-pct { font-size: 12px; color: var(--text-tertiary); }
+
+  #dt-implant-empresas .dt-toolbar { display: none; }
+</style>
 </head>
 <body>
-  <div id="shell-root"></div>
 
-  <template id="page-content">
-    <section class="max-w-7xl flex flex-col gap-4">
-      <div class="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h1 class="text-xl font-semibold mb-1">Implantação DP</h1>
-          <p class="text-sm text-muted max-w-2xl" id="implantacao-empresas-subtitulo">Acompanhamento por empresa: colaboradores, histórico de folha e cálculo em paralelo — mais rubricas e histórico, de forma informativa.</p>
-        </div>
-        <a href="implantacao-importar.html" class="btn btn-sm w-fit" id="btn-importar-ficha-empresas"><span id="icon-upload-empresas"></span> Nova Implantação</a>
-      </div>
+<div class="ie-wrap">
+  <div class="ie-crumb"><a href="implantacao-geral.html">Implantação de empresas</a><span>/</span><b>DP</b></div>
 
-      <div class="flex flex-wrap items-end gap-3">
-        <div class="flex flex-col gap-1">
-          <label class="field-label">Empresa</label>
-          <input id="f-busca-empresa" class="field-input w-72" placeholder="Pesquisar por nome ou CNPJ" />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="field-label">Status</label>
-          <div class="field-select-wrap w-72">
-            <select id="f-status-empresa" class="field-select"></select>
-            <span class="chev">::chevron-down::</span>
-          </div>
-        </div>
-      </div>
+  <div class="ie-head">
+    <div>
+      <h1 class="ie-title">Implantação DP</h1>
+      <p class="ie-sub" id="ie-subtitulo">Acompanhamento por empresa: colaboradores, histórico de folha e cálculo em paralelo — mais rubricas e histórico, de forma informativa.</p>
+    </div>
+    <a href="implantacao-importar.html" class="btn btn-primary btn-sm" style="width:fit-content;"><i data-lucide="upload" style="width:15px;height:15px;"></i> Nova Implantação</a>
+  </div>
 
-      <div class="table-wrap">
-        <table class="dtable dtable-fixed" id="tabela-empresas-implantacao">
-          <colgroup>
-            <col />
-            <col style="width:260px" />
-            <col style="width:150px" />
-            <col style="width:40px" />
-          </colgroup>
-          <thead>
-            <tr>
-              <th>Empresa</th>
-              <th class="col-pad-md">Etapa atual</th>
-              <th class="col-pad-md">Status</th>
-              <th class="col-pad-end"></th>
-            </tr>
-          </thead>
-          <tbody id="tabela-empresas-implantacao-body"></tbody>
-        </table>
-      </div>
-    </section>
-  </template>
+  <div class="ie-filters">
+    <div class="ie-field">
+      <label for="ie-busca">Empresa</label>
+      <input id="ie-busca" class="ie-input" placeholder="Pesquisar por nome ou CNPJ" />
+    </div>
+    <div class="ie-field">
+      <label>Status</label>
+      <button type="button" class="flt-trigger has-val ie-flt-trigger" id="ie-flt-status-trigger" onclick="toggleFltStatusImplantEmpresas(event)">
+        <span id="ie-flt-status-label">Em andamento</span>
+        <i data-lucide="chevron-down" style="width:16px;height:16px;"></i>
+      </button>
+      <div class="flt-menu ie-flt-menu" id="ie-flt-status-menu"></div>
+    </div>
+  </div>
 
-  <script src="../shared/js/icons.js"></script>
-  <script src="../shared/js/shell.js?v=2"></script>
-  <script src="../shared/js/ui.js?v=2"></script>
-  <script src="../shared/js/fab-tools.js"></script>
-  <script src="../empresas/js/data.js"></script>
-  <script src="js/implantacao/data.js?v=5"></script>
-  <script src="js/implantacao/empresas-data.js?v=7"></script>
-  <script>
-    Shell.mount(document.getElementById("shell-root"), {
-      base: "../",
-      active: "implantacao-dp",
-      crumbs: [{ label: "implantação de empresas", href: "implantacao-geral.html" }, { label: "DP" }],
+  <div id="dt-implant-empresas"></div>
+</div>
+
+<script src="js/implantacao/data.js"></script>
+<script src="js/implantacao/empresas-data.js"></script>
+<script src="../empresas/js/data.js"></script>
+
+<script>
+/* =========================================================================
+   Migração visual (Cockpit) da lista de empresas em Implantação DP — porta
+   de entrada do console (implantacao-console.html?empresa=CODE). Conteúdo,
+   dados e navegação idênticos ao original (prototype/cadastros-auxiliares/
+   implantacao-empresas.html + js/implantacao/empresas-list.js); só a camada
+   de apresentação muda para os componentes do Cockpit (datatable, badges,
+   filtro dropdown). Sufixo do fluxo: "ImplantEmpresas". ========================= */
+window.FLOW_CONFIG = { standalone: true };
+
+// Status como array (multi-select) — mesmo comportamento do original.
+// Array vazio (ou com as duas opções marcadas) equivale a "todos".
+var stateImplantEmpresas = { statuses: ["em_andamento"], busca: "" };
+
+function empresaNomeImplantEmpresas(codigo) {
+  var empresa = window.EmpresasData.findEmpresaByCodigo(codigo);
+  return empresa ? empresa.nome : codigo;
+}
+function empresaCnpjImplantEmpresas(codigo) {
+  var empresa = window.EmpresasData.findEmpresaByCodigo(codigo);
+  return empresa && empresa.dadosGerais ? empresa.dadosGerais.cnpj : "";
+}
+function apenasDigitosImplantEmpresas(v) {
+  return (v || "").replace(/\D/g, "");
+}
+
+function statusOptionsImplantEmpresas() {
+  var D = window.EmpresasImplantacaoData;
+  var resumo = D.contarPorStatusEmpresa(D.EMPRESAS_IMPLANTACAO);
+  return [
+    { value: "em_andamento", label: "Em andamento", count: resumo.emAndamento },
+    { value: "implantada", label: "Implantadas", count: resumo.implantada },
+  ];
+}
+
+function statusBadgeHtmlImplantEmpresas(empresa) {
+  if (empresa.status === "implantada") {
+    return '<span class="badge badge-success"><i data-lucide="check" style="width:13px;height:13px;"></i> Implantada</span>';
+  }
+  return '<span class="badge badge-info"><i data-lucide="clock" style="width:13px;height:13px;"></i> Em andamento</span>';
+}
+
+// Um segmento por frente que bloqueia a implantação (colaboradores,
+// histórico financeiro, cálculo em paralelo) — verde = concluída, âmbar =
+// em andamento, neutro = nada feito ainda. Detalhe de cada frente no title
+// (tooltip nativo), igual ao original (que usava data-tooltip).
+function segbarHtmlImplantEmpresas(r, empresaCodigo) {
+  var col = r.colaboradores.total === 0 ? "" : r.colaboradores.prontos === r.colaboradores.total ? "is-success" : r.colaboradores.prontos === 0 ? "" : "is-warning";
+  var fin = r.financeiro.necessarias === 0 ? "" : r.financeiro.carregadas === r.financeiro.necessarias ? "is-success" : r.financeiro.carregadas === 0 ? "" : "is-warning";
+  var calc = r.calculoParalelo.total === 0 ? "" : r.calculoParalelo.comDivergencia > 0 ? "is-warning" : r.calculoParalelo.validadas === r.calculoParalelo.total ? "is-success" : "";
+  var tituloCol = "Colaboradores: " + r.colaboradores.prontos + "/" + r.colaboradores.total + " prontos";
+  var tituloFin = "Competências de folha: " + r.financeiro.carregadas + "/" + r.financeiro.necessarias + " carregadas";
+  var tituloCalc = "Cálculo em paralelo: " + r.calculoParalelo.validadas + "/" + r.calculoParalelo.total + " validadas" + (r.calculoParalelo.comDivergencia ? " · " + r.calculoParalelo.comDivergencia + " com divergência" : "");
+  var D = window.EmpresasImplantacaoData;
+  return (
+    '<div class="ie-progress-row">' +
+    '<div class="ie-segbar">' +
+    '<div class="ie-segbar-seg ' + col + '" title="' + tituloCol + '"></div>' +
+    '<div class="ie-segbar-seg ' + fin + '" title="' + tituloFin + '"></div>' +
+    '<div class="ie-segbar-seg ' + calc + '" title="' + tituloCalc + '"></div>' +
+    "</div>" +
+    '<span class="ie-progress-pct">' + D.percentualConclusao(r, empresaCodigo) + "%</span>" +
+    "</div>"
+  );
+}
+
+function linhasImplantEmpresas() {
+  var D = window.EmpresasImplantacaoData;
+  var opts = statusOptionsImplantEmpresas();
+  var buscaNormalizada = stateImplantEmpresas.busca.trim().toLowerCase();
+  var digitosBusca = apenasDigitosImplantEmpresas(buscaNormalizada);
+  return D.EMPRESAS_IMPLANTACAO
+    .filter(function (e) {
+      return stateImplantEmpresas.statuses.length === 0 || stateImplantEmpresas.statuses.length === opts.length || stateImplantEmpresas.statuses.indexOf(e.status) !== -1;
+    })
+    .filter(function (e) {
+      return (
+        !buscaNormalizada ||
+        empresaNomeImplantEmpresas(e.empresaCodigo).toLowerCase().indexOf(buscaNormalizada) !== -1 ||
+        (digitosBusca !== "" && apenasDigitosImplantEmpresas(empresaCnpjImplantEmpresas(e.empresaCodigo)).indexOf(digitosBusca) !== -1)
+      );
+    })
+    .sort(function (a, b) {
+      return empresaNomeImplantEmpresas(a.empresaCodigo).localeCompare(empresaNomeImplantEmpresas(b.empresaCodigo), "pt-BR", { sensitivity: "base" });
+    })
+    .map(function (empresa) {
+      var r = D.resumoCompleto(empresa);
+      return {
+        id: empresa.empresaCodigo,
+        empresaCodigo: empresa.empresaCodigo,
+        empresa: empresaNomeImplantEmpresas(empresa.empresaCodigo),
+        etapaAtual: empresa.etapaAtual,
+        status: empresa.status,
+        resumo: r,
+      };
     });
-    document.querySelectorAll(".field-select-wrap .chev").forEach((el) => (el.innerHTML = Icon("chevron-down", "size-4")));
-    document.getElementById("icon-upload-empresas").innerHTML = Icon("upload", "size-4");
-  </script>
-  <script src="js/implantacao/empresas-list.js?v=5"></script>
+}
+
+function renderTabelaImplantEmpresas() {
+  dtSetRows("implant-empresas", linhasImplantEmpresas());
+}
+
+function irParaConsoleImplantEmpresas(row) {
+  window.location.href = "implantacao-console.html?empresa=" + encodeURIComponent(row.empresaCodigo);
+}
+
+// ===== Filtro de status (dropdown multi-select, padrão .flt-trigger/.flt-menu) =====
+function labelFiltroStatusImplantEmpresas() {
+  var opts = statusOptionsImplantEmpresas();
+  if (stateImplantEmpresas.statuses.length === 0 || stateImplantEmpresas.statuses.length === opts.length) return "Todos os status";
+  return opts.filter(function (o) { return stateImplantEmpresas.statuses.indexOf(o.value) !== -1; }).map(function (o) { return o.label; }).join(", ");
+}
+
+function renderFiltroStatusImplantEmpresas() {
+  var opts = statusOptionsImplantEmpresas();
+  document.getElementById("ie-flt-status-label").textContent = labelFiltroStatusImplantEmpresas();
+  document.getElementById("ie-flt-status-menu").innerHTML = opts.map(function (o) {
+    var marcado = stateImplantEmpresas.statuses.indexOf(o.value) !== -1;
+    return (
+      '<div class="flt-item ie-flt-item" onclick="event.stopPropagation(); toggleStatusValueImplantEmpresas(\'' + o.value + '\')">' +
+      "<span>" + esc(o.label) + "</span>" +
+      '<span style="display:flex;align-items:center;gap:8px;">' +
+      '<span class="ie-flt-item-count">' + o.count + "</span>" +
+      (marcado ? '<i data-lucide="check" class="flt-check" style="width:15px;height:15px;"></i>' : '<span style="width:15px;display:inline-block;"></span>') +
+      "</span></div>"
+    );
+  }).join("");
+  refreshIcons();
+}
+
+function toggleStatusValueImplantEmpresas(value) {
+  var idx = stateImplantEmpresas.statuses.indexOf(value);
+  if (idx === -1) stateImplantEmpresas.statuses.push(value);
+  else stateImplantEmpresas.statuses.splice(idx, 1);
+  renderFiltroStatusImplantEmpresas();
+  renderTabelaImplantEmpresas();
+}
+
+function toggleFltStatusImplantEmpresas(evt) {
+  evt.stopPropagation();
+  document.getElementById("ie-flt-status-menu").classList.toggle("open");
+}
+
+document.addEventListener("click", function (e) {
+  var menu = document.getElementById("ie-flt-status-menu");
+  var trigger = document.getElementById("ie-flt-status-trigger");
+  if (!menu || !menu.classList.contains("open")) return;
+  if (menu.contains(e.target) || trigger.contains(e.target)) return;
+  menu.classList.remove("open");
+});
+
+function initImplantEmpresas() {
+  dtCreate("implant-empresas", {
+    columns: [
+      {
+        key: "empresa", label: "Empresa", sortable: true,
+        render: function (row) {
+          return '<div style="display:flex;flex-direction:column;gap:2px;min-width:220px;"><span class="font-medium">' + esc(row.empresa) + "</span>" + segbarHtmlImplantEmpresas(row.resumo) + "</div>";
+        },
+      },
+      { key: "etapaAtual", label: "Etapa atual", render: function (row) { return '<span style="color:var(--text-secondary);">' + esc(row.etapaAtual) + "</span>"; } },
+      { key: "status", label: "Status", render: statusBadgeHtmlImplantEmpresas },
+      { key: "seta", label: "", render: function () { return '<i data-lucide="arrow-right" style="width:16px;height:16px;color:var(--text-tertiary);"></i>'; } },
+    ],
+    rows: linhasImplantEmpresas(),
+    rowKey: "id",
+    pageSize: 20,
+    searchable: false,
+    onRowClick: irParaConsoleImplantEmpresas,
+    emptyMessage: "Nenhuma empresa encontrada para os filtros selecionados.",
+  });
+
+  renderFiltroStatusImplantEmpresas();
+
+  document.getElementById("ie-busca").addEventListener("input", function (e) {
+    stateImplantEmpresas.busca = e.target.value;
+    renderTabelaImplantEmpresas();
+  });
+
+  refreshIcons();
+}
+</script>
+
+<script src="../assets/core/cockpit-01-shell.js"></script>
+<script src="../assets/core/cockpit-02-state-helpers.js"></script>
+<script src="../assets/core/cockpit-08-datatable.js"></script>
+<script src="../assets/core/cockpit-07-modals-init.js"></script>
+<script src="../assets/core/cockpit-09-cx-sidebar.js"></script>
+<script>initImplantEmpresas();</script>
 </body>
 </html>

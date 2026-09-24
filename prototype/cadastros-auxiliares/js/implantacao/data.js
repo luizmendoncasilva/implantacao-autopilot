@@ -555,6 +555,16 @@
     };
   }
 
+  // Todo colaborador que chega a "pronto" precisa da ficha completa (RF-DP-417),
+  // não só os que já nasceram prontos no mock — usada quando um colaborador
+  // "divergencia"/"pendente_conciliacao"/"nao_encontrado_lake" é conciliado
+  // (ver salvarConciliacaoConcil/simularConciliacaoFichaConcil/
+  // criarColaboradorSemLakeConcil em implantacao-console.html) e ainda não
+  // tem fichaCompleta gerada. Seed pelo id do colaborador — determinístico.
+  function gerarFichaCompletaParaColaborador(colaborador) {
+    return gerarFichaCompletaMock(colaborador.id, colaborador.cargo, CARGOS_CBO_POOL[colaborador.id % CARGOS_CBO_POOL.length], colaborador.id);
+  }
+
   // Gera `qtdSemDivergencia` colaboradores "pronto" + `qtdDivergencia`
   // colaboradores "divergencia" (com 1 campo mock divergente cada) para uma
   // empresa do lote — usado por js/implantacao/importar.js ao concluir a
@@ -697,6 +707,7 @@
     setColaboradores,
     adicionarColaboradoresImportados,
     gerarColaboradoresLote,
+    gerarFichaCompletaParaColaborador,
     contarPorStatus,
     camposNaoResolvidos,
     iniciais,

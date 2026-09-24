@@ -1,151 +1,1513 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
-  <title>Console de Implantação — AutoPilot</title>
-  <link rel="stylesheet" href="../shared/css/tokens.css" />
-  <link rel="stylesheet" href="../shared/css/base.css" />
-  <link rel="stylesheet" href="../shared/css/components.css?v=2" />
-  <link rel="stylesheet" href="../shared/css/layout.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Console de Implantação — AutoPilot</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: var(--surface-muted); }
+  .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+  .console-page-wrap { max-width: 1180px; margin: 0 auto; padding: 28px 32px 64px; display: flex; flex-direction: column; gap: 16px; }
+
+  .back-link { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 500; color: var(--brand-blue); text-decoration: none; width: fit-content; }
+  .back-link:hover { text-decoration: underline; }
+  .back-link i[data-lucide] { width: 14px; height: 14px; }
+
+  /* ===== Header da empresa ===== */
+  .console-header { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 20px 24px; }
+  .console-header-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .console-header-top h1 { font-size: 19px; font-weight: 700; color: var(--text-primary); margin: 0; }
+  .console-header-meta { display: flex; flex-wrap: wrap; gap: 6px 22px; font-size: 12.5px; color: var(--text-secondary); margin-top: 6px; }
+  .console-header-meta b { color: var(--text-primary); font-weight: 600; }
+
+  /* Segbar — barra de progresso segmentada (3 frentes que bloqueiam) */
+  .segbar { display: flex; gap: 3px; height: 8px; width: 100%; max-width: 420px; }
+  .segbar-segment { flex: 1; border-radius: 4px; background: var(--border-strong); cursor: default; }
+  .segbar-segment.is-warning { background: var(--warning); }
+  .segbar-segment.is-success { background: var(--success); }
+
+  /* Cards de estatística */
+  .stat-card-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+  .stat-card { background: var(--surface-subtle); border: 1px solid var(--border); border-radius: 10px; padding: 10px 16px; min-width: 150px; display: flex; flex-direction: column; gap: 2px; }
+  .stat-card-clickable { cursor: pointer; transition: border-color .15s; }
+  .stat-card-clickable:hover { border-color: var(--brand-pink); }
+  .stat-card-value { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+  .stat-card-label { font-size: 11.5px; color: var(--text-tertiary); }
+  .stat-card.stat-card-warning { border-color: #fbe1b3; background: var(--warning-soft); }
+  .stat-card.stat-card-warning .stat-card-value { color: var(--warning); }
+  .stat-card.stat-card-success { border-color: #bbe8cc; background: var(--success-soft); }
+  .stat-card.stat-card-success .stat-card-value { color: var(--success); }
+
+  /* Alert genérico (variantes warning/info/destructive) */
+  .alert { display: flex; align-items: flex-start; gap: 10px; border-radius: 10px; padding: 12px 14px; font-size: 13px; line-height: 1.5; }
+  .alert i[data-lucide] { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; }
+  .alert-warning { background: var(--warning-soft); color: #8a5a06; }
+  .alert-warning i[data-lucide] { color: var(--warning); }
+  .alert-info { background: var(--info-soft); color: #1d4ed8; }
+  .alert-info i[data-lucide] { color: var(--info); }
+  .alert-destructive { background: var(--danger-soft); color: #a3161c; }
+  .alert-destructive i[data-lucide] { color: var(--danger); }
+  .alert-desc b { font-weight: 700; }
+  .alert-desc .btn-link { display: inline; }
+
+  .btn-link { background: none; border: none; padding: 0; font-size: inherit; font-weight: 600; color: var(--brand-blue); cursor: pointer; text-decoration: none; }
+  .btn-link:hover { text-decoration: underline; }
+
+  /* ===== Abas ===== */
+  .console-tabs-wrap { overflow-x: auto; max-width: 100%; }
+
+  /* Célula de status com hint abaixo do badge */
+  .status-cell-hint { font-size: 11px; color: var(--text-tertiary); margin-top: 3px; }
+
+  /* Botão de ação em coluna final de tabela ("visualizar"/"conferir") */
+  .row-action-icon { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 7px; color: var(--text-tertiary); }
+  .dt-row-clickable:hover .row-action-icon { color: var(--brand-pink); }
+
+  .tab-desc { font-size: 13px; color: var(--text-secondary); margin: 0 0 2px; }
+  .tab-toolbar { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+  /* Dependentes — link dentro da célula de nome */
+  .dep-link { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: var(--brand-blue); background: none; border: none; padding: 0; margin-top: 3px; cursor: pointer; }
+  .dep-link:hover { text-decoration: underline; }
+  .dep-link i[data-lucide] { width: 13px; height: 13px; }
+
+  /* Lista de itens simples (dependentes, pendências, checklist de parâmetros) */
+  .list-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .list-row:last-child { border-bottom: none; }
+
+  /* Campo de comparação (Lake × Ficha Financeira) */
+  .field-compare { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; background: var(--surface-subtle); }
+  .field-compare.is-resolved { border-color: #bbe8cc; background: var(--success-soft); }
+  .field-compare-head { font-size: 12.5px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
+  .field-compare-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .field-compare-option { position: relative; border: 1px solid var(--border-strong); border-radius: 8px; padding: 9px 10px; background: #fff; cursor: pointer; transition: border-color .15s, background .15s; }
+  .field-compare-option:hover { border-color: var(--brand-pink); }
+  .field-compare-option.is-selected { border-color: var(--brand-pink); background: var(--brand-pink-soft); }
+  .field-compare-option-src { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-tertiary); }
+  .field-compare-option-val { font-size: 13px; color: var(--text-primary); margin-top: 3px; font-weight: 500; }
+  .field-compare-option-val.is-missing { color: var(--text-tertiary); font-weight: 400; font-style: italic; }
+  .field-compare-check { position: absolute; top: 8px; right: 8px; width: 16px; height: 16px; color: var(--brand-pink); display: none; }
+  .field-compare-check i[data-lucide] { width: 16px; height: 16px; }
+  .field-compare-option.is-selected .field-compare-check { display: block; }
+  .field-compare-option-wide { grid-column: 1 / -1; }
+  .field-compare-manual-toggle { grid-column: 1 / -1; margin-top: 8px; }
+  .field-compare-manual-edit { grid-column: 1 / -1; margin-top: 8px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .field-compare-manual-edit .ef-input { flex: 1; min-width: 160px; }
+
+  /* Avatar circular (iniciais) */
+  .avatar-circle { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--brand-pink), #f97316); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+
+  /* Upload dropzone (mock) */
+  .upload-dropzone { border: 1.5px dashed var(--border-strong); border-radius: 12px; padding: 28px 16px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: border-color .15s, background .15s; }
+  .upload-dropzone:hover { border-color: var(--brand-pink); background: var(--brand-pink-soft); }
+  .upload-dropzone-icon { width: 34px; height: 34px; border-radius: 50%; background: var(--surface-muted); color: var(--text-tertiary); display: flex; align-items: center; justify-content: center; }
+  .upload-file-row { display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+  .upload-file-icon { width: 30px; height: 30px; border-radius: 7px; background: var(--brand-pink-soft); color: var(--brand-pink); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .upload-file-icon i[data-lucide] { width: 15px; height: 15px; }
+
+  /* ===== Drawer lateral (padrão do catálogo) — reaproveitado por Concil, Dependentes, VisColab e LayoutRel ===== */
+  .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.25); z-index: 40; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+  .drawer { position: fixed; top: 0; right: 0; height: 100%; width: 480px; background: var(--surface); border-left: 1px solid var(--border); z-index: 50; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .25s cubic-bezier(.25,.46,.45,.94); }
+  .drawer.drawer-wide { width: 620px; }
+  .drawer.open { transform: translateX(0); }
+  .drawer-header { padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; display: flex; align-items: flex-start; gap: 12px; }
+  .drawer-title { font-size: 15px; font-weight: 700; color: var(--text-primary); line-height: 1.3; }
+  .drawer-desc { font-size: 12.5px; color: var(--text-secondary); margin-top: 2px; }
+  .drawer-body { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
+  .drawer-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 8px; flex-shrink: 0; background: var(--surface); }
+  .drawer-block { background: var(--surface-subtle); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+
+  /* ===== Modal centrado (linha rejeitada, visualizar genérico) — reaproveita .modal-backdrop/.modal-panel do core ===== */
+  .field-error-text { font-size: 11.5px; color: var(--danger); margin-top: 4px; display: none; }
+  .field-error-text.show { display: block; }
+
+  #toast-wrap-console { position: fixed; bottom: 24px; right: 24px; z-index: 120; display: flex; flex-direction: column; gap: 8px; }
+  .toast { display: flex; align-items: flex-start; gap: 10px; background: #fff; border: 1px solid var(--border); border-left: 3px solid var(--success); border-radius: 10px; padding: 12px 16px; box-shadow: 0 10px 30px rgba(0,0,0,.12); min-width: 280px; max-width: 360px; animation: toastIn .2s ease; }
+  .toast.toast-success { border-left-color: var(--success); }
+  .toast.toast-info { border-left-color: var(--info); }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .toast-icon { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; }
+  .toast.toast-success .toast-icon { color: var(--success); }
+  .toast.toast-info .toast-icon { color: var(--info); }
+  .toast-title { font-size: 13px; font-weight: 600; color: var(--text-primary); display: block; }
+  .toast-desc { font-size: 12px; color: var(--text-secondary); display: block; margin-top: 1px; }
+</style>
 </head>
 <body>
-  <div id="shell-root"></div>
 
-  <template id="page-content">
-    <section class="max-w-7xl flex flex-col gap-4">
-      <a href="implantacao-empresas.html" class="flex items-center gap-1 text-sm font-medium link-info w-fit">
-        <span id="icon-voltar"></span> voltar para a lista
-      </a>
-      <div id="console-header-mount"></div>
-      <div id="console-tabs-mount"></div>
-      <div id="console-content-mount" class="flex flex-col gap-4"></div>
-    </section>
-  </template>
+<div class="console-page-wrap">
+  <a href="implantacao-geral.html" class="back-link"><i data-lucide="chevron-left"></i> voltar para a lista</a>
 
-  <!-- Drawer lateral — Conferência do colaborador (Concil), aba Dados do
-       Colaborador. Componente em js/implantacao/fila-colaborador.js. -->
-  <div class="sheet-overlay" id="concil-overlay"></div>
-  <div class="sheet-panel sheet-panel-wide" id="concil-panel" role="dialog" aria-modal="true" aria-labelledby="concil-title">
-    <button type="button" class="sheet-close" id="concil-close"></button>
-    <div class="sheet-header">
-      <div class="flex items-start gap-3">
-        <div class="avatar-circle" id="concil-avatar"></div>
-        <div class="flex flex-col gap-0-5 min-w-0">
-          <div class="sheet-title" id="concil-title" style="padding-right:0;">Colaborador</div>
-          <div class="sheet-description" id="concil-sub">Empresa · CPF</div>
+  <div class="console-header" id="console-header"></div>
+
+  <div class="console-tabs-wrap">
+    <div class="form-tabs" id="console-tabs"></div>
+  </div>
+
+  <div id="console-content" class="flex flex-col gap-4"></div>
+</div>
+
+<!-- ================= Drawer — Conferência do colaborador (Concil) =================
+     Informação + interação (escolher campo a campo, criar colaborador, ignorar,
+     salvar) — sempre drawer lateral, nunca modal. -->
+<div class="drawer-overlay" id="concil-drawer-overlay" onclick="fecharDrawerConcil()"></div>
+<div class="drawer drawer-wide" id="concil-drawer" role="dialog" aria-modal="true" aria-labelledby="concil-drawer-title">
+  <div class="drawer-header">
+    <div class="avatar-circle" id="concil-avatar"></div>
+    <div style="flex:1;min-width:0">
+      <div class="drawer-title" id="concil-drawer-title">Colaborador</div>
+      <div class="drawer-desc" id="concil-drawer-sub">Empresa · CPF</div>
+    </div>
+    <button class="btn btn-ghost btn-xs" onclick="fecharDrawerConcil()"><i data-lucide="x" style="width:14px;height:14px"></i></button>
+  </div>
+  <div class="drawer-body">
+    <div class="alert alert-warning" id="concil-resumo-alert">
+      <span id="concil-resumo-icon"><i data-lucide="alert-triangle"></i></span>
+      <div class="alert-desc" id="concil-resumo-texto"></div>
+    </div>
+    <div class="flex flex-col gap-3" id="concil-campos"></div>
+  </div>
+  <div class="drawer-footer" style="justify-content:space-between;">
+    <div class="flex items-center gap-2" style="font-size:12px;color:var(--text-tertiary);" id="concil-fila">
+      <span id="concil-fila-texto"></span>
+      <button type="button" class="btn-link" id="concil-proximo" onclick="irParaProximoPendenteConcil()">Próximo pendente →</button>
+    </div>
+    <div class="flex gap-2">
+      <button type="button" class="btn btn-secondary" id="concil-ignorar" style="display:none;" onclick="ignorarNovoSemLakeConcil()">Ignorar por enquanto</button>
+      <button type="button" class="btn btn-primary" id="concil-criar" style="display:none;" onclick="criarColaboradorSemLakeConcil()">Criar colaborador no Autopilot</button>
+      <button type="button" class="btn btn-primary" id="concil-salvar" onclick="salvarConciliacaoConcil()">Salvar conciliação</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= Drawer — Dependentes do colaborador (RF-DP-406) ================= -->
+<div class="drawer-overlay" id="dependentes-drawer-overlay" onclick="fecharDrawerDependentes()"></div>
+<div class="drawer" id="dependentes-drawer" role="dialog" aria-modal="true" aria-labelledby="dependentes-drawer-title">
+  <div class="drawer-header">
+    <div style="flex:1;min-width:0">
+      <div class="drawer-title" id="dependentes-drawer-title">Dependentes</div>
+      <div class="drawer-desc" id="dependentes-drawer-nome"></div>
+    </div>
+    <button class="btn btn-ghost btn-xs" onclick="fecharDrawerDependentes()"><i data-lucide="x" style="width:14px;height:14px"></i></button>
+  </div>
+  <div class="drawer-body">
+    <div class="flex flex-col gap-2" id="dependentes-lista"></div>
+  </div>
+</div>
+
+<!-- ================= Drawer — "Visualizar" ficha completa do colaborador =================
+     Tem ações (marcar pendência cadastral como preenchida, marcar dependente
+     como completo) — por isso é drawer lateral, não modal, mesmo sendo
+     majoritariamente leitura (regra do catálogo: informação + qualquer ação
+     dentro do painel = drawer). -->
+<div class="drawer-overlay" id="viscolab-drawer-overlay" onclick="fecharDrawerVisColab()"></div>
+<div class="drawer drawer-wide" id="viscolab-drawer" role="dialog" aria-modal="true" aria-labelledby="viscolab-drawer-title">
+  <div class="drawer-header">
+    <div class="avatar-circle" id="viscolab-avatar"></div>
+    <div style="flex:1;min-width:0">
+      <div class="drawer-title" id="viscolab-drawer-title">Colaborador</div>
+      <div class="drawer-desc" id="viscolab-drawer-sub">Empresa · CPF</div>
+    </div>
+    <button class="btn btn-ghost btn-xs" onclick="fecharDrawerVisColab()"><i data-lucide="x" style="width:14px;height:14px"></i></button>
+  </div>
+  <div class="drawer-body" id="viscolab-drawer-body"></div>
+</div>
+
+<!-- ================= Drawer — Importar layout de relatório personalizado (aba Relatórios) ================= -->
+<div class="drawer-overlay" id="layoutrel-drawer-overlay" onclick="fecharDrawerLayoutRel()"></div>
+<div class="drawer" id="layoutrel-drawer" role="dialog" aria-modal="true" aria-labelledby="layoutrel-drawer-title">
+  <div class="drawer-header">
+    <div style="flex:1;min-width:0">
+      <div class="drawer-title" id="layoutrel-drawer-title">Importar layout</div>
+      <div class="drawer-desc" id="layoutrel-drawer-sub"></div>
+    </div>
+    <button class="btn btn-ghost btn-xs" onclick="fecharDrawerLayoutRel()"><i data-lucide="x" style="width:14px;height:14px"></i></button>
+  </div>
+  <div class="drawer-body">
+    <div class="upload-dropzone" id="layoutrel-dropzone" tabindex="0" role="button" aria-label="Selecionar arquivo do layout" onclick="selecionarArquivoMockLayoutRel()">
+      <div class="upload-dropzone-icon"><i data-lucide="upload"></i></div>
+      <div class="text-sm font-medium">Arraste o arquivo aqui ou clique para selecionar</div>
+      <div class="text-xs" style="color:var(--text-tertiary);">PDF ou Word · até 15MB</div>
+    </div>
+    <div class="upload-file-row" id="layoutrel-arquivo-row" style="display:none;">
+      <span class="upload-file-icon"><i data-lucide="file-text"></i></span>
+      <div class="flex flex-col min-w-0 flex-1 gap-0-5">
+        <span class="text-sm font-medium truncate" id="layoutrel-arquivo-nome" style="display:block;"></span>
+        <span class="text-xs" style="color:var(--text-tertiary);">Pronto para salvar</span>
+      </div>
+      <button type="button" class="btn btn-ghost btn-xs" onclick="removerArquivoMockLayoutRel()" aria-label="Remover arquivo"><i data-lucide="x" style="width:14px;height:14px"></i></button>
+    </div>
+  </div>
+  <div class="drawer-footer">
+    <button type="button" class="btn btn-primary" id="btn-salvar-layoutrel" disabled onclick="salvarLayoutRel()">Salvar layout</button>
+  </div>
+</div>
+
+<!-- ================= Modal — linha rejeitada na extração (RF-DP-402/403) =================
+     Correção pontual (um campo) + reprocessar — curto e focado, modal
+     centrado manual (.modal-backdrop/.modal-panel do core) em vez de drawer:
+     não há comparação de campos nem navegação, só corrigir um valor. -->
+<div class="modal-backdrop hidden" id="rejeitado-modal-backdrop" onclick="if(event.target===this) fecharModalRejeitado()">
+  <div class="modal-panel" style="max-width:520px;" role="dialog" aria-modal="true" aria-labelledby="rejeitado-modal-titulo">
+    <div class="modal-header">
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--text-primary);" id="rejeitado-modal-titulo">Linha rejeitada</div>
+        <div style="font-size:12.5px;color:var(--text-secondary);margin-top:2px;" id="rejeitado-modal-nome"></div>
+      </div>
+      <button class="btn btn-ghost btn-xs" onclick="fecharModalRejeitado()"><i data-lucide="x" style="width:14px;height:14px"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="flex flex-col gap-3">
+        <div class="alert alert-destructive">
+          <i data-lucide="circle-x"></i>
+          <div class="alert-desc" id="rejeitado-modal-motivo"></div>
+        </div>
+        <div class="drawer-block font-mono" style="font-size:12.5px;color:var(--text-secondary);" id="rejeitado-modal-linha"></div>
+        <div class="ef-field">
+          <label class="ef-label" id="rejeitado-modal-label" for="rejeitado-modal-input">Valor extraído</label>
+          <input id="rejeitado-modal-input" class="ef-input font-mono" oninput="validarCampoRejeitado()" />
+          <span class="field-error-text" id="rejeitado-modal-erro">Valor ainda inválido.</span>
         </div>
       </div>
     </div>
-    <div class="sheet-body">
-      <div class="alert alert-warning" id="concil-resumo">
-        <span id="icon-concil-resumo"></span>
-        <div class="alert-desc" id="concil-resumo-texto"></div>
-      </div>
-      <div class="flex flex-col gap-3" id="concil-campos"></div>
-    </div>
-    <div class="sheet-footer" style="justify-content:space-between;">
-      <div class="flex items-center gap-2 text-xs text-muted" id="concil-fila">
-        <span id="concil-fila-texto"></span>
-        <button type="button" class="btn-link link-info" id="concil-proximo">Próximo pendente →</button>
-      </div>
-      <div class="flex gap-2">
-        <button type="button" class="btn btn-outline" id="concil-ignorar" style="display:none;">Ignorar por enquanto</button>
-        <button type="button" class="btn" id="concil-criar" style="display:none;">Criar colaborador no Autopilot</button>
-        <button type="button" class="btn" id="concil-salvar">Salvar conciliação</button>
-      </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" onclick="fecharModalRejeitado()">Fechar</button>
+      <button type="button" class="btn btn-primary" id="btn-rejeitado-reprocessar" disabled onclick="salvarCorrecaoRejeitado()">Salvar e reprocessar linha</button>
     </div>
   </div>
+</div>
 
-  <!-- Drawer — Dependentes do colaborador (RF-DP-406). -->
-  <div class="sheet-overlay" id="dependentes-overlay"></div>
-  <div class="sheet-panel" id="dependentes-panel" role="dialog" aria-modal="true" aria-labelledby="dependentes-title">
-    <button type="button" class="sheet-close" id="dependentes-close"></button>
-    <div class="sheet-header">
-      <div class="sheet-title" id="dependentes-title">Dependentes</div>
-      <div class="sheet-description" id="dependentes-nome"></div>
+<!-- ================= Modal — "Visualizar" genérico (Financeiro/Cálculo em Paralelo) =================
+     Puramente informativo (nenhuma ação além de fechar) — modal centrado em
+     vez de drawer, seguindo a regra do catálogo. -->
+<div class="modal-backdrop hidden" id="visgenerico-modal-backdrop" onclick="if(event.target===this) fecharModalVisGenerico()">
+  <div class="modal-panel" style="max-width:560px;" role="dialog" aria-modal="true" aria-labelledby="visgenerico-modal-titulo">
+    <div class="modal-header">
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--text-primary);" id="visgenerico-modal-titulo">Detalhes</div>
+        <div style="font-size:12.5px;color:var(--text-secondary);margin-top:2px;" id="visgenerico-modal-sub"></div>
+      </div>
+      <button class="btn btn-ghost btn-xs" onclick="fecharModalVisGenerico()"><i data-lucide="x" style="width:14px;height:14px"></i></button>
     </div>
-    <div class="sheet-body">
-      <div class="flex flex-col gap-2" id="dependentes-lista"></div>
+    <div class="modal-body">
+      <div class="field-group field-group-2" id="visgenerico-modal-corpo"></div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" onclick="fecharModalVisGenerico()">Fechar</button>
     </div>
   </div>
+</div>
 
-  <!-- Modal — linha rejeitada na extração da Ficha Financeira (RF-DP-402/403). -->
-  <div class="dialog-overlay" id="dialog-rejeitado">
-    <div class="dialog-content" role="dialog" aria-modal="true" aria-labelledby="dialog-rejeitado-titulo">
-      <button type="button" class="dialog-close" data-close-dialog="dialog-rejeitado" aria-label="Fechar"><span id="icon-close-rejeitado"></span></button>
-      <div class="flex flex-col gap-1">
-        <h2 class="dialog-title" id="dialog-rejeitado-titulo">Linha rejeitada</h2>
-        <p class="dialog-description" id="dialog-rejeitado-nome"></p>
-      </div>
-      <div class="alert alert-destructive">
-        <span id="icon-alert-rejeitado"></span>
-        <div class="alert-desc" id="dialog-rejeitado-motivo"></div>
-      </div>
-      <div class="sheet-field-locked-value font-mono" id="dialog-rejeitado-linha" style="font-size:12.5px;"></div>
-      <div class="flex flex-col gap-1">
-        <label class="field-label" for="dialog-rejeitado-input" id="dialog-rejeitado-label"></label>
-        <input id="dialog-rejeitado-input" class="field-input font-mono" />
-        <span class="text-xs" id="dialog-rejeitado-erro" style="display:none; color:var(--destructive);">Valor ainda inválido.</span>
-      </div>
-      <div class="dialog-footer">
-        <button type="button" class="btn btn-outline" data-close-dialog="dialog-rejeitado">Fechar</button>
-        <button type="button" class="btn" id="btn-rejeitado-reprocessar" disabled>Salvar e reprocessar linha</button>
-      </div>
-    </div>
-  </div>
+<div id="toast-wrap-console"></div>
 
-  <!-- Drawer "Visualizar" da aba Dados do Colaborador — ficha completa com
-       pendências/dependentes resolvíveis. Componente em
-       js/implantacao/visualizar-colaborador.js. -->
-  <div class="sheet-overlay" id="visualizar-overlay"></div>
-  <div class="sheet-panel sheet-panel-wide" id="visualizar-panel" role="dialog" aria-modal="true" aria-labelledby="visualizar-title">
-    <button type="button" class="sheet-close" id="visualizar-close"></button>
-    <div class="sheet-header">
-      <div class="flex items-start gap-3">
-        <div class="avatar-circle" id="visualizar-avatar"></div>
-        <div class="flex flex-col gap-0-5 min-w-0">
-          <div class="sheet-title" id="visualizar-title" style="padding-right:0;">Colaborador</div>
-          <div class="sheet-description" id="visualizar-sub">Empresa · CPF</div>
-        </div>
-      </div>
-    </div>
-    <div class="sheet-body flex flex-col gap-5" id="visualizar-body"></div>
-  </div>
+<script src="../empresas/js/data.js"></script>
+<script src="js/implantacao/data.js"></script>
+<script src="js/implantacao/empresas-data.js"></script>
+<script>
+window.FLOW_CONFIG = { standalone: true };
+// Standalone: console por empresa é uma tela mestre de acompanhamento (fora
+// do fluxo fila -> tarefa do operador), mesmo raciocínio já usado em
+// socios.html/contadores.html desta trilha.
 
-  <!-- Drawer lateral genérico — "Visualizar" (dados completos, somente
-       leitura) usado pelas abas Financeiro/Rubricas/Cálculo em Paralelo.
-       Sem modais no sistema — mesmo padrão de sheet dos demais drawers
-       desta tela. -->
-  <div class="sheet-overlay" id="visualizar-generico-overlay"></div>
-  <div class="sheet-panel" id="visualizar-generico-panel" role="dialog" aria-modal="true" aria-labelledby="visualizar-generico-titulo">
-    <button type="button" class="sheet-close" id="visualizar-generico-close"><span id="icon-close-visualizar"></span></button>
-    <div class="sheet-header">
-      <div class="sheet-title" id="visualizar-generico-titulo">Detalhes</div>
-      <div class="sheet-description" id="visualizar-generico-sub"></div>
-    </div>
-    <div class="sheet-body">
-      <div class="detail-grid" id="visualizar-generico-corpo"></div>
-    </div>
-  </div>
+const CD = window.ImplantacaoData;
+const EI = window.EmpresasImplantacaoData;
+const E = window.EmpresasData;
 
-  <script src="../shared/js/icons.js"></script>
-  <script src="../shared/js/shell.js?v=2"></script>
-  <script src="../shared/js/ui.js?v=2"></script>
-  <script src="../shared/js/fab-tools.js"></script>
-  <script src="../empresas/js/data.js"></script>
-  <script src="js/implantacao/data.js?v=5"></script>
-  <script src="js/implantacao/empresas-data.js?v=7"></script>
-  <script src="js/implantacao/visualizar-colaborador.js?v=2"></script>
-  <script src="js/implantacao/fila-colaborador.js?v=1"></script>
-  <script>
-    document.getElementById("concil-close").innerHTML = Icon("x", "size-4");
-    document.getElementById("dependentes-close").innerHTML = Icon("x", "size-4");
-    document.getElementById("icon-close-rejeitado").innerHTML = Icon("x", "size-4");
-    document.getElementById("icon-alert-rejeitado").innerHTML = Icon("circle-x", "size-4");
-    document.getElementById("icon-concil-resumo").innerHTML = Icon("alert-triangle", "size-4");
-  </script>
-  <script src="js/implantacao/console.js?v=13"></script>
+function empresaNomeConsole(codigo) {
+  const empresa = E.findEmpresaByCodigo(codigo);
+  return empresa ? empresa.nome : codigo;
+}
+
+// Query param ?empresa=CODIGO, como no original — cai para MS-0027 quando a
+// tela é aberta direto (sem vir de uma linha da listagem), só pra este
+// protótipo standalone nunca abrir em branco.
+const codigoEmpresaConsole = E.getQueryParam("empresa") || "MS-0027";
+const empresaImplantConsole = EI.empresaImplantacao(codigoEmpresaConsole);
+
+const TABS_CONSOLE = [
+  { key: "colaborador", label: "Dados do Colaborador" },
+  { key: "financeiro", label: "Dados Financeiros" },
+  { key: "rubricas", label: "Rubricas" },
+  { key: "calculo", label: "Cálculo em Paralelo" },
+  { key: "parametros", label: "Parâmetros" },
+  { key: "relatorios", label: "Relatórios" },
+  { key: "historico", label: "Histórico" },
+];
+let activeKeyConsole = "colaborador";
+const tabInicialConsole = E.getQueryParam("tab");
+if (tabInicialConsole && TABS_CONSOLE.some((t) => t.key === tabInicialConsole)) activeKeyConsole = tabInicialConsole;
+
+let filtroStatusColaboradorConsole = "todos";
+let buscaColaboradorConsole = "";
+
+function apenasDigitosConsole(v) {
+  return (v || "").replace(/\D/g, "");
+}
+
+// ===== Toast =====
+function showToastConsole(title, desc, variant) {
+  const wrap = document.getElementById("toast-wrap-console");
+  const el = document.createElement("div");
+  el.className = "toast toast-" + (variant === "info" ? "info" : "success");
+  el.innerHTML =
+    '<i data-lucide="' + (variant === "info" ? "info" : "check-circle-2") + '" class="toast-icon"></i>' +
+    '<div><span class="toast-title">' + esc(title) + "</span><span class=\"toast-desc\">" + esc(desc) + "</span></div>";
+  wrap.appendChild(el);
+  refreshIcons();
+  setTimeout(() => el.remove(), 5000);
+}
+
+// ===== Cabeçalho =====
+function statusBadgeEmpresaConsole() {
+  return empresaImplantConsole.status === "implantada"
+    ? '<span class="badge badge-success"><i data-lucide="check" style="width:13px;height:13px"></i> Implantada</span>'
+    : '<span class="badge badge-info"><i data-lucide="clock" style="width:13px;height:13px"></i> Em andamento</span>';
+}
+
+function segmentoConsole(classe, tooltip) {
+  return '<div class="segbar-segment' + (classe ? " " + classe : "") + '" title="' + esc(tooltip) + '"></div>';
+}
+
+// 4 frentes bloqueiam a implantação — colaboradores, histórico de folha,
+// cálculo em paralelo e parâmetros DP (Andressa, validação Parte 3 —
+// 24/09/2026: "tem que incluir o parâmetro também"). Rubricas é só
+// informativa, não entra na barra.
+function progressoHtmlConsole(r, parametrosOk) {
+  const col = r.colaboradores.total === 0 ? "" : r.colaboradores.prontos === r.colaboradores.total ? "is-success" : r.colaboradores.prontos === 0 ? "" : "is-warning";
+  const fin = r.financeiro.necessarias === 0 ? "" : r.financeiro.carregadas === r.financeiro.necessarias ? "is-success" : r.financeiro.carregadas === 0 ? "" : "is-warning";
+  const calc =
+    r.calculoParalelo.total === 0 ? "" :
+    r.calculoParalelo.comDivergencia > 0 ? "is-warning" :
+    r.calculoParalelo.validadas === r.calculoParalelo.total ? "is-success" : "";
+  const param = parametrosOk ? "is-success" : "";
+  return (
+    '<div class="segbar">' +
+    segmentoConsole(col, "Colaboradores: " + r.colaboradores.prontos + "/" + r.colaboradores.total + " prontos") +
+    segmentoConsole(fin, "Competências de folha: " + r.financeiro.carregadas + "/" + r.financeiro.necessarias + " carregadas") +
+    segmentoConsole(calc, "Cálculo em paralelo: " + r.calculoParalelo.validadas + "/" + r.calculoParalelo.total + " validadas" + (r.calculoParalelo.comDivergencia ? " · " + r.calculoParalelo.comDivergencia + " com divergência" : "")) +
+    segmentoConsole(param, "Parâmetros DP: " + (parametrosOk ? "1/1 confirmados" : "0/1 confirmados")) +
+    "</div>"
+  );
+}
+
+// Só usado para decidir se mostra o aviso de "falta confirmar parâmetros" —
+// as 3 frentes que entram direto na barra/segmentos (colaboradores, folha,
+// cálculo em paralelo) precisam estar 100% pra fazer sentido cobrar isso.
+function outrasFrentesCompletasConsole(r) {
+  const colOk = r.colaboradores.total === 0 || r.colaboradores.prontos === r.colaboradores.total;
+  const finOk = r.financeiro.necessarias === 0 || r.financeiro.carregadas === r.financeiro.necessarias;
+  const calcOk = r.calculoParalelo.total === 0 || (r.calculoParalelo.validadas === r.calculoParalelo.total && r.calculoParalelo.comDivergencia === 0);
+  return colOk && finOk && calcOk;
+}
+
+function renderHeaderConsole() {
+  const r = EI.resumoCompleto(empresaImplantConsole);
+  const parametrosOk = EI.parametrosConfirmados(codigoEmpresaConsole);
+  const percentual = EI.percentualConclusao(r, codigoEmpresaConsole);
+  document.getElementById("console-header").innerHTML =
+    '<div class="console-header-top">' +
+      '<div>' +
+        '<div class="flex items-center gap-2 flex-wrap"><h1>' + esc(empresaNomeConsole(codigoEmpresaConsole)) + "</h1>" + statusBadgeEmpresaConsole() + "</div>" +
+        '<p style="font-size:13px;color:var(--text-secondary);margin:4px 0 0;">' + esc(empresaImplantConsole.etapaAtual) + "</p>" +
+      "</div>" +
+    "</div>" +
+    '<div class="console-header-meta">' +
+      "<span><b>Início:</b> " + empresaImplantConsole.dataInicio + "</span>" +
+      "<span><b>Competência inicial:</b> " + empresaImplantConsole.competenciaInicial + "</span>" +
+      (empresaImplantConsole.dataConclusao ? "<span><b>Concluída em:</b> " + empresaImplantConsole.dataConclusao + "</span>" : "") +
+    "</div>" +
+    (outrasFrentesCompletasConsole(r) && !parametrosOk
+      ? '<div class="alert alert-warning" style="margin-top:14px;"><i data-lucide="alert-triangle"></i>' +
+        '<div class="alert-desc">Colaboradores, folha e cálculo em paralelo estão completos, mas os <button type="button" class="btn-link" onclick="irParaAbaConsole(\'parametros\')">parâmetros DP ainda não foram confirmados</button> — isso também entra na % de conclusão.</div></div>'
+      : "") +
+    '<div class="flex flex-col gap-2" style="margin-top:14px;">' +
+      '<div class="flex items-center gap-2">' + progressoHtmlConsole(r, parametrosOk) + '<span class="text-sm font-medium">' + percentual + "%</span></div>" +
+      '<p style="font-size:11.5px;color:var(--text-tertiary);margin:0;">Passe o mouse sobre cada trecho da barra para ver o detalhe da frente. A % considera colaboradores, folha, cálculo em paralelo e parâmetros DP confirmados.</p>' +
+    "</div>" +
+    '<div class="stat-card-row">' +
+      '<div class="stat-card"><span class="stat-card-value">' + r.colaboradores.prontos + "/" + r.colaboradores.total + '</span><span class="stat-card-label">Colaboradores prontos</span></div>' +
+      '<div class="stat-card"><span class="stat-card-value">' + r.financeiro.carregadas + "/" + r.financeiro.necessarias + '</span><span class="stat-card-label">Competências de folha carregadas</span></div>' +
+      '<div class="stat-card' + (r.calculoParalelo.comDivergencia > 0 ? " stat-card-warning" : " stat-card-success") + '"><span class="stat-card-value">' + r.calculoParalelo.validadas + "/" + r.calculoParalelo.total + '</span><span class="stat-card-label">Competências validadas em paralelo</span></div>' +
+      '<div class="stat-card ' + (parametrosOk ? "stat-card-success" : "stat-card-warning") + ' stat-card-clickable" onclick="irParaAbaConsole(\'parametros\')"><span class="stat-card-value">' + (parametrosOk ? "1/1" : "0/1") + '</span><span class="stat-card-label">Parâmetros DP confirmados</span></div>' +
+      '<div class="stat-card"><span class="stat-card-value">' + r.rubricas.total + '</span><span class="stat-card-label">Rubricas utilizadas (12 meses)</span></div>' +
+    "</div>";
+  refreshIcons();
+}
+
+// ===== Modal genérico "Visualizar" (somente leitura — Financeiro/Cálculo) =====
+function abrirModalVisGenerico(titulo, subtitulo, campos) {
+  document.getElementById("visgenerico-modal-titulo").textContent = titulo;
+  document.getElementById("visgenerico-modal-sub").textContent = subtitulo || "";
+  document.getElementById("visgenerico-modal-corpo").innerHTML = campos
+    .map((c) => '<div class="ef-field"><span class="ef-label">' + esc(c.label) + '</span><div class="field-value' + (c.value ? "" : " empty") + '">' + (c.value ? esc(String(c.value)) : "Não informado") + "</div></div>")
+    .join("");
+  document.getElementById("visgenerico-modal-backdrop").classList.remove("hidden");
+  refreshIcons();
+}
+function fecharModalVisGenerico() {
+  document.getElementById("visgenerico-modal-backdrop").classList.add("hidden");
+}
+
+// ===== Aba Dados do Colaborador (Épico 1) =====
+function colaboradoresDaEmpresaConsole() {
+  return CD.getColaboradoresAtivos().filter((c) => c.empresaCodigo === codigoEmpresaConsole).sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR", { sensitivity: "base" }));
+}
+
+function colaboradorPrecisaDeAcaoConsole(c) {
+  return c.status === "divergencia" || c.status === "nao_encontrado_lake";
+}
+
+function statusBadgeColaboradorConsole(c) {
+  let html;
+  if (c.status === "pronto") {
+    html = '<span class="badge badge-success"><i data-lucide="check" style="width:13px;height:13px"></i> Pronto</span>';
+  } else if (c.status === "divergencia") {
+    const naoResolvidos = CD.camposNaoResolvidos(c).length;
+    const rotulo = naoResolvidos === 1 && c.camposDivergentes[0].valorLake === null ? "1 campo ausente" : naoResolvidos + (naoResolvidos === 1 ? " campo divergente" : " campos divergentes");
+    html = '<span class="badge badge-warning"><i data-lucide="alert-triangle" style="width:13px;height:13px"></i> Divergência</span><div class="status-cell-hint">' + rotulo + "</div>";
+  } else if (c.status === "nao_encontrado_lake") {
+    html = '<span class="badge badge-info"><i data-lucide="plus" style="width:13px;height:13px"></i> Novo colaborador</span><div class="status-cell-hint" style="color:var(--info);">Não encontrado no Lake</div>';
+  } else if (c.status === "rejeitado") {
+    html = '<span class="badge badge-danger"><i data-lucide="circle-x" style="width:13px;height:13px"></i> Rejeitado</span><div class="status-cell-hint" style="color:var(--danger);">linha ' + c.linhaFicha + " da Ficha</div>";
+  } else if (c.status === "aguardando_esocial") {
+    html = '<span class="badge badge-neutral"><i data-lucide="landmark" style="width:13px;height:13px"></i> Aguardando eSocial</span><div class="status-cell-hint">Simular retorno do eSocial</div>';
+  } else {
+    html = '<span class="badge badge-neutral"><i data-lucide="clock" style="width:13px;height:13px"></i> Pendente conciliação</span><div class="status-cell-hint">Simular chegada da Ficha</div>';
+  }
+  if (c.pendenciasCadastrais && c.pendenciasCadastrais.length) {
+    const qtd = c.pendenciasCadastrais.length;
+    html += '<div class="status-cell-hint">' + qtd + (qtd === 1 ? " pendência cadastral" : " pendências cadastrais") + "</div>";
+  }
+  return html;
+}
+
+function nomeCelulaColaboradorConsole(c) {
+  const temDependentes = c.dependentes && c.dependentes.length;
+  const dependentesComPendencia = temDependentes ? c.dependentes.filter((d) => d.pendencias && d.pendencias.length).length : 0;
+  return (
+    '<div class="flex flex-col gap-0-5 min-w-0" style="line-height:1.3;">' +
+    '<span class="text-sm font-medium truncate">' + esc(c.nome) + "</span>" +
+    '<span class="text-xs" style="color:var(--text-tertiary);">' + esc(c.cargo) + "</span>" +
+    (temDependentes
+      ? '<button type="button" class="dep-link" onclick="event.stopPropagation(); abrirDrawerDependentes(' + c.id + ')"><i data-lucide="users"></i> ' + c.dependentes.length + (c.dependentes.length === 1 ? " dependente" : " dependentes") + (dependentesComPendencia ? " · " + dependentesComPendencia + " c/ pendência" : "") + "</button>"
+      : "") +
+    "</div>"
+  );
+}
+
+function acaoColunaColaboradorConsole(c) {
+  const clicavel = colaboradorPrecisaDeAcaoConsole(c) || c.status === "rejeitado" || c.status === "pendente_conciliacao" || c.status === "aguardando_esocial";
+  const icone = clicavel ? "arrow-right" : "arrow-up-right";
+  return '<span class="row-action-icon"><i data-lucide="' + icone + '" style="width:16px;height:16px"></i></span>';
+}
+
+function clickColaboradorConsole(c) {
+  if (colaboradorPrecisaDeAcaoConsole(c)) abrirDrawerConcil(c.id);
+  else if (c.status === "rejeitado") abrirModalRejeitado(c.id);
+  else if (c.status === "pendente_conciliacao") simularConciliacaoFichaConcil(c.id);
+  else if (c.status === "aguardando_esocial") simularRetornoEsocialConcil(c.id);
+  else if (c.status === "pronto") abrirDrawerVisColab(c.id);
+}
+
+function filtroStatusOptionsHtmlConsole(todos) {
+  const r = CD.contarPorStatus(todos);
+  const opcoes = [
+    ["todos", "Todos os status", todos.length],
+    ["divergencia", "Divergência", r.divergencia],
+    ["pendente_conciliacao", "Pendente conciliação", r.pendenteConciliacao],
+    ["nao_encontrado_lake", "Não encontrado no Lake", r.naoEncontradoLake],
+    ["rejeitado", "Rejeitado", r.rejeitado],
+    ["aguardando_esocial", "Aguardando eSocial", r.aguardandoEsocial],
+    ["pronto", "Pronto", r.pronto],
+  ];
+  return opcoes.map((o) => '<option value="' + o[0] + '"' + (o[0] === filtroStatusColaboradorConsole ? " selected" : "") + ">" + esc(o[1]) + " (" + o[2] + ")</option>").join("");
+}
+
+function renderColaboradorTab() {
+  const mount = document.getElementById("console-content");
+  const todos = colaboradoresDaEmpresaConsole();
+  mount.innerHTML =
+    '<div class="tab-toolbar">' +
+      '<div class="ef-field" style="width:280px;">' +
+        '<label class="ef-label" for="f-busca-colaborador-console">Colaborador</label>' +
+        '<input id="f-busca-colaborador-console" class="ef-input" placeholder="Pesquisar por nome ou CPF" value="' + esc(buscaColaboradorConsole) + '" />' +
+      "</div>" +
+      '<div class="ef-field" style="width:240px;">' +
+        '<label class="ef-label" for="f-status-colaborador-console">Status</label>' +
+        '<select id="f-status-colaborador-console" class="ef-select">' + filtroStatusOptionsHtmlConsole(todos) + "</select>" +
+      "</div>" +
+    "</div>" +
+    '<div id="dt-colaboradores-console"></div>';
+
+  document.getElementById("f-busca-colaborador-console").addEventListener("input", (e) => {
+    buscaColaboradorConsole = e.target.value;
+    const cursor = e.target.selectionStart;
+    renderColaboradoresTabela();
+    const novo = document.getElementById("f-busca-colaborador-console");
+    novo.focus();
+    novo.setSelectionRange(cursor, cursor);
+  });
+  document.getElementById("f-status-colaborador-console").addEventListener("change", (e) => {
+    filtroStatusColaboradorConsole = e.target.value;
+    renderColaboradoresTabela();
+  });
+
+  renderColaboradoresTabela();
+  // Fila de "próximo pendente" do drawer Concil = colaboradores desta
+  // empresa que precisam de ação, na ordem atual da tabela (mesmo
+  // comportamento do original, ver fila-colaborador.js).
+  filaAtualConcil = todos.filter(colaboradorPrecisaDeAcaoConsole).map((c) => c.id);
+}
+
+function renderColaboradoresTabela() {
+  const todos = colaboradoresDaEmpresaConsole();
+  const buscaNormalizada = buscaColaboradorConsole.trim().toLowerCase();
+  const buscaDigitos = apenasDigitosConsole(buscaNormalizada);
+  const filtrados = todos.filter((c) => {
+    const statusOk = filtroStatusColaboradorConsole === "todos" || c.status === filtroStatusColaboradorConsole;
+    const buscaOk = !buscaNormalizada || c.nome.toLowerCase().includes(buscaNormalizada) || (buscaDigitos !== "" && apenasDigitosConsole(c.cpf).includes(buscaDigitos));
+    return statusOk && buscaOk;
+  });
+  dtCreate("colaboradores-console", {
+    columns: [
+      { key: "nome", label: "Colaborador", render: nomeCelulaColaboradorConsole },
+      { key: "cpf", label: "CPF", mono: true },
+      { key: "status", label: "Status", render: statusBadgeColaboradorConsole },
+      { key: "acao", label: "", render: acaoColunaColaboradorConsole },
+    ],
+    rows: filtrados,
+    rowKey: "id",
+    pageSize: 10,
+    searchable: false,
+    onRowClick: clickColaboradorConsole,
+    emptyMessage: todos.length === 0 ? "Nenhum colaborador carregado ainda." : "Nenhum colaborador encontrado para os filtros selecionados.",
+  });
+}
+
+// ===== Aba Dados Financeiros (Épico 2) =====
+// Status combinado com o Cálculo em Paralelo (Andressa, validação Parte 3):
+// depois de calculada, a competência mostra Validado/Divergência igual ao
+// padrão já usado em Dados do Colaborador — em vez de só "Carregada".
+function calculoDaCompetenciaConsole(competencia) {
+  return CALCULO_CACHE_CONSOLE.find((c) => c.competencia === competencia);
+}
+
+function financeiroStatusBadgeConsole(f) {
+  if (f.status === "divergencia_total") return '<span class="badge badge-danger"><i data-lucide="alert-triangle" style="width:13px;height:13px"></i> Divergência de total</span>';
+  if (f.status !== "carregada") return '<span class="badge badge-neutral">Ausente</span>';
+  const c = calculoDaCompetenciaConsole(f.competencia);
+  if (c && c.status === "sem_divergencia") return '<span class="badge badge-success"><i data-lucide="check" style="width:13px;height:13px"></i> Validado</span>';
+  if (c && c.status === "com_divergencia") return '<span class="badge badge-danger"><i data-lucide="alert-triangle" style="width:13px;height:13px"></i> Divergência</span>';
+  return '<span class="badge badge-success"><i data-lucide="check" style="width:13px;height:13px"></i> Carregada</span>';
+}
+
+let FINANCEIRO_CACHE_CONSOLE = [];
+function visualizarFinanceiroConsole(competencia) {
+  const f = FINANCEIRO_CACHE_CONSOLE.find((x) => x.competencia === competencia);
+  if (!f) return;
+  // Compara os 3 campos entre o cálculo do Autopilot e o relatório de
+  // origem — não só o líquido, pra deixar visível se a diferença (quando
+  // houver) está no provento ou no desconto.
+  abrirModalVisGenerico("Competência " + f.competencia, empresaNomeConsole(codigoEmpresaConsole), [
+    { label: "Proventos (Autopilot)", value: f.proventos },
+    { label: "Proventos (Relatório de origem)", value: f.proventosOrigem || f.proventos },
+    { label: "Descontos (Autopilot)", value: f.descontos },
+    { label: "Descontos (Relatório de origem)", value: f.descontosOrigem || f.descontos },
+    { label: "Líquido (Autopilot)", value: f.liquido },
+    { label: "Líquido (Relatório de origem)", value: f.liquidoOrigem || f.totalOrigem || f.liquido },
+  ]);
+}
+
+function renderFinanceiroTab() {
+  FINANCEIRO_CACHE_CONSOLE = EI.gerarFinanceiro(codigoEmpresaConsole, empresaImplantConsole.resumo.financeiro.carregadas);
+  // Precisa do cache do cálculo em paralelo pra cruzar o status (validado/
+  // divergência) e liberar a coluna de relatórios — sem recriar do zero se
+  // o operador já calculou algo nesta sessão (mesmo lazy-init do renderCalculoTab).
+  if (!CALCULO_CACHE_CONSOLE.length) CALCULO_CACHE_CONSOLE = EI.gerarCalculoParalelo(empresaImplantConsole.resumo.calculoParalelo.validadas, empresaImplantConsole.resumo.calculoParalelo.comDivergencia, FINANCEIRO_CACHE_CONSOLE);
+  const mount = document.getElementById("console-content");
+  mount.innerHTML =
+    '<p class="tab-desc">Competências de folha (não apenas financeiras). Janela necessária: dezembro/2025 até a última competência fechada — mínimo 12 competências (RF-DP-509 reporta as ausentes, nunca estima).</p>' +
+    '<div id="dt-financeiro-console"></div>';
+  dtCreate("financeiro-console", {
+    columns: [
+      { key: "competencia", label: "Competência", mono: true },
+      { key: "status", label: "Status", render: financeiroStatusBadgeConsole },
+      { key: "liquido", label: "Líquido", render: (f) => f.liquido || "—" },
+      {
+        key: "relatorios", label: "Relatórios",
+        render: (f) => {
+          const c = calculoDaCompetenciaConsole(f.competencia);
+          if (!c || c.status === "nao_executado") return '<span style="color:var(--text-tertiary);font-size:12px;">Calcule antes</span>';
+          return '<span class="row-action-icon" title="Baixar relatórios" onclick="toggleMenuRelatoriosCalculoConsole(event, \'' + f.competencia + '\')"><i data-lucide="download" style="width:16px;height:16px"></i></span>';
+        },
+      },
+      { key: "acao", label: "", render: (f) => (f.status !== "ausente" ? '<span class="row-action-icon"><i data-lucide="arrow-up-right" style="width:16px;height:16px"></i></span>' : "") },
+    ],
+    rows: FINANCEIRO_CACHE_CONSOLE,
+    rowKey: "competencia",
+    pageSize: 12,
+    searchable: false,
+    onRowClick: (f) => { if (f.status !== "ausente") visualizarFinanceiroConsole(f.competencia); },
+    emptyMessage: "Nenhuma competência carregada ainda.",
+  });
+}
+
+// ===== Aba Rubricas (Épico 3) — sem de-para, puramente informativa =====
+function simNaoConsole(v) { return v ? "Sim" : "Não"; }
+
+function renderRubricasTab() {
+  const rubricas = EI.gerarRubricas();
+  const mount = document.getElementById("console-content");
+  mount.innerHTML =
+    '<p class="tab-desc">Rubricas utilizadas por esta empresa nos últimos 12 meses — informativo, sem de-para: a natureza e as incidências já vêm do Lake, sem ação do operador aqui.</p>' +
+    '<div id="dt-rubricas-console"></div>';
+  dtCreate("rubricas-console", {
+    columns: [
+      { key: "codigoEmpresa", label: "Código", mono: true },
+      { key: "descricao", label: "Descrição" },
+      { key: "rubricaPadrao", label: "Rubrica padrão", render: (r) => r.rubricaPadrao ? esc(r.rubricaPadrao) : '<span style="color:var(--text-tertiary);">Específica da empresa</span>' },
+      { key: "natureza", label: "Natureza" },
+      { key: "incIrrf", label: "Inc. IRRF", render: (r) => simNaoConsole(r.incIrrf) },
+      { key: "incInss", label: "Inc. INSS", render: (r) => simNaoConsole(r.incInss) },
+      { key: "incFgts", label: "Inc. FGTS", render: (r) => simNaoConsole(r.incFgts) },
+      { key: "incPis", label: "Inc. PIS", render: (r) => simNaoConsole(r.incPis) },
+    ],
+    rows: rubricas,
+    rowKey: "codigoEmpresa",
+    pageSize: 20,
+    searchable: false,
+    emptyMessage: "Nenhuma rubrica identificada ainda.",
+  });
+}
+
+// ===== Aba Cálculo em Paralelo (Épico 4) =====
+function calculoStatusBadgeConsole(c) {
+  if (c.status === "sem_divergencia") return '<span class="badge badge-success"><i data-lucide="check" style="width:13px;height:13px"></i> Conciliado com o Domínio</span>';
+  if (c.status === "com_divergencia") return '<span class="badge badge-warning"><i data-lucide="alert-triangle" style="width:13px;height:13px"></i> Com divergência</span>';
+  return '<span class="badge badge-neutral">Não executado</span>';
+}
+
+let CALCULO_CACHE_CONSOLE = [];
+function visualizarCalculoConsole(competencia) {
+  const c = CALCULO_CACHE_CONSOLE.find((x) => x.competencia === competencia);
+  if (!c) return;
+  const camposDivergencia = (c.divergencias || []).map((d, i) => ({
+    label: "Divergência " + (i + 1),
+    value: d.colaborador + " · " + d.rubrica + " · " + d.campo + " — motor: " + d.valorMotor + ", relatório de origem: " + d.valorOrigem,
+  }));
+  abrirModalVisGenerico("Cálculo em paralelo — " + c.competencia, empresaNomeConsole(codigoEmpresaConsole), [
+    { label: "Executado por", value: c.executor },
+    { label: "Data de execução", value: c.dataExecucao },
+    { label: "Resultado", value: c.status === "com_divergencia" ? c.divergencias.length + " divergência(s) contra o relatório da Domínio — conferir campo a campo" : "Conciliado com o relatório da Domínio" },
+    { label: "Efeito externo", value: "Nenhum — modo paralelo não transmite nem envia e-mail (RN-DP-31)" },
+  ].concat(camposDivergencia));
+}
+
+// Os 2 relatórios que o cálculo em paralelo retorna por competência
+// (Andressa, validação Parte 3 — 24/09/2026): holerite não volta ("acho que
+// não vai voltar"), mas o resumo com o líquido e as médias (férias/13º)
+// sim. Simulados aqui como um pequeno menu de download por competência.
+const RELATORIOS_CALCULO_CONSOLE = [
+  { key: "resumo", label: "Resumo (extrato com líquido)", icon: "file-text" },
+  { key: "medias", label: "Médias (férias, 13º e afins)", icon: "calculator" },
+];
+
+function baixarRelatorioCalculoConsole(competencia, tipoKey) {
+  const tipo = RELATORIOS_CALCULO_CONSOLE.find((r) => r.key === tipoKey);
+  showToastConsole("Relatório gerado", (tipo ? tipo.label : "Relatório") + " — competência " + competencia + " (simulado no protótipo).", "info");
+  fecharMenuRelatoriosCalculoConsole();
+}
+
+function toggleMenuRelatoriosCalculoConsole(ev, competencia) {
+  ev.stopPropagation();
+  const existente = document.getElementById("calc-relatorios-menu");
+  if (existente) { const jaEraDessaLinha = existente.dataset.competencia === competencia; existente.remove(); if (jaEraDessaLinha) return; }
+  const btn = ev.currentTarget;
+  const rect = btn.getBoundingClientRect();
+  const menu = document.createElement("div");
+  menu.id = "calc-relatorios-menu";
+  menu.className = "flt-menu";
+  menu.dataset.competencia = competencia;
+  // position:fixed + anexado no <body> (não dentro da célula da tabela) —
+  // senão o overflow:auto da tabela (dt-scroll) corta o menu, que é o que
+  // estava deixando ele "quebradinho"/cortado no canto.
+  menu.style.cssText = "position:fixed;min-width:240px;z-index:500;top:" + (rect.bottom + 4) + "px;left:" + Math.max(8, rect.right - 240) + "px;";
+  menu.innerHTML = RELATORIOS_CALCULO_CONSOLE.map((r) =>
+    '<div class="flt-item" onclick="baixarRelatorioCalculoConsole(\'' + competencia + "', '" + r.key + '\')"><i data-lucide="' + r.icon + '" style="width:14px;height:14px;"></i><span>' + esc(r.label) + "</span></div>"
+  ).join("");
+  document.body.appendChild(menu);
+  refreshIcons();
+  setTimeout(() => document.addEventListener("click", fecharMenuRelatoriosCalculoConsole, { once: true }), 0);
+}
+function fecharMenuRelatoriosCalculoConsole() {
+  const el = document.getElementById("calc-relatorios-menu");
+  if (el) el.remove();
+}
+
+// Cálculo por competência (Andressa, validação Parte 3): não é mais um botão
+// único pra tudo — cada competência tem seu próprio "Calcular", pra saber
+// exatamente qual mês deu divergência sem precisar rodar tudo de novo.
+function calcularCompetenciaConsole(ev, competencia) {
+  if (ev) ev.stopPropagation();
+  const c = CALCULO_CACHE_CONSOLE.find((x) => x.competencia === competencia);
+  if (!c) return;
+  c.status = "sem_divergencia";
+  c.executor = "Você (agora)";
+  c.dataExecucao = new Date().toLocaleDateString("pt-BR");
+  c.divergencias = [];
+  empresaImplantConsole.resumo.calculoParalelo.validadas = CALCULO_CACHE_CONSOLE.filter((x) => x.status === "sem_divergencia").length;
+  empresaImplantConsole.resumo.calculoParalelo.comDivergencia = CALCULO_CACHE_CONSOLE.filter((x) => x.status === "com_divergencia").length;
+  showToastConsole("Competência calculada", competencia + " recalculada e conciliada contra o relatório da Domínio — sem efeito externo.");
+  renderHeaderConsole();
+  renderCalculoTab();
+}
+
+function calcularTodasPendentesConsole() {
+  const pendentes = CALCULO_CACHE_CONSOLE.filter((c) => c.status === "nao_executado");
+  if (!pendentes.length) { showToastConsole("Nada pendente", "Todas as competências já foram calculadas.", "info"); return; }
+  pendentes.forEach((c) => {
+    c.status = "sem_divergencia";
+    c.executor = "Você (agora)";
+    c.dataExecucao = new Date().toLocaleDateString("pt-BR");
+    c.divergencias = [];
+  });
+  empresaImplantConsole.resumo.calculoParalelo.validadas = CALCULO_CACHE_CONSOLE.filter((x) => x.status === "sem_divergencia").length;
+  empresaImplantConsole.resumo.calculoParalelo.comDivergencia = CALCULO_CACHE_CONSOLE.filter((x) => x.status === "com_divergencia").length;
+  showToastConsole("Cálculo em paralelo concluído", pendentes.length + " competência(s) recalculada(s) e conciliada(s) — sem efeito externo.", "info");
+  renderHeaderConsole();
+  renderCalculoTab();
+}
+
+function renderCalculoTab() {
+  const financeiro = EI.gerarFinanceiro(codigoEmpresaConsole, empresaImplantConsole.resumo.financeiro.carregadas);
+  if (!CALCULO_CACHE_CONSOLE.length) CALCULO_CACHE_CONSOLE = EI.gerarCalculoParalelo(empresaImplantConsole.resumo.calculoParalelo.validadas, empresaImplantConsole.resumo.calculoParalelo.comDivergencia, financeiro);
+  const mount = document.getElementById("console-content");
+  mount.innerHTML =
+    '<div class="tab-toolbar">' +
+      '<p class="tab-desc" style="max-width:640px;">Recalcula a folha de cada competência com as regras atuais do motor e concilia contra o relatório da Domínio já importado — sem gerar pacote de relatório, sem efeito externo (RF-DP-702/703). Calcule competência a competência, ou todas de uma vez.</p>' +
+      '<button type="button" class="btn btn-secondary" onclick="calcularTodasPendentesConsole()"><i data-lucide="rotate-ccw" style="width:14px;height:14px"></i> Calcular todas as pendentes</button>' +
+    "</div>" +
+    '<div id="dt-calculo-console"></div>';
+  dtCreate("calculo-console", {
+    columns: [
+      { key: "competencia", label: "Competência", mono: true },
+      { key: "executor", label: "Executor", render: (c) => c.executor || "—" },
+      { key: "status", label: "Status", render: calculoStatusBadgeConsole },
+      {
+        key: "acao", label: "",
+        render: (c) => c.status === "nao_executado"
+          ? '<button type="button" class="btn btn-secondary btn-sm" onclick="calcularCompetenciaConsole(event, \'' + c.competencia + '\')"><i data-lucide="rotate-ccw" style="width:13px;height:13px"></i> Calcular</button>'
+          : '<div style="display:flex;align-items:center;gap:4px;justify-content:flex-end;">' +
+            '<span class="row-action-icon" title="Ver detalhe"><i data-lucide="arrow-up-right" style="width:16px;height:16px"></i></span>' +
+            '<span class="row-action-icon" title="Baixar relatórios" onclick="toggleMenuRelatoriosCalculoConsole(event, \'' + c.competencia + '\')"><i data-lucide="download" style="width:16px;height:16px"></i></span>' +
+            "</div>",
+      },
+    ],
+    rows: CALCULO_CACHE_CONSOLE,
+    rowKey: "competencia",
+    pageSize: 12,
+    searchable: false,
+    onRowClick: (c) => { if (c.status !== "nao_executado") visualizarCalculoConsole(c.competencia); },
+    emptyMessage: "Nenhuma competência disponível para cálculo em paralelo ainda.",
+  });
+}
+
+// ===== Aba Parâmetros =====
+function renderParametrosTab() {
+  const pendentes = EI.camposPendentesParametros(codigoEmpresaConsole);
+  const confirmado = EI.parametrosConfirmados(codigoEmpresaConsole);
+  const linhasCampos = EI.TODOS_CAMPOS_PARAMETROS_DP
+    .map((campo) => {
+      const falta = pendentes.includes(campo);
+      return (
+        '<div class="list-row">' +
+        '<span class="text-sm">' + esc(campo) + "</span>" +
+        (falta
+          ? '<span class="badge badge-warning"><i data-lucide="alert-triangle" style="width:13px;height:13px"></i> Pendente</span>'
+          : '<span class="badge badge-success"><i data-lucide="check" style="width:13px;height:13px"></i> Preenchido</span>') +
+        "</div>"
+      );
+    })
+    .join("");
+
+  const mount = document.getElementById("console-content");
+  mount.innerHTML =
+    '<p class="tab-desc">Configuração específica desta empresa — sindicato, regime, FAP, adiantamento e afins. Vive na tela de Parâmetros DP; aqui é só o checklist do que falta antes de considerar a implantação concluída.</p>' +
+    '<div class="flex items-center justify-between gap-3 flex-wrap">' +
+      '<a href="../parametros/dp.html" target="_blank" rel="noopener" class="btn btn-secondary"><i data-lucide="arrow-up-right" style="width:14px;height:14px"></i> Abrir Parâmetros DP</a>' +
+      (confirmado
+        ? '<span class="badge badge-success"><i data-lucide="check" style="width:13px;height:13px"></i> Parâmetros confirmados</span>'
+        : '<button type="button" class="btn btn-primary" id="btn-confirmar-parametros-console"' + (pendentes.length ? " disabled" : "") + '><i data-lucide="check" style="width:14px;height:14px"></i> Confirmar parâmetros</button>') +
+    "</div>" +
+    '<div class="flex flex-col gap-1">' + linhasCampos + "</div>" +
+    (pendentes.length && !confirmado ? '<p class="tab-desc" style="font-size:11.5px;">Preencha os campos pendentes na tela de Parâmetros DP antes de confirmar.</p>' : "");
+  refreshIcons();
+
+  const btnConfirmar = document.getElementById("btn-confirmar-parametros-console");
+  if (btnConfirmar) {
+    btnConfirmar.addEventListener("click", () => {
+      EI.confirmarParametros(codigoEmpresaConsole);
+      renderHeaderConsole();
+      renderParametrosTab();
+      showToastConsole("Parâmetros confirmados", "Registrado que " + empresaNomeConsole(codigoEmpresaConsole) + " está com os parâmetros de DP configurados.");
+    });
+  }
+}
+
+// ===== Aba Relatórios =====
+let layoutAtualRel = null;
+
+function abrirDrawerLayoutRel(tipo) {
+  layoutAtualRel = tipo;
+  document.getElementById("layoutrel-drawer-title").textContent = "Importar layout — " + tipo;
+  document.getElementById("layoutrel-drawer-sub").textContent = empresaNomeConsole(codigoEmpresaConsole);
+  document.getElementById("layoutrel-dropzone").style.display = "";
+  document.getElementById("layoutrel-arquivo-row").style.display = "none";
+  document.getElementById("btn-salvar-layoutrel").disabled = true;
+  document.getElementById("layoutrel-drawer-overlay").classList.add("open");
+  document.getElementById("layoutrel-drawer").classList.add("open");
+  refreshIcons();
+}
+function fecharDrawerLayoutRel() {
+  document.getElementById("layoutrel-drawer-overlay").classList.remove("open");
+  document.getElementById("layoutrel-drawer").classList.remove("open");
+}
+function nomeArquivoMockLayoutRel(tipo) {
+  const slug = empresaNomeConsole(codigoEmpresaConsole).normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-zA-Z0-9]+/g, "");
+  return tipo + "_" + slug + ".pdf";
+}
+function selecionarArquivoMockLayoutRel() {
+  document.getElementById("layoutrel-dropzone").style.display = "none";
+  document.getElementById("layoutrel-arquivo-row").style.display = "";
+  document.getElementById("layoutrel-arquivo-nome").textContent = nomeArquivoMockLayoutRel(layoutAtualRel);
+  document.getElementById("btn-salvar-layoutrel").disabled = false;
+}
+function removerArquivoMockLayoutRel() {
+  document.getElementById("layoutrel-arquivo-row").style.display = "none";
+  document.getElementById("layoutrel-dropzone").style.display = "";
+  document.getElementById("btn-salvar-layoutrel").disabled = true;
+}
+function dataHojeBrConsole() {
+  const hoje = new Date();
+  return String(hoje.getDate()).padStart(2, "0") + "/" + String(hoje.getMonth() + 1).padStart(2, "0") + "/" + hoje.getFullYear();
+}
+function salvarLayoutRel() {
+  const nomeArquivo = document.getElementById("layoutrel-arquivo-nome").textContent;
+  EI.importarLayoutRelatorio(codigoEmpresaConsole, layoutAtualRel, nomeArquivo, dataHojeBrConsole());
+  fecharDrawerLayoutRel();
+  renderRelatoriosTab();
+  showToastConsole("Layout importado", nomeArquivo + " salvo como layout de " + layoutAtualRel.toLowerCase() + " desta empresa.");
+}
+function removerPersonalizacaoLayoutRel(tipo) {
+  EI.removerLayoutRelatorio(codigoEmpresaConsole, tipo);
+  renderRelatoriosTab();
+  showToastConsole("Layout removido", "Voltou a usar o layout padrão Domínio para " + tipo.toLowerCase() + ".", "info");
+}
+
+function renderRelatoriosTab() {
+  const layouts = EI.layoutsRelatorios(codigoEmpresaConsole);
+  const mount = document.getElementById("console-content");
+  mount.innerHTML =
+    '<p class="tab-desc">Layout de cada processo usado por esta empresa — sem personalização, o Autopilot segue o padrão Domínio. Não bloqueia a implantação; é informativo para a operação saber o que gerar em cada processo (alinhamento 10/09/2026).</p>' +
+    '<div id="dt-relatorios-console"></div>';
+  dtCreate("relatorios-console", {
+    columns: [
+      { key: "tipo", label: "Processo" },
+      { key: "layout", label: "Layout", render: (l) => l.personalizado ? '<span class="badge badge-info"><i data-lucide="file-text" style="width:13px;height:13px"></i> Personalizado</span>' : '<span class="badge badge-neutral">Padrão Domínio</span>' },
+      { key: "arquivo", label: "Arquivo", render: (l) => l.arquivo ? esc(l.arquivo + " · importado em " + l.importadoEm) : '<span style="color:var(--text-tertiary);">—</span>' },
+      {
+        key: "acoes", label: "", render: (l) =>
+          '<div class="flex gap-2 justify-end">' +
+          (l.personalizado ? '<button type="button" class="btn-link" onclick="event.stopPropagation(); removerPersonalizacaoLayoutRel(\'' + l.tipo + '\')">Voltar ao padrão</button>' : "") +
+          '<button type="button" class="btn btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="event.stopPropagation(); abrirDrawerLayoutRel(\'' + l.tipo + '\')"><i data-lucide="upload" style="width:13px;height:13px"></i> ' + (l.personalizado ? "Substituir" : "Importar layout") + "</button>" +
+          "</div>",
+      },
+    ],
+    rows: layouts,
+    rowKey: "tipo",
+    pageSize: 10,
+    searchable: false,
+    emptyMessage: "Nenhum processo configurado.",
+  });
+}
+
+// ===== Aba Histórico (Épico 5 — RT-DP-02) =====
+function renderHistoricoTab() {
+  const logs = empresaImplantConsole.logs.slice().reverse();
+  const mount = document.getElementById("console-content");
+  mount.innerHTML =
+    '<p class="tab-desc">Cada etapa registra executor, horário e desfecho (RT-DP-02) — inclui quem aprovou, quando aplicável.</p>' +
+    '<div id="dt-historico-console"></div>';
+  dtCreate("historico-console", {
+    columns: [
+      { key: "dataHora", label: "Data/hora", mono: true },
+      { key: "operador", label: "Operador" },
+      { key: "acao", label: "Ação" },
+      { key: "detalhe", label: "Detalhe", render: (l) => '<span style="font-size:12px;color:var(--text-secondary);">' + esc(l.detalhe) + "</span>" },
+      { key: "aprovadoPor", label: "Aprovado por", render: (l) => l.aprovadoPor || "—" },
+    ],
+    rows: logs,
+    rowKey: "dataHora",
+    pageSize: 20,
+    searchable: false,
+    emptyMessage: "Sem eventos registrados.",
+  });
+}
+
+// ===== Troca de aba =====
+function irParaAbaConsole(key) {
+  activeKeyConsole = key;
+  renderTabsBarConsole();
+  renderContentConsole();
+}
+
+function renderTabsBarConsole() {
+  document.getElementById("console-tabs").innerHTML = TABS_CONSOLE.map((t) =>
+    '<button type="button" class="form-tab' + (t.key === activeKeyConsole ? " active" : "") + '" onclick="irParaAbaConsole(\'' + t.key + '\')">' + esc(t.label) + "</button>"
+  ).join("");
+}
+
+function renderContentConsole() {
+  if (activeKeyConsole === "colaborador") renderColaboradorTab();
+  else if (activeKeyConsole === "financeiro") renderFinanceiroTab();
+  else if (activeKeyConsole === "rubricas") renderRubricasTab();
+  else if (activeKeyConsole === "calculo") renderCalculoTab();
+  else if (activeKeyConsole === "parametros") renderParametrosTab();
+  else if (activeKeyConsole === "relatorios") renderRelatoriosTab();
+  else if (activeKeyConsole === "historico") renderHistoricoTab();
+}
+
+// ================= Drawer de Conferência (Concil) =================
+let filaAtualConcil = [];
+let colaboradorAtualIdConcil = null;
+let colaboradorAbertoConcil = null;
+let camposEmEdicaoManualConcil = new Set();
+
+function encontrarColaboradorConcil(id) {
+  return CD.getColaboradores().find((c) => c.id === id);
+}
+
+function fieldCompareHtmlConcil(campo, indice) {
+  const lakeVazio = campo.valorLake === null || campo.valorLake === undefined;
+  const fichaVazia = campo.valorFicha === null || campo.valorFicha === undefined;
+  function optionHtml(origem, valor, vazio) {
+    const selecionado = campo.valorEscolhido === origem;
+    return (
+      '<div class="field-compare-option' + (selecionado ? " is-selected" : "") + '" onclick="escolherOrigemCampoConcil(' + indice + ',\'' + origem + '\')">' +
+      '<div class="field-compare-option-src">' + (origem === "lake" ? "Lake (Domínio)" : "Ficha Financeira") + "</div>" +
+      '<div class="field-compare-option-val' + (vazio ? " is-missing" : "") + '">' + (vazio ? "Não informado" : esc(String(valor))) + "</div>" +
+      '<div class="field-compare-check"><i data-lucide="check"></i></div>' +
+      "</div>"
+    );
+  }
+  function manualHtml() {
+    if (campo.valorEscolhido === "manual") {
+      return (
+        '<div class="field-compare-option field-compare-option-wide is-selected">' +
+        '<div class="field-compare-option-src">Digitado manualmente</div>' +
+        '<div class="field-compare-option-val">' + esc(campo.valorManual) + "</div>" +
+        '<div class="field-compare-check"><i data-lucide="check"></i></div>' +
+        "</div>" +
+        '<div class="field-compare-manual-toggle"><button type="button" class="btn-link" onclick="abrirEdicaoManualConcil(' + indice + ')">Alterar valor digitado</button></div>'
+      );
+    }
+    if (camposEmEdicaoManualConcil.has(indice)) {
+      return (
+        '<div class="field-compare-manual-edit">' +
+        '<input type="text" class="ef-input" id="concil-manual-input-' + indice + '" placeholder="Digite o valor correto" value="' + esc(campo.valorManual || "") + '" />' +
+        '<button type="button" class="btn btn-primary" style="padding:7px 14px;font-size:12px;" onclick="usarValorManualConcil(' + indice + ')">Usar este valor</button>' +
+        '<button type="button" class="btn btn-ghost" style="padding:7px 14px;font-size:12px;" onclick="cancelarEdicaoManualConcil(' + indice + ')">Cancelar</button>' +
+        "</div>"
+      );
+    }
+    return '<div class="field-compare-manual-toggle"><button type="button" class="btn-link" onclick="abrirEdicaoManualConcil(' + indice + ')">Nenhum dos dois está correto? Digitar valor manualmente</button></div>';
+  }
+  return (
+    '<div class="field-compare' + (campo.resolvido ? " is-resolved" : "") + '">' +
+    '<div class="field-compare-head">' + esc(campo.campo) + "</div>" +
+    '<div class="field-compare-options">' + optionHtml("lake", campo.valorLake, lakeVazio) + optionHtml("ficha", campo.valorFicha, fichaVazia) + "</div>" +
+    manualHtml() +
+    "</div>"
+  );
+}
+
+function avisoRejeicaoAnteriorHtmlConcil(c) {
+  if (!c.motivoRejeicao) return "";
+  const def = { cpf: "CPF", nome: "Nome completo" }[c.campoInvalido] || "Campo";
+  return (
+    '<div class="alert alert-info"><i data-lucide="info"></i><div class="alert-desc"><b>Esta linha tinha sido rejeitada na importação.</b> ' + esc(c.motivoRejeicao) +
+    " Corrigido — " + def + " atual: <b>" + esc(c[c.campoInvalido]) + "</b>.</div></div>"
+  );
+}
+function esocialDeltaHtmlConcil(c) {
+  if (!c.esocialDelta) return "";
+  const d = c.esocialDelta;
+  return (
+    '<div class="alert alert-warning"><i data-lucide="landmark"></i><div class="alert-desc"><b>Conferência com o eSocial — só checagem, não sobrescreve.</b> Campo <b>' + esc(d.campo) + "</b>: Autopilot está com <b>" + esc(d.valorAutopilot) + "</b>, eSocial tem <b>" + esc(d.valorEsocial) + "</b>. Trate na origem ou registre ciência.</div></div>"
+  );
+}
+
+function renderCamposConcil(c) {
+  document.getElementById("concil-campos").innerHTML =
+    avisoRejeicaoAnteriorHtmlConcil(c) + c.camposDivergentes.map((campo, i) => fieldCompareHtmlConcil(campo, i)).join("") + esocialDeltaHtmlConcil(c);
+  refreshIcons();
+}
+
+function escolherOrigemCampoConcil(indice, origem) {
+  const campo = colaboradorAbertoConcil.camposDivergentes[indice];
+  campo.valorEscolhido = origem;
+  campo.resolvido = true;
+  camposEmEdicaoManualConcil.delete(indice);
+  renderCamposConcil(colaboradorAbertoConcil);
+  atualizarResumoConcil(colaboradorAbertoConcil);
+}
+function abrirEdicaoManualConcil(indice) {
+  camposEmEdicaoManualConcil.add(indice);
+  renderCamposConcil(colaboradorAbertoConcil);
+}
+function cancelarEdicaoManualConcil(indice) {
+  camposEmEdicaoManualConcil.delete(indice);
+  renderCamposConcil(colaboradorAbertoConcil);
+}
+function usarValorManualConcil(indice) {
+  const input = document.getElementById("concil-manual-input-" + indice);
+  const valor = input.value.trim();
+  if (!valor) return;
+  const campo = colaboradorAbertoConcil.camposDivergentes[indice];
+  campo.valorManual = valor;
+  campo.valorEscolhido = "manual";
+  campo.resolvido = true;
+  camposEmEdicaoManualConcil.delete(indice);
+  renderCamposConcil(colaboradorAbertoConcil);
+  atualizarResumoConcil(colaboradorAbertoConcil);
+}
+
+function atualizarResumoConcil(c) {
+  const naoResolvidos = CD.camposNaoResolvidos(c).length;
+  document.getElementById("concil-resumo-texto").innerHTML =
+    naoResolvidos === 0
+      ? "<b>Todos os campos foram resolvidos.</b> Ao salvar, este colaborador passa para o status Pronto."
+      : "<b>" + naoResolvidos + (naoResolvidos === 1 ? " campo divergente" : " campos divergentes") + " entre o Lake e a Ficha Financeira.</b> Escolha, campo a campo, qual valor está correto. Os campos sem divergência não aparecem aqui.";
+}
+
+function configurarDrawerConcilParaTipo(tipo) {
+  const alerta = document.getElementById("concil-resumo-alert");
+  alerta.classList.toggle("alert-warning", tipo !== "novo");
+  alerta.classList.toggle("alert-info", tipo === "novo");
+  document.getElementById("concil-resumo-icon").innerHTML = '<i data-lucide="' + (tipo === "novo" ? "plus" : "alert-triangle") + '"></i>';
+  document.getElementById("concil-salvar").style.display = tipo === "novo" ? "none" : "";
+  document.getElementById("concil-ignorar").style.display = tipo === "novo" ? "" : "none";
+  document.getElementById("concil-criar").style.display = tipo === "novo" ? "" : "none";
+  refreshIcons();
+}
+
+function renderNovoSemLakeConcil(c) {
+  configurarDrawerConcilParaTipo("novo");
+  document.getElementById("concil-resumo-texto").innerHTML =
+    "<b>Colaborador não encontrado no Lake (Domínio).</b> A Ficha Financeira trouxe os dados abaixo, mas não existe cadastro correspondente desta empresa no Lake — pode ser uma admissão recente ainda não sincronizada.";
+  const campos = c.dadosFicha || {};
+  const linhas = Object.keys(campos).map((rotulo) => '<div class="ef-field"><span class="ef-label">' + esc(rotulo) + '</span><div class="field-value">' + esc(String(campos[rotulo])) + "</div></div>").join("");
+  document.getElementById("concil-campos").innerHTML = '<div class="subsection-title">Dados extraídos da Ficha Financeira</div><div class="field-group field-group-2">' + linhas + "</div>";
+}
+
+function atualizarFilaConcil() {
+  const restantes = filaAtualConcil.filter((id) => id !== colaboradorAtualIdConcil);
+  document.getElementById("concil-fila-texto").textContent = restantes.length + (restantes.length === 1 ? " pendente na fila" : " pendentes na fila");
+  document.getElementById("concil-proximo").style.display = restantes.length === 0 ? "none" : "";
+}
+
+function abrirDrawerConcil(id) {
+  const c = encontrarColaboradorConcil(id);
+  if (!c) return;
+  colaboradorAtualIdConcil = id;
+  colaboradorAbertoConcil = c;
+  camposEmEdicaoManualConcil.clear();
+  document.getElementById("concil-avatar").textContent = CD.iniciais(c.nome);
+  document.getElementById("concil-drawer-title").textContent = c.nome;
+  document.getElementById("concil-drawer-sub").textContent = empresaNomeConsole(c.empresaCodigo) + " · CPF " + c.cpf;
+  if (c.status === "nao_encontrado_lake") {
+    renderNovoSemLakeConcil(c);
+  } else {
+    configurarDrawerConcilParaTipo("divergencia");
+    renderCamposConcil(c);
+    atualizarResumoConcil(c);
+  }
+  atualizarFilaConcil();
+  document.getElementById("concil-drawer-overlay").classList.add("open");
+  document.getElementById("concil-drawer").classList.add("open");
+  refreshIcons();
+}
+function fecharDrawerConcil() {
+  document.getElementById("concil-drawer-overlay").classList.remove("open");
+  document.getElementById("concil-drawer").classList.remove("open");
+  colaboradorAtualIdConcil = null;
+  colaboradorAbertoConcil = null;
+}
+
+function salvarConciliacaoConcil() {
+  if (!colaboradorAbertoConcil) return;
+  const todosResolvidos = CD.camposNaoResolvidos(colaboradorAbertoConcil).length === 0;
+  colaboradorAbertoConcil.status = todosResolvidos ? "pronto" : "divergencia";
+  if (todosResolvidos && !colaboradorAbertoConcil.fichaCompleta) colaboradorAbertoConcil.fichaCompleta = CD.gerarFichaCompletaParaColaborador(colaboradorAbertoConcil);
+  const nomeAtualizado = colaboradorAbertoConcil.nome;
+  const colaboradores = CD.getColaboradores().map((c) => (c.id === colaboradorAbertoConcil.id ? colaboradorAbertoConcil : c));
+  CD.setColaboradores(colaboradores);
+  fecharDrawerConcil();
+  renderHeaderConsole();
+  renderColaboradorTab();
+  showToastConsole(
+    todosResolvidos ? "Conciliação concluída" : "Conciliação salva parcialmente",
+    todosResolvidos ? nomeAtualizado + " está pronto." : "Os campos escolhidos foram salvos; ainda há divergências pendentes."
+  );
+}
+function criarColaboradorSemLakeConcil() {
+  if (!colaboradorAbertoConcil) return;
+  colaboradorAbertoConcil.status = "pronto";
+  if (!colaboradorAbertoConcil.fichaCompleta) colaboradorAbertoConcil.fichaCompleta = CD.gerarFichaCompletaParaColaborador(colaboradorAbertoConcil);
+  const nome = colaboradorAbertoConcil.nome;
+  const colaboradores = CD.getColaboradores().map((c) => (c.id === colaboradorAbertoConcil.id ? colaboradorAbertoConcil : c));
+  CD.setColaboradores(colaboradores);
+  fecharDrawerConcil();
+  renderHeaderConsole();
+  renderColaboradorTab();
+  showToastConsole("Colaborador criado", nome + " foi cadastrado no Autopilot a partir da Ficha Financeira.");
+}
+function ignorarNovoSemLakeConcil() {
+  fecharDrawerConcil();
+}
+function irParaProximoPendenteConcil() {
+  const proximoId = filaAtualConcil.find((id) => id !== colaboradorAtualIdConcil);
+  if (proximoId === undefined) return;
+  abrirDrawerConcil(proximoId);
+}
+
+// Simular chegada da Ficha Financeira / retorno do eSocial (só protótipo —
+// no produto real, ambos rodam sozinhos em back-end).
+function simularConciliacaoFichaConcil(id) {
+  const c = encontrarColaboradorConcil(id);
+  if (!c) return;
+  const encontrouDivergencia = c.camposDivergentes && c.camposDivergentes.length > 0;
+  c.status = encontrouDivergencia ? "divergencia" : "pronto";
+  if (!encontrouDivergencia && !c.fichaCompleta) c.fichaCompleta = CD.gerarFichaCompletaParaColaborador(c);
+  const colaboradores = CD.getColaboradores().map((x) => (x.id === c.id ? c : x));
+  CD.setColaboradores(colaboradores);
+  renderHeaderConsole();
+  renderColaboradorTab();
+  if (encontrouDivergencia) {
+    showToastConsole("Ficha Financeira conciliada", c.nome + " tem divergência com o Lake — confira abaixo.", "info");
+    abrirDrawerConcil(c.id);
+  } else {
+    showToastConsole("Ficha Financeira conciliada", c.nome + " está pronto — nenhuma divergência encontrada.");
+  }
+}
+function simularRetornoEsocialConcil(id) {
+  const c = encontrarColaboradorConcil(id);
+  if (!c) return;
+  const categoria = c.categoriaEsocial || "Empregado — CLT";
+  c.status = "pendente_conciliacao";
+  const colaboradores = CD.getColaboradores().map((x) => (x.id === c.id ? c : x));
+  CD.setColaboradores(colaboradores);
+  renderHeaderConsole();
+  renderColaboradorTab();
+  showToastConsole("eSocial retornou a categoria", c.nome + ": " + categoria + " — entrou na fila aguardando a Ficha Financeira.");
+}
+
+// ================= Drawer de dependentes (RF-DP-406) =================
+function dependenteRowHtmlDependentes(dependente, indice) {
+  const pendente = dependente.pendencias && dependente.pendencias.length > 0;
+  return (
+    '<div class="list-row" style="align-items:flex-start;">' +
+    '<div class="flex flex-col gap-0-5 min-w-0">' +
+    '<span class="text-sm font-medium truncate">' + esc(dependente.nome) + "</span>" +
+    '<span class="text-xs" style="color:var(--text-tertiary);">' + esc(dependente.parentesco) + " · CPF " + esc(dependente.cpf) + " · nasc. " + esc(dependente.dataNascimento) + "</span>" +
+    (pendente
+      ? '<span class="text-xs" style="color:var(--warning);">' + dependente.pendencias.map(esc).join(" · ") + "</span>"
+      : '<span class="text-xs" style="color:var(--success);">Completo</span>') +
+    "</div>" +
+    (pendente ? '<button type="button" class="btn-link shrink-0" onclick="resolverDependenteDependentes(' + indice + ')">Marcar como completo</button>' : "") +
+    "</div>"
+  );
+}
+let colaboradorDependentesAberto = null;
+function renderDependentesDrawer(c) {
+  document.getElementById("dependentes-drawer-nome").textContent = c.nome + " · " + empresaNomeConsole(c.empresaCodigo);
+  document.getElementById("dependentes-lista").innerHTML = c.dependentes.map((d, i) => dependenteRowHtmlDependentes(d, i)).join("");
+  refreshIcons();
+}
+function resolverDependenteDependentes(indice) {
+  colaboradorDependentesAberto.dependentes[indice].pendencias = [];
+  const colaboradores = CD.getColaboradores().map((c) => (c.id === colaboradorDependentesAberto.id ? colaboradorDependentesAberto : c));
+  CD.setColaboradores(colaboradores);
+  renderDependentesDrawer(colaboradorDependentesAberto);
+  renderHeaderConsole();
+  if (activeKeyConsole === "colaborador") renderColaboradorTab();
+}
+function abrirDrawerDependentes(id) {
+  const c = encontrarColaboradorConcil(id);
+  if (!c || !c.dependentes) return;
+  colaboradorDependentesAberto = c;
+  renderDependentesDrawer(c);
+  document.getElementById("dependentes-drawer-overlay").classList.add("open");
+  document.getElementById("dependentes-drawer").classList.add("open");
+  refreshIcons();
+}
+function fecharDrawerDependentes() {
+  document.getElementById("dependentes-drawer-overlay").classList.remove("open");
+  document.getElementById("dependentes-drawer").classList.remove("open");
+}
+
+// ================= Modal — linha rejeitada =================
+let colaboradorRejeitadoIdConsole = null;
+const RAZOES_CAMPO_INVALIDO_CONSOLE = {
+  cpf: { rotulo: "CPF", validar: (v) => CD.validarCpf(v) },
+  nome: { rotulo: "Nome completo", validar: (v) => CD.validarNome(v) },
+};
+function abrirModalRejeitado(id) {
+  const c = encontrarColaboradorConcil(id);
+  if (!c) return;
+  colaboradorRejeitadoIdConsole = id;
+  document.getElementById("rejeitado-modal-nome").textContent = c.nome + " · CPF " + c.cpf;
+  document.getElementById("rejeitado-modal-motivo").textContent = c.motivoRejeicao || "Motivo não informado.";
+  document.getElementById("rejeitado-modal-linha").textContent = "Linha " + c.linhaFicha + " da Ficha Financeira — " + empresaNomeConsole(c.empresaCodigo);
+  const def = RAZOES_CAMPO_INVALIDO_CONSOLE[c.campoInvalido];
+  document.getElementById("rejeitado-modal-label").textContent = (def ? def.rotulo : "Valor") + " extraído — corrija antes de reprocessar";
+  const input = document.getElementById("rejeitado-modal-input");
+  input.value = c.valorExtraido || "";
+  document.getElementById("rejeitado-modal-erro").classList.remove("show");
+  document.getElementById("btn-rejeitado-reprocessar").disabled = true;
+  document.getElementById("rejeitado-modal-backdrop").classList.remove("hidden");
+  refreshIcons();
+  input.focus();
+}
+function fecharModalRejeitado() {
+  document.getElementById("rejeitado-modal-backdrop").classList.add("hidden");
+}
+function validarCampoRejeitado() {
+  const c = encontrarColaboradorConcil(colaboradorRejeitadoIdConsole);
+  const def = c && RAZOES_CAMPO_INVALIDO_CONSOLE[c.campoInvalido];
+  const input = document.getElementById("rejeitado-modal-input");
+  const valido = def ? def.validar(input.value) : false;
+  document.getElementById("rejeitado-modal-erro").classList.toggle("show", !valido && input.value.trim() !== "");
+  document.getElementById("btn-rejeitado-reprocessar").disabled = !valido;
+  return valido;
+}
+function salvarCorrecaoRejeitado() {
+  if (!validarCampoRejeitado()) return;
+  const c = encontrarColaboradorConcil(colaboradorRejeitadoIdConsole);
+  if (!c) return;
+  const valorCorrigido = document.getElementById("rejeitado-modal-input").value.trim();
+  c[c.campoInvalido] = valorCorrigido;
+  const encontrouDivergencia = c.camposDivergentes && c.camposDivergentes.length > 0;
+  c.status = encontrouDivergencia ? "divergencia" : "pendente_conciliacao";
+  const colaboradores = CD.getColaboradores().map((x) => (x.id === c.id ? c : x));
+  CD.setColaboradores(colaboradores);
+  fecharModalRejeitado();
+  renderHeaderConsole();
+  renderColaboradorTab();
+  if (encontrouDivergencia) {
+    showToastConsole("Linha reprocessada", c.nome + " foi conciliado com o Lake, mas ainda tem divergência pendente.", "info");
+    abrirDrawerConcil(c.id);
+  } else {
+    showToastConsole("Linha reprocessada", c.nome + " entrou na fila de conciliação com o Lake.");
+  }
+}
+
+// ================= Drawer "Visualizar" — ficha completa do colaborador =================
+// Tem ações (pendência cadastral / dependente incompleto) — drawer lateral.
+function valorFinalCampoVisColab(campo) {
+  if (campo.valorEscolhido === "lake") return campo.valorLake;
+  if (campo.valorEscolhido === "ficha") return campo.valorFicha;
+  if (campo.valorEscolhido === "manual") return campo.valorManual;
+  return null;
+}
+function origemLabelVisColab(v) {
+  if (v === "lake") return "Lake (Domínio)";
+  if (v === "ficha") return "Ficha Financeira";
+  if (v === "manual") return "digitado manualmente";
+  return "";
+}
+const STATUS_LABELS_VISCOLAB = {
+  pronto: "Pronto", divergencia: "Divergência", pendente_conciliacao: "Pendente conciliação",
+  nao_encontrado_lake: "Novo colaborador — não encontrado no Lake", rejeitado: "Rejeitado", aguardando_esocial: "Aguardando eSocial",
+};
+function campoFichaVisColab(label, valor) {
+  if (!valor) return "";
+  return '<div class="ef-field"><span class="ef-label">' + esc(label) + '</span><div class="field-value">' + esc(String(valor)) + "</div></div>";
+}
+function secaoVisColab(titulo, conteudoHtml) {
+  return '<div><div class="subsection-title">' + esc(titulo) + "</div>" + conteudoHtml + "</div>";
+}
+function renderFichaCompletaVisColab(ficha) {
+  const p = ficha.dadosPessoais || {}, d = ficha.documentos || {}, a = ficha.admissao || {}, b = ficha.bancario || {}, h = ficha.historico || {}, f = ficha.resumoFinanceiroAno || {};
+  let html = secaoVisColab("Dados pessoais", '<div class="field-group field-group-2">' +
+    campoFichaVisColab("Data de nascimento", p.dataNascimento) + campoFichaVisColab("Sexo", p.sexo) + campoFichaVisColab("Estado civil", p.estadoCivil) +
+    campoFichaVisColab("Nacionalidade", p.nacionalidade) + campoFichaVisColab("Naturalidade", p.naturalidade) + campoFichaVisColab("Cor/Raça", p.corRaca) +
+    campoFichaVisColab("Grau de instrução", p.grauInstrucao) + campoFichaVisColab("Nome do pai", p.nomePai) + campoFichaVisColab("Nome da mãe", p.nomeMae) +
+    campoFichaVisColab("Telefone", p.telefone) + campoFichaVisColab("Endereço", p.endereco) + "</div>");
+  html += secaoVisColab("Documentos", '<div class="field-group field-group-2">' +
+    campoFichaVisColab("RG", d.rg) + campoFichaVisColab("CTPS", d.ctps) + campoFichaVisColab("Data de expedição da CTPS", d.dataExpedicaoCtps) +
+    campoFichaVisColab("PIS/PASEP", d.pis) + campoFichaVisColab("Título de eleitor", d.tituloEleitor) + campoFichaVisColab("CNH", d.cnh) + "</div>");
+  html += secaoVisColab("Admissão", '<div class="field-group field-group-2">' +
+    campoFichaVisColab("Matrícula", a.matricula) + campoFichaVisColab("Data de admissão", a.dataAdmissao) + campoFichaVisColab("Função", a.funcao) +
+    campoFichaVisColab("CBO", a.cbo) + campoFichaVisColab("Salário", a.salario) + campoFichaVisColab("Horário de trabalho", a.horarioTrabalho) +
+    campoFichaVisColab("Horário de intervalo", a.horarioIntervalo) + "</div>");
+  html += secaoVisColab("Dados bancários / FGTS", '<div class="field-group field-group-2">' +
+    campoFichaVisColab("Banco", b.banco) + campoFichaVisColab("Agência", b.agencia) + campoFichaVisColab("Conta", b.conta) + campoFichaVisColab("FGTS — opção em", b.fgtsOpcaoEm) + "</div>");
+  if ((h.alteracoesSalario && h.alteracoesSalario.length) || (h.ferias && h.ferias.length)) {
+    html += secaoVisColab("Histórico",
+      (h.alteracoesSalario && h.alteracoesSalario.length
+        ? '<div class="flex flex-col gap-1"><span class="ef-label">Alterações de salário</span>' + h.alteracoesSalario.map((x) => '<span class="text-sm">' + esc(x) + "</span>").join("") + "</div>"
+        : "") +
+      (h.ferias && h.ferias.length
+        ? '<div class="flex flex-col gap-1" style="margin-top:8px;"><span class="ef-label">Férias</span>' + h.ferias.map((v) => '<span class="text-sm">Aquisitivo ' + esc(v.periodoAquisitivo) + " · Gozo " + esc(v.periodoGozo) + "</span>").join("") + "</div>"
+        : ""));
+  }
+  if (f.competencias && f.competencias.length) {
+    html += secaoVisColab("Resumo financeiro do ano", '<div id="dt-vc-financeiro-ano"></div>' +
+      (f.totalAno ? '<p style="font-size:11.5px;color:var(--text-tertiary);margin-top:6px;">Total líquido no ano: <b style="color:var(--text-primary);">' + f.totalAno + "</b></p>" : ""));
+    window._vcFinanceiroAno = f.competencias;
+  } else {
+    window._vcFinanceiroAno = null;
+  }
+  return html;
+}
+function pendenciasCadastraisListHtmlVisColab(c) {
+  return c.pendenciasCadastrais.map((p, i) =>
+    '<div class="list-row"><span class="text-sm">' + esc(p) + '</span><button type="button" class="btn-link shrink-0" onclick="resolverPendenciaCadastralVisColab(' + i + ')">Marcar como preenchido</button></div>'
+  ).join("");
+}
+function renderVisColabBody(c) {
+  let html = secaoVisColab("Dados gerais", '<div class="field-group field-group-2">' +
+    '<div class="ef-field"><span class="ef-label">Cargo</span><div class="field-value">' + esc(c.cargo) + "</div></div>" +
+    '<div class="ef-field"><span class="ef-label">CPF</span><div class="field-value">' + c.cpf + "</div></div>" +
+    '<div class="ef-field"><span class="ef-label">Empresa</span><div class="field-value">' + esc(empresaNomeConsole(c.empresaCodigo)) + "</div></div>" +
+    '<div class="ef-field"><span class="ef-label">Status</span><div class="field-value">' + esc(STATUS_LABELS_VISCOLAB[c.status] || c.status) + "</div></div></div>");
+
+  // Todo colaborador "pronto" carrega ficha completa (ver
+  // gerarFichaCompletaParaColaborador em js/implantacao/data.js, chamada ao
+  // conciliar/simular chegada da Ficha/criar sem Lake) — checar só a
+  // presença do dado, sem repetir o filtro de status que o único ponto de
+  // entrada deste drawer (clickColaboradorConsole) já aplica.
+  if (c.fichaCompleta) html += renderFichaCompletaVisColab(c.fichaCompleta);
+
+  if (c.camposDivergentes && c.camposDivergentes.length) {
+    html += secaoVisColab("Campos conciliados", '<div class="field-group field-group-2">' +
+      c.camposDivergentes.map((cp) => '<div class="ef-field"><span class="ef-label">' + esc(cp.campo) + '</span><div class="field-value">' + esc(String(valorFinalCampoVisColab(cp))) + ' <span style="font-size:11px;color:var(--text-tertiary);">(' + origemLabelVisColab(cp.valorEscolhido) + ")</span></div></div>").join("") + "</div>");
+  }
+  if (c.pendenciasCadastrais && c.pendenciasCadastrais.length) {
+    html += secaoVisColab("Pendências cadastrais", '<div class="flex flex-col gap-1">' + pendenciasCadastraisListHtmlVisColab(c) + "</div>");
+  }
+  if (c.dependentes && c.dependentes.length) {
+    html += secaoVisColab("Dependentes", '<div class="flex flex-col gap-1">' + c.dependentes.map((d, i) => dependenteRowHtmlVisColab(d, i)).join("") + "</div>");
+  }
+  return html;
+}
+function dependenteRowHtmlVisColab(dependente, indice) {
+  const pendente = dependente.pendencias && dependente.pendencias.length > 0;
+  return (
+    '<div class="list-row" style="align-items:flex-start;">' +
+    '<div class="flex flex-col gap-0-5 min-w-0">' +
+    '<span class="text-sm font-medium truncate">' + esc(dependente.nome) + "</span>" +
+    '<span class="text-xs" style="color:var(--text-tertiary);">' + esc(dependente.parentesco) + " · CPF " + esc(dependente.cpf) + " · nasc. " + esc(dependente.dataNascimento) + "</span>" +
+    (pendente
+      ? '<span class="text-xs" style="color:var(--warning);">' + dependente.pendencias.map(esc).join(" · ") + "</span>"
+      : '<span class="text-xs" style="color:var(--success);">Completo</span>') +
+    "</div>" +
+    (pendente ? '<button type="button" class="btn-link shrink-0" onclick="resolverDependenteVisColab(' + indice + ')">Marcar como completo</button>' : "") +
+    "</div>"
+  );
+}
+let colaboradorVisColabAberto = null;
+function persistirColaboradorVisColab(c) {
+  const colaboradores = CD.getColaboradores().map((x) => (x.id === c.id ? c : x));
+  CD.setColaboradores(colaboradores);
+}
+function renderVisColab(c) {
+  document.getElementById("viscolab-drawer-body").innerHTML = renderVisColabBody(c);
+  refreshIcons();
+  if (window._vcFinanceiroAno) {
+    dtCreate("vc-financeiro-ano", {
+      columns: [
+        { key: "competencia", label: "Competência", mono: true },
+        { key: "proventos", label: "Proventos" },
+        { key: "descontos", label: "Descontos" },
+        { key: "liquido", label: "Líquido" },
+      ],
+      rows: window._vcFinanceiroAno,
+      rowKey: "competencia",
+      pageSize: 12,
+      searchable: false,
+      emptyMessage: "Sem competências.",
+    });
+  }
+}
+function resolverPendenciaCadastralVisColab(i) {
+  colaboradorVisColabAberto.pendenciasCadastrais.splice(i, 1);
+  persistirColaboradorVisColab(colaboradorVisColabAberto);
+  renderVisColab(colaboradorVisColabAberto);
+  renderHeaderConsole();
+  if (activeKeyConsole === "colaborador") renderColaboradorTab();
+}
+function resolverDependenteVisColab(indice) {
+  colaboradorVisColabAberto.dependentes[indice].pendencias = [];
+  persistirColaboradorVisColab(colaboradorVisColabAberto);
+  renderVisColab(colaboradorVisColabAberto);
+  renderHeaderConsole();
+  if (activeKeyConsole === "colaborador") renderColaboradorTab();
+}
+function abrirDrawerVisColab(id) {
+  const c = CD.getColaboradores().find((x) => x.id === Number(id));
+  if (!c) return;
+  colaboradorVisColabAberto = c;
+  document.getElementById("viscolab-avatar").textContent = CD.iniciais(c.nome);
+  document.getElementById("viscolab-drawer-title").textContent = c.nome;
+  document.getElementById("viscolab-drawer-sub").textContent = empresaNomeConsole(c.empresaCodigo) + " · CPF " + c.cpf;
+  renderVisColab(c);
+  document.getElementById("viscolab-drawer-overlay").classList.add("open");
+  document.getElementById("viscolab-drawer").classList.add("open");
+  refreshIcons();
+}
+function fecharDrawerVisColab() {
+  document.getElementById("viscolab-drawer-overlay").classList.remove("open");
+  document.getElementById("viscolab-drawer").classList.remove("open");
+}
+
+// ===== Atalho de teclado (Esc fecha o painel/modal aberto no topo) =====
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  if (document.getElementById("concil-drawer").classList.contains("open")) fecharDrawerConcil();
+  else if (document.getElementById("dependentes-drawer").classList.contains("open")) fecharDrawerDependentes();
+  else if (document.getElementById("viscolab-drawer").classList.contains("open")) fecharDrawerVisColab();
+  else if (document.getElementById("layoutrel-drawer").classList.contains("open")) fecharDrawerLayoutRel();
+  else if (!document.getElementById("rejeitado-modal-backdrop").classList.contains("hidden")) fecharModalRejeitado();
+  else if (!document.getElementById("visgenerico-modal-backdrop").classList.contains("hidden")) fecharModalVisGenerico();
+});
+</script>
+<script src="../assets/core/cockpit-01-shell.js"></script>
+<script src="../assets/core/cockpit-02-state-helpers.js"></script>
+<script src="../assets/core/cockpit-08-datatable.js"></script>
+<script src="../assets/core/cockpit-07-modals-init.js"></script>
+<script src="../assets/core/cockpit-09-cx-sidebar.js"></script>
+<script>
+  // dtCreate/esc/refreshIcons só existem depois dos arquivos de core/
+  // carregarem — a primeira renderização real acontece aqui, como em
+  // socios.html/contadores.html desta mesma trilha.
+  if (!empresaImplantConsole) {
+    document.querySelector(".console-page-wrap").innerHTML = '<div class="alert alert-destructive"><i data-lucide="circle-x"></i><div class="alert-desc">Empresa não encontrada nesta implantação.</div></div>';
+    refreshIcons();
+  } else {
+    CD.ensureToast && void 0; // sem-efeito: o toast desta página é o próprio #toast-wrap-console
+    renderHeaderConsole();
+    renderTabsBarConsole();
+    renderContentConsole();
+  }
+</script>
 </body>
 </html>

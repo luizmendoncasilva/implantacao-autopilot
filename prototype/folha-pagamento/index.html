@@ -1,49 +1,1143 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
-  <title>Folha de Pagamento — AutoPilot</title>
-  <link rel="stylesheet" href="../shared/css/tokens.css" />
-  <link rel="stylesheet" href="../shared/css/base.css" />
-  <link rel="stylesheet" href="../shared/css/components.css" />
-  <link rel="stylesheet" href="../shared/css/layout.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1280" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
+<title>Folha de Pagamento — AutoPilot</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: var(--surface-muted); }
+  .fl-page { max-width: 1220px; margin: 0 auto; padding: 28px 24px 96px; }
+  .fl-crumb { font-size: 12px; color: var(--text-secondary); margin-bottom: 18px; }
+  .fl-crumb a { color: var(--text-secondary); text-decoration: none; }
+  .fl-crumb a:hover { color: var(--brand-pink); }
+
+  .fl-select-wrap { max-width: 440px; margin: 64px auto; }
+  .fl-select-preview { margin-top: 14px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-subtle); display: none; }
+  .fl-select-preview.show { display: block; }
+
+  .fl-header-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 4px; }
+  .fl-h1 { font-size: 22px; font-weight: 700; color: var(--text-primary); margin: 0; }
+  .fl-context-line { font-size: 13px; color: var(--text-secondary); margin-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .fl-context-line strong { color: var(--text-primary); font-weight: 600; }
+  .fl-link-btn { background: none; border: none; color: var(--brand-blue); font-size: 12.5px; font-weight: 500; cursor: pointer; padding: 0; }
+  .fl-link-btn:hover { text-decoration: underline; }
+
+  .fl-vig { display: inline-flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; background: #fff; }
+  .fl-vig-text { font-size: 12.5px; color: var(--text-primary); }
+  .fl-vig-text .lbl { font-weight: 600; }
+  .fl-vig-text .per { color: var(--text-secondary); margin-left: 4px; }
+
+  .fl-tabs { display: flex; gap: 4px; overflow-x: auto; border-bottom: 1px solid var(--border); margin: 20px 0 0; }
+  .fl-tab { padding: 10px 16px; font-size: 13px; font-weight: 500; color: var(--text-secondary); cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; }
+  .fl-tab:hover { color: var(--text-primary); }
+  .fl-tab.active { color: var(--brand-pink); border-bottom-color: var(--brand-pink); font-weight: 600; }
+  .fl-action-row { display: flex; justify-content: flex-end; margin: 14px 0 10px; gap: 8px; }
+
+  .fl-acc { border: 1px solid var(--border); border-radius: 12px; background: #fff; overflow: hidden; margin-bottom: 14px; }
+  .fl-acc-trigger { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: none; border: none; cursor: pointer; text-align: left; font-size: 14px; font-weight: 600; color: var(--text-primary); }
+  .fl-acc-trigger:hover { background: var(--surface-subtle); }
+  .fl-acc-chev { color: var(--text-tertiary); transition: transform .15s; flex-shrink: 0; }
+  .fl-acc-trigger.open .fl-acc-chev { transform: rotate(180deg); }
+  .fl-acc-body { padding: 4px 20px 22px; border-top: 1px solid var(--border); }
+  .fl-acc-body.hidden { display: none; }
+
+  .fl-field-full { grid-column: 1 / -1; }
+  .fl-checklist { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 20px; margin-top: 8px; }
+  .fl-cb { display: inline-flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--text-primary); line-height: 1.4; }
+  .fl-cb input { width: 15px; height: 15px; margin-top: 1px; accent-color: var(--brand-pink); flex-shrink: 0; }
+  .fl-cb.view { color: var(--text-secondary); }
+  .fl-cb.view.on { color: var(--text-primary); }
+  .fl-cb.view i { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; }
+  .fl-cb.view.on i { color: var(--success); }
+  .fl-cb.view.off i { color: var(--text-tertiary); }
+  .fl-sub-indent { margin-left: 23px; margin-top: 4px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .fl-cat-switch { display: inline-flex; gap: 2px; padding: 4px; background: var(--surface-muted); border-radius: 10px; margin-bottom: 16px; }
+  .fl-cat-btn { padding: 7px 16px; font-size: 13px; font-weight: 500; color: var(--text-secondary); cursor: pointer; border-radius: 7px; background: transparent; border: none; }
+  .fl-cat-btn.active { background: var(--surface); color: var(--text-primary); box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+
+  .fl-table { width: 100%; border-collapse: collapse; }
+  .fl-table th { text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-tertiary); padding: 0 12px 8px 0; border-bottom: 1px solid var(--border); }
+  .fl-table td { padding: 8px 12px 8px 0; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 13px; }
+  .fl-table tr:last-child td { border-bottom: none; }
+  .fl-table input, .fl-table select { font-size: 12.5px; padding: 5px 8px; border: 1px solid var(--border-strong); border-radius: 6px; width: 100%; box-sizing: border-box; }
+
+  .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.25); z-index: 40; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+  .drawer { position: fixed; top: 0; right: 0; height: 100%; width: 480px; background: var(--surface); border-left: 1px solid var(--border); z-index: 50; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .25s cubic-bezier(.25,.46,.45,.94); }
+  .drawer.open { transform: translateX(0); }
+  .drawer-header { padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; display: flex; align-items: flex-start; gap: 12px; }
+  .drawer-title { font-size: 15px; font-weight: 700; color: var(--text-primary); line-height: 1.3; }
+  .drawer-body { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
+  .drawer-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 8px; flex-shrink: 0; background: var(--surface); }
+
+  .fl-vt { display: flex; flex-direction: column; }
+  .fl-vt-item { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; cursor: pointer; }
+  .fl-vt-item:hover { border-color: var(--brand-pink); }
+  .fl-vt-item.is-current { border-color: var(--brand-pink); background: var(--brand-pink-soft); }
+  .fl-vt-meta { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+
+  .fl-toast-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 200; display: flex; flex-direction: column; gap: 8px; }
+  .fl-toast { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--border); border-left: 3px solid var(--success); border-radius: 10px; padding: 12px 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); font-size: 13px; color: var(--text-primary); min-width: 260px; }
+
+  .fl-hist-event { padding: 16px 0; border-bottom: 1px solid var(--border); }
+  .fl-hist-event:last-child { border-bottom: none; }
+  .fl-hist-head { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-secondary); flex-wrap: wrap; }
+  .fl-hist-sub { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 12.5px; color: var(--text-secondary); }
+</style>
 </head>
 <body>
-  <div id="shell-root"></div>
-  <template id="page-content"><div id="folha-page-mount" class="max-w-7xl"></div></template>
 
-  <script src="../shared/js/icons.js"></script>
-  <script src="../shared/js/shell.js"></script>
-  <script src="../shared/js/ui.js"></script>
-  <script src="../shared/js/fab-tools.js"></script>
-  <script src="../shared/js/vigencia.js"></script>
-  <script src="../empresas/js/data.js"></script>
-  <script src="js/historico-eventos.js"></script>
-  <script src="js/historico-labels.js"></script>
-  <script src="js/historico-diff.js"></script>
-  <script src="js/historico-schemas.js"></script>
-  <script src="js/data.js"></script>
-  <script src="js/empresa-selector.js"></script>
-  <script src="js/folha-page.js"></script>
-  <script>
-    const empresaAtual = FolhaPage.resolveEmpresa();
-    Shell.mount(document.getElementById("shell-root"), {
-      base: "../",
-      active: "folha",
-      crumbs: empresaAtual
-        ? [
-            { label: empresaAtual.dadosGerais.razaoSocial, href: "../empresas/dados-gerais.html?empresa=" + encodeURIComponent(empresaAtual.codigo) },
-            { label: "folha de pagamento" },
-          ]
-        : [{ label: "folha de pagamento" }],
-    });
-    if (empresaAtual) {
-      FolhaPage.mount(empresaAtual);
-    } else {
-      FolhaPage.mountSelecaoEmpresa();
+<div class="fl-page" id="fl-root"></div>
+
+<script>
+window.FLOW_CONFIG = { standalone: true };
+
+/* Shim temporário: renderShellFolha() roda no fim deste bloco inline, antes
+   de assets/core/cockpit-02-state-helpers.js (que define refreshIcons de
+   verdade) ter sido carregado pelas tags <script src> seguintes. Sem isso,
+   a primeira renderização (tela de seleção de empresa) lança
+   "refreshIcons is not defined" e os ícones Lucide não aparecem até a
+   primeira interação. A declaração `function` do core sobrescreve esta
+   assim que carrega, sem conflito. */
+if (typeof window.refreshIcons !== 'function') {
+  window.refreshIcons = function refreshIcons() { if (window.lucide) lucide.createIcons(); };
+}
+
+/* =========================================================================
+   FOLHA DE PAGAMENTO — migração visual pro design system do Cockpit.
+   Estrutura de dados e mocks portados fielmente de
+   prototype/folha-pagamento/js/data.js (3 das 5 empresas originais, pra
+   manter o protótipo navegável sem duplicar o dataset inteiro).
+   Sufixo "Folha" em toda função/variável específica deste fluxo.
+   ========================================================================= */
+
+const AREAS_FOLHA = [
+  { key: 'geral', label: 'Geral' },
+  { key: 'regime', label: 'Regime' },
+  { key: 'arredondamento', label: 'Arredondamento' },
+  { key: 'adiantamento', label: 'Adiantamento' },
+  { key: 'decimo-terceiro', label: '13º Salário' },
+  { key: 'ferias', label: 'Férias' },
+  { key: 'contabilidade', label: 'Contabilidade' },
+  { key: 'honorarios', label: 'Honorários' },
+  { key: 'cronograma', label: 'Cronograma' },
+  { key: 'historico', label: 'Histórico' },
+];
+const AREAS_COM_EDICAO_FOLHA = ['geral', 'regime', 'arredondamento', 'adiantamento', 'decimo-terceiro', 'ferias', 'contabilidade', 'honorarios', 'cronograma'];
+
+const OPCOES_FOLHA = {
+  tipoAmbiente: ['Ambiente de teste', 'Ambiente Oficial'],
+  certificadoDigital: ['Empresa', 'Contador', 'Procurador'],
+  tipoCentralizacao: ['Centralizadora', 'Centralizada', 'Não centraliza'],
+  tipoInscricaoTransmissor: ['CNPJ', 'CPF'],
+  faseamento: ['1º grupo', '2º grupo', '3º grupo', '4º grupo'],
+  classificacaoTributaria: ['Empresa em geral', 'Órgão público', 'Optante do Simples', 'MEI'],
+  contratacaoPcd: ['Obrigada', 'Não obrigada', 'Dispensada'],
+  tipoFolhaAtual: ['Folha mensal', 'Complementar', 'Rescisão'],
+  lancamentoHoras: ['Horas decimais', 'Horas e minutos'],
+  calculoProporcionalidade: ['Sempre 30 dias', 'Conforme dias do mês'],
+  opcaoUnidadeCalculo: ['Conforme unidade das rubricas', 'Conforme categoria'],
+  simplesNacionalSituacao: ['Optante', 'Não Optante'],
+  baseCalculoAdiantamento: ['Salário Contratual', 'Salário e Adicionais'],
+  separarLancamentosPor: ['Não Separar', 'Por filial', 'Por centro de custo'],
+  dataReferenciaContabil: ['Final do Mês', 'Data do Pagamento', 'Data do Pagamento da Convocação Intermitente'],
+  configuracaoRelatorioProvisaoFerias: ['Considerar integralmente no mês início do gozo', 'Considerar de forma proporcional aos dias de gozo', 'Não considerar'],
+  simNao: ['Sim', 'Não'],
+};
+
+function deepMergeFolha(base, overrides) {
+  if (!overrides) return base;
+  Object.keys(overrides).forEach((k) => {
+    const ov = overrides[k];
+    if (ov && typeof ov === 'object' && !Array.isArray(ov)) base[k] = deepMergeFolha(base[k] && typeof base[k] === 'object' ? base[k] : {}, ov);
+    else base[k] = ov;
+  });
+  return base;
+}
+
+/* ---- Empresas (subconjunto de EmpresasData) ---- */
+const EMPRESAS_FOLHA = {
+  'PA-0011': { codigo: 'PA-0011', razaoSocial: 'Padaria Aurora Ltda', cnpj: '12.345.678/0001-90', regime: 'Simples Nacional' },
+  'MS-0027': { codigo: 'MS-0027', razaoSocial: 'Metalúrgica Sigma Ltda (matriz)', cnpj: '06.265.226/0001-09', regime: 'Lucro Presumido' },
+  'CH-0042': { codigo: 'CH-0042', razaoSocial: 'Comércio Horizonte Ltda', cnpj: '22.333.444/0001-55', regime: 'Simples Nacional' },
+};
+
+/* ---- Geral ---- */
+function blankGeralFolha() {
+  return {
+    esocial: {
+      envioGeral: { gerarESocial: true, tipoAmbiente: '', certificadoDigital: '', tipoCentralizacao: '', inscricaoTransmissorTipo: '', inscricaoTransmissorNumero: '', empresaJaEnviada: '', competenciaInicioUso: '', contadorCodigoNome: '', empresaCentralizadoraCodigo: '', naoEnviarEventos: { ativo: false, data: '' }, possuiCentralizadoraOutroBanco: false },
+      faseamento: { faseamento: '', tabelaData: '', naoPeriodicosData: '', periodicosData: '', sstData: '', possuiRPPS: false, periodicosRPPSData: '', naoEnviarNaoPeriodicosAuto: { ativo: false, data: '' } },
+      sst: { naoEnviarSST: { ativo: false, data: '' }, vincularOutroResponsavel: false, certificadoResponsavel: '', codigoResponsavel: '', eventos: { s2210: false, s2220: false, s2221: false, s2240: false } },
+      dadosCadastraisTributarios: { classificacaoTributaria: '', cooperativa: '', produtorRural: '', entidadeSemFins: '', empresaTrabalhoTemporario: '', calculaFunrural: '', construtora: '', entidadeEducativa: '', numeroRegistroMTE: '', geraESocialDomestico: false, tipoAcesso: '', codigoAcesso: '', senha: '', possuiSituacaoEspecial: false, situacao: '', optouRegistroEletronico: '', possuiAcordoInternacional: '', utilizaModuloWebSimplificado: '' },
+      contratacoesPCD: { contratacaoPCD: '', numeroProcesso: '' },
+      orgaosPublicos: { cnpjEnteFederativo: '' },
+    },
+    calculo: {
+      competenciaAtual: '', tipoFolhaAtual: '', discriminarDSR: '', lancamentoHoras: '', calculoProporcionalidade: '', folhaProfessores: '', folhaSemanal: '',
+      usaRubricasEmpresa: { ativo: false, codigoNome: '' }, permitirProporcionalizarCarga: { ativo: false, data: '' }, efetuarCalculoDCTFWeb: { ativo: false, data: '' },
+      agentePublico: '', rateioPorServico: { ativo: '', data: '', tipoRateio: '' },
+      calcularSalarioProporcionalAlteracao: false, calcularINSSMultiplosVinculos: false,
+    },
+    unidadeCalculo: { vigencia: '', descricao: '', opcaoUnidade: '', unidadePorCategoria: { mensalistas: '', semanalistas: '', comissionados: '', diaristas: '', tarefeiros: '', contribuintes: '' } },
+    personaliza: {
+      opcoesGeral: { limiteEstagiariosSupervisor: { ativo: false, numero: '' }, calcularDiarias: { ativo: false, consideraComoRemuneracao: '' }, naoCalcularDiariasTributaveis: { ativo: false, data: '' }, configurarRubricasDescontoCompulsorio: false, naoPermitirSalarioAbaixoPiso: false, efetuarLancamentoRubricasPorServico: false, permitirInformarDatasFaltasParciais: false, considerarPeriodoSindicatoAlteracaoSalarial: false, considerarDiasMesCompetenciaInicioEstagio: false, permitirTipoAnaliticoSinteticoCentroCustos: false, discriminarHorasCompensacaoSabado: false, naoCalcularPLRDemitido: false, calcularRemuneracaoIntegralAfastamentoContribuintes: false },
+      dsr: { descontarFaltasDSRCompetenciaFalta: false, descontarDSRMesmaSemanaFalta: false, descontarFaltasDSRDiaFolga: false, naoDescontarDSRFeriados: false, considerarDSRAfastadoDoencaDireitosIntegrais: false, calcularDSRUmSextoHoristaVariavel: false, calcularDSRUmSextoDiaristaVariavel: false, calcularDSRUmSextoIntermitente: false },
+      salarioFamilia: { naoCalcularDomesticoLicencaMaternidade: false, calcularMesmoDescontosMaioresProventos: false, calcularDuranteAfastamentoAusenciaJustificada: false, pagarDiferenca: false, naoConsiderarRetroativoCompensacao: false, naoCalcularIntermitenteSemCalculoCompetencia: false, naoCalcularDomesticoRetornoAfastamentoAte15Dias: false, naoCalcularHoristaVariavelSemCalculoCompetencia: false },
+      encargos: { aliquotaInssAutonomoCooperado: '20,00', limitarContribTerceiros20SalariosMinimos: { ativo: '', data: '' }, calcularInss8RuralPrazoDeterminado: { ativo: false, data: '' }, calculaCarneLeao: false, naoConsiderarReducaoTerceirosMP932: false, utilizarCpfResponsavelCarneLeaoCEI: false, somarEncargosComplementarNaMensalMinimo: false, somarEncargosInssCCTMensalMinimo: false, naoCalcularIrrfRpaMei: false, calcularIrrfAutonomoCondominio: false, ratearEncargosProporcionalServico: false, calculaEncargosHorasRepousoIndenizado: false, calcularEncargosIntegralAfastamentoContribuintes: false, calculaEncargosMultaEstabilidade: false, calcularInssFeriasOutrasBases: false, naoCalcularInssEmpresaCategoriasSefip: false, calcularInss13ProporcionalDesoneracao: false, calcularInss13ProporcionalSimplesNacional: false, calcularInss13SemProporcionalidadeTransferenciaDesoneracao: false },
+      rescisaoGeral: { calcularFgtsAvisoPrevioSegregadoESocial: { ativo: false, data: '' }, naoDeduzirBaseFgtsNegativa: { ativo: false, data: '' }, calculoProporcionalidadeDiasMes: false, calculoProporcionalidadeSempre30Dias: false, naoCalcularMediaAdicionalMultaArt477: false, naoConsiderarAvisoIndenizadoSalarioFamilia: false, gerarDataRescisaoMotivos6e27Caged: false, calcularMultaEstabilidadeAcidenteTrabalho: false, gerarAvisoIndenizadoSefipRescisao: false, calcularMultaEstabilidadeArt479480Proporcional: false, calcularIndenizacaoAdicionalTemporario: false, calcularAvisoAcordoDiasMetade: false, naoCalcular13FeriasIndenizadoAvisoAposentadoria: false, naoConsiderarFerias13IntermitenteAvisoPrevio: false, calcularAvisoIntermitenteVerbasPagas: false },
+      rescisaoDataPagamento: { utilizarSabadoDiaUtilPagamentoRescisao: false, anteciparPagamentoRescisaoContratoAntecipadoEmpregador: false, gerarDataPagamentoRescisaoMotivo43: false, prorrogarDataPagamentoRescisaoDiaNaoUtil: false },
+      avisoPrevio: { inicioCalculoProporcional: '', motivosDemissao: '', considerarProjecaoAvisoIndenizadoDiasTrabalhados: false, naoConsiderarDiasAcrescidosLei12506Avos: false, considerarDiasAfastadosDilatarAcrescimoLei12506: false },
+      covid19: { naoRealizarCompensacaoPrevidenciariaAfastamentoCovid: { ativo: false, data: '' }, efetuarCalculoHorasNormaisSalarioDia: false, calcularIndenizacaoGarantiaProvisoriaMotivos10e23: false, naoCalcularSalarioFamiliaSemDireitoAntesReducao: false, considerarAdicionaisIndenizacaoGarantiaProvisoria: false, considerarAdicionaisAjudaCompensatoria30: false, postergarDiasEstabilidadeGarantiaProvisoria: false, calcularRubricasInsalubridadeReducaoSalarial: false, calcularAntecipacaoSalarialReduzidaCompetenciaReducao: false, considerarAntecipacaoSalarialAjudaCompensatoria: false, calcularGratificacaoReduzidaCompetenciaReducao: false, considerarDiasAfastadosSuspensaoDilatarPeriodoAquisitivo: false, calcularSalarioFamiliaAfastadoIntegralSuspensao: false, considerarDiasIndenizacaoGarantiaProvisoriaAvos: false, considerarSalarioReduzidoCalculo13: false },
+      afastamentos: { calcularAfastamentosPagamentoEmpresaIntermitente: { ativo: false, data: '' }, considerarDiasAfastadosExperienciaDilatarLimite: false, considerarMediasPrimeiroAfastamentoMesmaDoenca: false, naoCalcularDiferencaRubricasAlteracaoRetroativaAfastadoDoenca: false, pagarPrimeiros90DiasServicoMilitar: false, permitirMotivosAfastamento3_6_17_18QualquerData: false, considerar5MesesEstabilidadeLicencaMaternidade: false, naoAlterarPagamentoLicencaMaternidadeMeiTrocaRegime: false, considerarSomenteDiasUteisLicencaPaternidade: false },
+      horaNoturna: { calcularHoraNoturnaHorarioEmpregado: { ativo: false, data: '' }, inicioHoraNoturna: '', fimHoraNoturna: '', calcularIntegralmenteJornadaExclusivamenteNoturna: { ativo: false, data: '' }, calcularHoraDiurnaComAdicionalNoturnoSumula60: false },
+      contribuicoesSindicato: { calcularDiferencaContribSindicalAlteracaoSalarial: false, calcularDiferencaContribSindicalAntecipacaoSalarial: false, calcularContribSindicalMesAnteriorComissionado: false, calcularContribSindicalMediasFeriasComissionado: false, calcularContribSindicalMesAnteriorProfessorAulista: false, calcularContribSindicalHoristas30Dias: false },
+      outrosApi: { gerarGuiaDarfDctfwebApiIntegraContador: false, gerarLancamentoRubricasFolhaViaApi: false },
+    },
+    informacoes: {
+      adquireProducaoRural: { ativo: false, lancamentoNotasFiscais: '', data: '' },
+      comercializaProducaoRural: { ativo: false, lancamentoNotasFiscais: '', data: '' },
+      tomadorServicos: { ativo: false, lancamentoNotasFiscais: '', data: '' },
+      prestadorServicos: { ativo: false, lancamentoNotasFiscais: '', data: '' },
+      recursosClubeFutebol: { ativo: false, tipo: '' },
+      permiteImportarNotasFiscaisCpfProducaoRural: false,
+    },
+  };
+}
+const GERAL_MOCKS_FOLHA = {
+  'PA-0011': {
+    esocial: { envioGeral: { tipoAmbiente: 'Ambiente Oficial', certificadoDigital: 'Empresa', tipoCentralizacao: 'Não centraliza', inscricaoTransmissorTipo: 'CNPJ', inscricaoTransmissorNumero: '12.345.678/0001-90' }, faseamento: { faseamento: '3º grupo', tabelaData: '2021-01', naoPeriodicosData: '2021-01', periodicosData: '2021-07', sstData: '2021-07' }, dadosCadastraisTributarios: { classificacaoTributaria: 'Optante do Simples', cooperativa: 'Não', produtorRural: 'Não', entidadeSemFins: 'Não', empresaTrabalhoTemporario: 'Não', calculaFunrural: 'Não' }, contratacoesPCD: { contratacaoPCD: 'Não obrigada' } },
+    calculo: { competenciaAtual: '2026-08', tipoFolhaAtual: 'Folha mensal', discriminarDSR: 'Não', lancamentoHoras: 'Horas decimais', calculoProporcionalidade: 'Conforme dias do mês', folhaProfessores: 'Não', folhaSemanal: 'Não', rateioPorServico: { ativo: 'Não' } },
+    unidadeCalculo: { vigencia: '2026-01', opcaoUnidade: 'Conforme unidade das rubricas' },
+    personaliza: { avisoPrevio: { inicioCalculoProporcional: 'A partir do primeiro ano trabalhado completo', motivosDemissao: 'Somente motivo 2 — demissão sem justa causa' } },
+  },
+  'MS-0027': {
+    esocial: { envioGeral: { tipoAmbiente: 'Ambiente Oficial', certificadoDigital: 'Empresa', tipoCentralizacao: 'Centralizadora', inscricaoTransmissorTipo: 'CNPJ', inscricaoTransmissorNumero: '06.265.226/0001-09' }, faseamento: { faseamento: '1º grupo', tabelaData: '2018-01', naoPeriodicosData: '2018-01', periodicosData: '2018-05', sstData: '2018-05' }, dadosCadastraisTributarios: { classificacaoTributaria: 'Empresa em geral', cooperativa: 'Não', produtorRural: 'Não', entidadeSemFins: 'Não', empresaTrabalhoTemporario: 'Não', calculaFunrural: 'Não' }, contratacoesPCD: { contratacaoPCD: 'Obrigada' } },
+    calculo: { competenciaAtual: '2026-08', tipoFolhaAtual: 'Folha mensal', discriminarDSR: 'Não', lancamentoHoras: 'Horas decimais', calculoProporcionalidade: 'Sempre 30 dias', folhaProfessores: 'Não', folhaSemanal: 'Não', rateioPorServico: { ativo: 'Não' } },
+    unidadeCalculo: { vigencia: '2026-01', opcaoUnidade: 'Conforme categoria', unidadePorCategoria: { mensalistas: 'Horas', semanalistas: 'Horas', comissionados: 'Horas', diaristas: 'Dias', tarefeiros: 'Horas', contribuintes: 'Horas' } },
+    personaliza: { avisoPrevio: { inicioCalculoProporcional: 'A partir do primeiro ano trabalhado completo', motivosDemissao: 'Somente motivo 2 — demissão sem justa causa' } },
+  },
+  'CH-0042': {
+    esocial: { envioGeral: { tipoAmbiente: 'Ambiente Oficial', certificadoDigital: 'Contador', contadorCodigoNome: 'Juliana Prado Contabilidade — 1GO987654/O-2', tipoCentralizacao: 'Não centraliza', inscricaoTransmissorTipo: 'CNPJ', inscricaoTransmissorNumero: '22.333.444/0001-55', empresaJaEnviada: 'Sim', competenciaInicioUso: '2020-09' }, faseamento: { faseamento: '3º grupo', tabelaData: '2021-01', naoPeriodicosData: '2021-01', periodicosData: '2021-07', sstData: '2021-07' }, dadosCadastraisTributarios: { classificacaoTributaria: 'Optante do Simples', cooperativa: 'Não', produtorRural: 'Não', entidadeSemFins: 'Não', empresaTrabalhoTemporario: 'Não', calculaFunrural: 'Não' }, contratacoesPCD: { contratacaoPCD: 'Não obrigada' } },
+    calculo: { competenciaAtual: '2026-08', tipoFolhaAtual: 'Folha mensal', discriminarDSR: 'Não', lancamentoHoras: 'Horas decimais', calculoProporcionalidade: 'Conforme dias do mês', folhaProfessores: 'Não', folhaSemanal: 'Não', rateioPorServico: { ativo: 'Não' } },
+    unidadeCalculo: { vigencia: '2026-01', opcaoUnidade: 'Conforme unidade das rubricas' },
+    personaliza: { avisoPrevio: { inicioCalculoProporcional: 'A partir do primeiro ano trabalhado completo', motivosDemissao: 'Somente motivo 2 — demissão sem justa causa' } },
+  },
+};
+function defaultGeralFolha(codigo) { return deepMergeFolha(blankGeralFolha(), GERAL_MOCKS_FOLHA[codigo] || { calculo: { competenciaAtual: '2026-08' } }); }
+
+/* ---- Regime ---- */
+function blankRegimeFolha() {
+  return { descricao: '', regime: '', simplesFederalAte2007: '', simplesNacional: '', possuiInssReceitaBruta: '', contribuiPis: { ativo: false, percentual: '' }, calcularPisCompetenciaFerias: false, cprb: { atividades: '', exclusivamenteTiTic: '', exclusivamenteAtividadesRelacionadas: '', aliquotaReceitasNaoRelacionadas: '', calcularInss13IntegralSemProporcionalidade: false, utilizarPercentualReceitaBrutaNovembro13Integral: false, calcularInss13RescisaoSemProporcionalidade: false, calcularInss13RescisaoUltimoServicoAlocado: false, calcularInss13ProporcionalDesoneracaoServico: false } };
+}
+const REGIME_MOCKS_FOLHA = {
+  'PA-0011': { regime: 'Normal', simplesFederalAte2007: 'Não se aplica', simplesNacional: 'Optante', possuiInssReceitaBruta: 'Não' },
+  'MS-0027': { regime: 'Normal', simplesFederalAte2007: 'Não se aplica', simplesNacional: 'Não Optante', possuiInssReceitaBruta: 'Sim', cprb: { atividades: 'Indústria', exclusivamenteTiTic: 'Não', exclusivamenteAtividadesRelacionadas: 'Não', aliquotaReceitasNaoRelacionadas: '3,00' } },
+  'CH-0042': { regime: 'Normal', simplesFederalAte2007: 'Não se aplica', simplesNacional: 'Optante', possuiInssReceitaBruta: 'Não' },
+};
+const REGIME_VIGENCIAS_FOLHA = {
+  'PA-0011': [{ id: 'regime-pa0011-v1', dataInicio: '01/01/2026', dataFim: null, tipoEstabelecimento: 'Estabelecimento único' }],
+  'MS-0027': [
+    { id: 'regime-ms0027-v2', dataInicio: '01/01/2026', dataFim: null, tipoEstabelecimento: 'Matriz' },
+    { id: 'regime-ms0027-v1', dataInicio: '01/01/2018', dataFim: '31/12/2025', tipoEstabelecimento: 'Matriz' },
+  ],
+  'CH-0042': [{ id: 'regime-ch0042-v1', dataInicio: '01/01/2026', dataFim: null, tipoEstabelecimento: 'Estabelecimento único' }],
+};
+function defaultRegimeFolha(codigo) { return { form: deepMergeFolha(blankRegimeFolha(), REGIME_MOCKS_FOLHA[codigo]), vigencias: REGIME_VIGENCIAS_FOLHA[codigo] || [{ id: 'fallback', dataInicio: '01/01/2026', dataFim: null, tipoEstabelecimento: '—' }] };
+}
+
+/* ---- Arredondamento ---- */
+const TIPOS_FOLHA_ARREDONDAMENTO = ['Mensal', 'Semanal', 'Complementar', 'Adiantamento', 'Participação de Lucros', 'Férias', 'Tabela Rescisão', 'Rescisão Complementar', 'Rescisão Professor', '13º', 'Adiantamento 13º Integral'];
+function blankArredondamentoFolha() { return { calculaPara: { empregados: false, estagiarios: false, contribuintes: false }, linhas: TIPOS_FOLHA_ARREDONDAMENTO.map((t) => ({ tipoFolha: t, calcula: 'Não', valor: '', formaDesconto: '' })) }; }
+const ARREDONDAMENTO_MOCKS_FOLHA = {
+  'PA-0011': { calculaPara: { empregados: true, estagiarios: true, contribuintes: true }, linhas: { Mensal: { calcula: 'Sim', valor: '0,01', formaDesconto: 'Não descontar' }, Complementar: { calcula: 'Sim', valor: '0,01', formaDesconto: 'Não descontar' } } },
+  'MS-0027': { calculaPara: { empregados: true, estagiarios: false, contribuintes: false }, linhas: { Mensal: { calcula: 'Sim', valor: '0,01', formaDesconto: 'Não descontar' }, '13º': { calcula: 'Sim', valor: '0,01', formaDesconto: 'Não descontar' } } },
+};
+function defaultArredondamentoFolha(codigo) {
+  const form = blankArredondamentoFolha();
+  const ov = ARREDONDAMENTO_MOCKS_FOLHA[codigo];
+  if (ov) { if (ov.calculaPara) Object.assign(form.calculaPara, ov.calculaPara); if (ov.linhas) form.linhas.forEach((l) => { if (ov.linhas[l.tipoFolha]) Object.assign(l, ov.linhas[l.tipoFolha]); }); }
+  return form;
+}
+
+/* ---- Adiantamento ---- */
+function blankProporcionalidadeFolha() { return { ativo: false, considerarProporcionalmenteDiasTrabalhados: false, seEstiverTrabalhandoNaDataPagamento: false, seEstiverTrabalhandoMinimoDias: { ativo: false, dias: '' }, naoConsiderarLicencaRemuneradaComoTrabalhado: false }; }
+function blankAdiantamentoFolha() {
+  return { definicoes: { calcularPara: { estagiarios: false, contribuintes: false, aprendiz: false }, baseCalculo: '', percentual: '', percentualDiferenciadoEstagiarios: { ativo: false, percentual: '' }, considerarComissaoCompetenciaAnterior: false, considerarGarantiaMinima: false, considerarApenasGarantiaMinimaComSalario: false, naoCalcularAntecipacaoComAdiantamentoLancado: false, permitirMaisDeUmAdiantamento: { ativo: false, limitarPercentual: '' } },
+    proporcionalidade: { ferias: blankProporcionalidadeFolha(), licencaMaternidade: blankProporcionalidadeFolha(), outrosAfastamentos: Object.assign(blankProporcionalidadeFolha(), { motivo: '' }), admissao: blankProporcionalidadeFolha() } };
+}
+const ADIANTAMENTO_MOCKS_FOLHA = {
+  'PA-0011': { definicoes: { calcularPara: { estagiarios: true, contribuintes: false, aprendiz: false }, baseCalculo: 'Salário Contratual', percentual: '40', percentualDiferenciadoEstagiarios: { ativo: true, percentual: '35' } }, proporcionalidade: { ferias: { ativo: true, considerarProporcionalmenteDiasTrabalhados: true }, outrosAfastamentos: { ativo: true, motivo: 'Acidente de trabalho', seEstiverTrabalhandoMinimoDias: { ativo: true, dias: '15' } } } },
+  'MS-0027': { definicoes: { calcularPara: { estagiarios: false, contribuintes: true, aprendiz: false }, baseCalculo: 'Salário e Adicionais', percentual: '40', permitirMaisDeUmAdiantamento: { ativo: true, limitarPercentual: '30' } }, proporcionalidade: { admissao: { ativo: true, seEstiverTrabalhandoNaDataPagamento: true } } },
+};
+function defaultAdiantamentoFolha(codigo) {
+  const form = blankAdiantamentoFolha();
+  const ov = ADIANTAMENTO_MOCKS_FOLHA[codigo];
+  if (ov) {
+    if (ov.definicoes) deepMergeFolha(form.definicoes, ov.definicoes);
+    if (ov.proporcionalidade) ['ferias', 'licencaMaternidade', 'outrosAfastamentos', 'admissao'].forEach((k) => { if (ov.proporcionalidade[k]) deepMergeFolha(form.proporcionalidade[k], ov.proporcionalidade[k]); });
+  }
+  return form;
+}
+
+/* ---- 13º Salário ---- */
+function blank13Folha() {
+  return { geral: { descontarFaltasAutomaticamente: false, descontarFaltasNoturnas: false, pagarAdicionais: false, pagarMedias: false, considerarMesAdmissaoMediasSemAvo: false, ajustarDezembroFavorEmpregado: false, ajustarDezembroFavorEmpregador: false, pagarParaEstagiarios: false, calcularParaRescisaoJustaCausa: false, naoCalcularProporcionalRescisaoMotivoAntecipado: false, desconsiderarAfastamentosDiasDireito: false, considerarMesAfastamentoMediasSemAvo: false, naoCalcularMediasComissaoAposMudancaMensalista: false, considerarMesAfastamentoDivisorMedias: false, considerarAvoSomenteDiasTrabalhados: false, utilizarRubricasDescontoDiferencaComEncargos: false, calcularInssEmpresaRescisaoConformeReducao: false, desconsiderarMesDivisorMedias: { ativo: false, dias: '' }, considerarAusenciaJustificadaAvoDomestico: false, considerarAvoCompetenciasComCalculoTrocaIntermitente: false, pagarProporcionalMensalistaHoristaTrocaCategoria: false },
+    decimoAdiantamento: { percentual: '', permiteMaisDeUmAdiantamento: { ativo: false, limitarPercentual: '' }, pagarAteDezembroAdmitidosNoAno: false, pagarAteMesAnteriorAdmitidosNoAno: false, calcularComBaseSalarioMesAnterior: false, pagarAdicionais: false, pagarMedias: false, calcularNaFolhaMensal: false, descontarValorJaAdiantadoComAlteracaoSalarial: false } };
+}
+const DECIMO_MOCKS_FOLHA = {
+  'PA-0011': { geral: { pagarAdicionais: true, pagarMedias: true, pagarParaEstagiarios: true }, decimoAdiantamento: { percentual: '50', pagarAdicionais: true } },
+  'MS-0027': { geral: { calcularInssEmpresaRescisaoConformeReducao: true, desconsiderarMesDivisorMedias: { ativo: true, dias: '15' } }, decimoAdiantamento: { percentual: '50', permiteMaisDeUmAdiantamento: { ativo: true, limitarPercentual: '30' } } },
+};
+function defaultDecimoFolha(codigo) { return deepMergeFolha(blank13Folha(), DECIMO_MOCKS_FOLHA[codigo] || {}); }
+
+/* ---- Férias ---- */
+function blankFeriasFolha() {
+  return { geral: { descontarFaltas: false, descontarFaltasNoturnas: false, descontarFaltasSuspensas: false, informarDataLancamentoFaltas: false, usarFaltasParciais: false, desconsiderarAfastamentosDiasDireito: false, pagarAdicionais: false, pagarMedias: false, adiantarPrimeiraParcela13: false, pagarParaEstagiarios: false, calcular1_3Estagiarios: false, considerarDiasAfastadosDilatarLimiteGozo: false, limitarDilatacaoLimiteGozo12Meses: false, incluirMovimentoFeriasFolhaMensal: false, mediasAdicionaisLicencaRemunerada: false, naoCalcularSalarioFamilia: false, naoCalcularContribuicaoSindical: false, calcularContribuicaoSindicalMinimoDias: { ativo: false, dias: '' }, naoConsiderarAfastadosLicencaSemVencimento: false, considerarMesesContagemAfastamento: false, naoConsiderarDiasAfastadosDilatarPeriodoAquisitivoAprendiz: false },
+    opcoes: { calcular1_3LicencaRemunerada: false, calcular1_3SalarioContratual: false, calcularLicencaRemuneradaMenor18: false, pagarDiasGozoExcedentesLicencaRemunerada: false, informarDataSolicitacaoAbonoPecuniario: false, calcularFeriasSalarioMedioReducaoSalarial: false, naoCalcularMediasComissoesMudancaMensalista: false, gerarValorLicencaRemuneradaCalculoFerias: false, calcularPeriodoCompletoFeriasDobro: false, naoCalcularFeriasGozoInferior10Dias: false, considerarDiasContagemAvosConformeDiasMes: false, calculoProporcionalidadeSempre30Dias: false, calcularSalarioProporcionalDiasMes: false },
+    rescisao: { calcularFeriasProporcionalJustaCausa: false, naoDescontarFaltasAvosIndenizado: false, pagarIntegralFeriasProporcionalPeriodoAquisitivoIncompleto: false, pagarFeriasIndenizadasPeriodoAquisitivoIncompleto: false, considerarDiasAvisoPrevioIndenizadoFeriasDobro: false } };
+}
+const FERIAS_MOCKS_FOLHA = {
+  'PA-0011': { geral: { descontarFaltas: true, pagarAdicionais: true, pagarParaEstagiarios: true, calcular1_3Estagiarios: true, desconsiderarAfastamentosDiasDireito: true }, opcoes: { considerarDiasContagemAvosConformeDiasMes: true }, rescisao: { pagarIntegralFeriasProporcionalPeriodoAquisitivoIncompleto: true, pagarFeriasIndenizadasPeriodoAquisitivoIncompleto: true } },
+  'MS-0027': { geral: { considerarDiasAfastadosDilatarLimiteGozo: true, limitarDilatacaoLimiteGozo12Meses: true, calcularContribuicaoSindicalMinimoDias: { ativo: true, dias: '15' }, adiantarPrimeiraParcela13: true }, opcoes: { calcularPeriodoCompletoFeriasDobro: true, naoCalcularFeriasGozoInferior10Dias: true }, rescisao: { naoDescontarFaltasAvosIndenizado: true } },
+};
+function defaultFeriasFolha(codigo) { return deepMergeFolha(blankFeriasFolha(), FERIAS_MOCKS_FOLHA[codigo] || {}); }
+
+/* ---- Contabilidade ---- */
+const TIPOS_CALCULO_CONTABILIDADE = ['Folha mensal', 'Complementar', 'RPA', 'Convocação Intermitente', 'Rescisão', 'Férias', 'Adiantamento', 'Participação de Lucros', 'Resilição Professor', '13º Adiantamento', '13º Integral'];
+function blankContabilidadeFolha() {
+  return { geral: { geraLancamentosContabeis: false, contabilidadePorCentroCusto: { ativo: false, rateio: '' }, separarLancamentosPor: '', geraLancamentosEmpresa: '', possuiScp: '', integracaoPorColaborador: { ativo: false, folhaMensal: false, ferias: false, rescisao: false, provisaoFerias: false, provisaoDecimoTerceiro: false }, configuracaoRelatorioProvisaoFerias: '' },
+    opcoes: { usarMesmaConfigRescisao: false, usarMesmaConfigFerias: false, linhasTipoCalculo: TIPOS_CALCULO_CONTABILIDADE.map((t) => ({ tipoCalculo: t, data: '' })), integrarIrrfFeriasDataPagamento: false, gerarProvisaoSefipPagamentoEncargos: false, considerarUltimoDiaMesNaoUtil: false } };
+}
+const CONTABILIDADE_MOCKS_FOLHA = {
+  'PA-0011': { geral: { geraLancamentosContabeis: true, contabilidadePorCentroCusto: { ativo: true, rateio: 'Conforme percentual definido na Contabilidade' }, separarLancamentosPor: 'Por centro de custo', geraLancamentosEmpresa: '1 — Contábil Central Ltda', possuiScp: 'Não', integracaoPorColaborador: { ativo: true, folhaMensal: true, ferias: true }, configuracaoRelatorioProvisaoFerias: 'Considerar de forma proporcional aos dias de gozo' }, opcoes: { usarMesmaConfigFerias: true, linhasTipoCalculo: { 'Folha mensal': { data: 'Data do Pagamento' }, Férias: { data: 'Final do Mês' }, Rescisão: { data: 'Data do Pagamento' } }, integrarIrrfFeriasDataPagamento: true } },
+  'MS-0027': { geral: { geraLancamentosContabeis: true, separarLancamentosPor: 'Não Separar', geraLancamentosEmpresa: 'MS-0027 — Matriz Contábil', possuiScp: 'Sim', configuracaoRelatorioProvisaoFerias: 'Não considerar' }, opcoes: { linhasTipoCalculo: { 'Folha mensal': { data: 'Final do Mês' }, '13º Integral': { data: 'Final do Mês' } }, considerarUltimoDiaMesNaoUtil: true } },
+};
+function defaultContabilidadeFolha(codigo) {
+  const form = blankContabilidadeFolha();
+  const ov = CONTABILIDADE_MOCKS_FOLHA[codigo];
+  if (ov) {
+    if (ov.geral) Object.keys(ov.geral).forEach((k) => { if (k === 'contabilidadePorCentroCusto' || k === 'integracaoPorColaborador') Object.assign(form.geral[k], ov.geral[k]); else form.geral[k] = ov.geral[k]; });
+    if (ov.opcoes) Object.keys(ov.opcoes).forEach((k) => { if (k === 'linhasTipoCalculo') form.opcoes.linhasTipoCalculo.forEach((l) => { if (ov.opcoes.linhasTipoCalculo[l.tipoCalculo]) Object.assign(l, ov.opcoes.linhasTipoCalculo[l.tipoCalculo]); }); else form.opcoes[k] = ov.opcoes[k]; });
+  }
+  return form;
+}
+
+/* ---- Honorários ---- */
+const HONORARIOS_MOCKS_FOLHA = {
+  'PA-0011': { gerarVariaveisHonorarios: true, escritorio: 'Contabilidade ABC Ltda', rubricas: [{ rubrica: 'INSS Patronal', descricao: 'Encargo patronal sobre a folha de pagamento', encargo: '20%', faturaComContrato: 'Sim' }, { rubrica: 'FGTS', descricao: 'Encargo sobre a folha de pagamento', encargo: '8%', faturaComContrato: 'Não' }] },
+  'MS-0027': { gerarVariaveisHonorarios: true, escritorio: 'Escritório Contábil MS', rubricas: [{ rubrica: 'RAT/SAT', descricao: 'Risco de acidente do trabalho', encargo: '2%', faturaComContrato: 'Sim' }] },
+};
+function defaultHonorariosFolha(codigo) { const ov = HONORARIOS_MOCKS_FOLHA[codigo]; return { gerarVariaveisHonorarios: ov ? ov.gerarVariaveisHonorarios : false, escritorio: ov ? ov.escritorio || '' : '', rubricas: ov && ov.rubricas ? ov.rubricas.map((r) => Object.assign({}, r)) : [] }; }
+
+/* ---- Cronograma ---- */
+const EVENTOS_CRONOGRAMA = ['Folha Mensal', 'Adiantamento', 'Participação de Lucros', '13º Adiantamento', '13º Integral — dezembro', '13º Integral — competências diferentes de dezembro'];
+function blankCronogramaCatFolha() { return { linhas: EVENTOS_CRONOGRAMA.map((e) => ({ evento: e, mesPagamento: '', formaVencimento: '', totalDias: '' })), antecipacaoSabado: false }; }
+function blankCronogramaFolha() { return { empregados: blankCronogramaCatFolha(), estagiarios: blankCronogramaCatFolha(), contribuintes: blankCronogramaCatFolha() }; }
+const CRONOGRAMA_MOCKS_FOLHA = {
+  'PA-0011': { empregados: { linhas: { 'Folha Mensal': { mesPagamento: 'No mesmo mês', formaVencimento: 'Dias corridos antecipados', totalDias: '5' }, Adiantamento: { mesPagamento: 'No mesmo mês', formaVencimento: 'Dias corridos antecipados', totalDias: '15' }, 'Participação de Lucros': { mesPagamento: '1º Mês subsequente', formaVencimento: 'Dias corridos adiados', totalDias: '10' }, '13º Adiantamento': { mesPagamento: '1º Mês subsequente', formaVencimento: 'Último dia útil' }, '13º Integral — dezembro': { mesPagamento: 'No mesmo mês', formaVencimento: 'Dias corridos antecipados', totalDias: '20' }, '13º Integral — competências diferentes de dezembro': { mesPagamento: 'No mesmo mês', formaVencimento: 'Dias corridos antecipados', totalDias: '5' } }, antecipacaoSabado: true }, estagiarios: { linhas: { 'Folha Mensal': { mesPagamento: 'No mesmo mês', formaVencimento: 'Dias corridos antecipados', totalDias: '5' } } } },
+  'MS-0027': { empregados: { linhas: { 'Folha Mensal': { mesPagamento: '1º Mês subsequente', formaVencimento: 'Dias corridos adiados', totalDias: '5' }, Adiantamento: { mesPagamento: 'No mesmo mês', formaVencimento: 'Dias corridos antecipados', totalDias: '15' }, 'Participação de Lucros': { mesPagamento: '1º Mês subsequente', formaVencimento: 'Dias corridos adiados', totalDias: '10' }, '13º Adiantamento': { mesPagamento: 'No mesmo mês', formaVencimento: 'Dias corridos antecipados', totalDias: '20' }, '13º Integral — dezembro': { mesPagamento: 'No mesmo mês', formaVencimento: 'Dias corridos antecipados', totalDias: '20' }, '13º Integral — competências diferentes de dezembro': { mesPagamento: 'No mesmo mês', formaVencimento: 'Dias corridos adiados', totalDias: '5' } } }, contribuintes: { linhas: { 'Folha Mensal': { mesPagamento: '1º Mês subsequente', formaVencimento: 'Dias corridos adiados', totalDias: '5' }, '13º Integral — dezembro': { mesPagamento: 'No mesmo mês', formaVencimento: 'Dias corridos antecipados', totalDias: '20' } } } },
+};
+function defaultCronogramaFolha(codigo) {
+  const form = blankCronogramaFolha();
+  const ov = CRONOGRAMA_MOCKS_FOLHA[codigo];
+  if (ov) ['empregados', 'estagiarios', 'contribuintes'].forEach((cat) => { if (!ov[cat]) return; if (ov[cat].linhas) form[cat].linhas.forEach((l) => { if (ov[cat].linhas[l.evento]) Object.assign(l, ov[cat].linhas[l.evento]); }); if (ov[cat].antecipacaoSabado !== undefined) form[cat].antecipacaoSabado = ov[cat].antecipacaoSabado; });
+  return form;
+}
+
+/* ---- Histórico ---- */
+const HISTORICO_MOCKS_FOLHA = {
+  'PA-0011': [
+    { data: '12/08/2026', hora: '14:22', usuario: 'Wender Jonathan', area: 'Cronograma', acao: 'Atualização de parâmetros', alteracoes: [{ campo: 'Mês do pagamento (Folha Mensal — Empregados)', de: '1º Mês subsequente', para: 'No mesmo mês' }] },
+    { data: '30/07/2026', hora: '10:05', usuario: 'Andressa Lima', area: 'Adiantamento', acao: 'Atualização de parâmetros', alteracoes: [{ campo: 'Percentual', de: '35%', para: '40%' }, { campo: 'Base de Cálculo', de: 'Salário Contratual', para: 'Salário e Adicionais' }] },
+    { data: '18/06/2026', hora: '09:40', usuario: 'Wender Jonathan', area: 'Regime', acao: 'Nova vigência iniciada', descricao: 'Nova vigência do Regime iniciada em 06/2026, a partir da vigência anterior.' },
+    { data: '02/03/2026', hora: '16:15', usuario: 'Elaine Calazans', area: 'Geral', acao: 'Atualização de parâmetros', alteracoes: [{ campo: 'Competência atual', de: '2026-02', para: '2026-03' }] },
+  ],
+  'MS-0027': [
+    { data: '22/07/2026', hora: '11:30', usuario: 'Andressa Lima', area: '13º Salário', acao: 'Atualização de parâmetros', alteracoes: [{ campo: 'Percentual de adiantamento', de: '45%', para: '50%' }] },
+    { data: '10/04/2026', hora: '08:52', usuario: 'Wender Jonathan', area: 'Contabilidade', acao: 'Atualização de parâmetros', alteracoes: [{ campo: 'Separar lançamentos por', de: 'Não Separar', para: 'Por centro de custo' }] },
+  ],
+  'CH-0042': [],
+};
+
+/* ---- Estado da página ---- */
+let empresaAtualFolha = null;
+let abaAtivaFolha = 'geral';
+let vigenciaSelecionadaFolha = null;
+let cronogramaCategoriaFolha = 'empregados';
+let modosEdicaoFolha = {}; // { [aba]: true }
+let dadosFolha = {}; // preenchido ao selecionar empresa
+let historicoRuntimeFolha = {};
+let acordeonFolha = { geral: 'esocial' };
+
+function inicializarDadosEmpresaFolha(codigo) {
+  dadosFolha = {
+    geral: defaultGeralFolha(codigo),
+    regime: defaultRegimeFolha(codigo),
+    arredondamento: defaultArredondamentoFolha(codigo),
+    adiantamento: defaultAdiantamentoFolha(codigo),
+    decimoTerceiro: defaultDecimoFolha(codigo),
+    ferias: defaultFeriasFolha(codigo),
+    contabilidade: defaultContabilidadeFolha(codigo),
+    honorarios: defaultHonorariosFolha(codigo),
+    cronograma: defaultCronogramaFolha(codigo),
+  };
+  historicoRuntimeFolha = { eventos: (HISTORICO_MOCKS_FOLHA[codigo] || []).slice() };
+  modosEdicaoFolha = {};
+  vigenciaSelecionadaFolha = null;
+}
+
+/* ---- Humanização de chaves camelCase (labels não documentados literalmente) ---- */
+function humanizeFolha(key) {
+  let tokens = key.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2').split(' ');
+  let out = tokens.map((t, i) => {
+    if (t === t.toUpperCase() && t.length > 1 && !/^\d+$/.test(t)) return t;
+    const lower = t.toLowerCase();
+    return i === 0 ? lower.charAt(0).toUpperCase() + lower.slice(1) : lower;
+  });
+  let s = out.join(' ');
+  const fixes = [['nao', 'não'], ['medias', 'médias'], ['medio', 'médio'], ['periodo', 'período'], ['indenizacao', 'indenização'], ['decimo', 'décimo'], ['beneficio', 'benefício'], ['publico', 'público'], ['unico', 'único'], ['obrigatorio', 'obrigatório'], ['automatico', 'automático'], ['funrural', 'FUNRURAL'], ['sabado', 'sábado'], ['ultimo', 'último'], ['maximo', 'máximo'], ['minimo', 'mínimo'], ['servico', 'serviço'], ['licenca', 'licença'], ['comissao', 'comissão'], ['comissoes', 'comissões'], ['proporcao', 'proporção'], ['excedentes', 'excedentes'], ['municipal', 'municipal']];
+  fixes.forEach(([a, b]) => { s = s.replace(new RegExp('\\b' + a + '\\b', 'gi'), b); });
+  return s;
+}
+
+/* ---- Helpers de UI: campo view/edit ---- */
+function fvFolha(label, value, wide) { return `<div class="${wide ? 'fl-field-full' : ''}"><div class="field-label">${label}</div><div class="field-value${value ? '' : ' empty'}">${value || 'Não informado'}</div></div>`; }
+function feTextFolha(id, label, value, wide) { return `<div class="ef-field ${wide ? 'fl-field-full' : ''}"><label class="ef-label">${label}</label><input class="ef-input" id="${id}" value="${value || ''}" /></div>`; }
+function feSelectFolha(id, label, value, options, wide) { return `<div class="ef-field ${wide ? 'fl-field-full' : ''}"><label class="ef-label">${label}</label><select class="ef-select" id="${id}"><option value="">—</option>${options.map((o) => `<option ${o === value ? 'selected' : ''}>${o}</option>`).join('')}</select></div>`; }
+function feCheckboxFolha(id, label, checked) { return `<label class="fl-cb"><input type="checkbox" id="${id}" ${checked ? 'checked' : ''} />${label}</label>`; }
+function fvCheckboxFolha(label, checked) { return `<div class="fl-cb view ${checked ? 'on' : 'off'}"><i data-lucide="${checked ? 'check-circle-2' : 'circle'}"></i>${label}</div>`; }
+
+/* Grupo genérico de checklist (booleans + subcampos {ativo,...}) — usado nos
+   blocos "Personaliza" de Geral e nas listas longas de 13º/Férias/Contabilidade. */
+function checklistGroupFolha(obj, mode, prefix) {
+  const items = Object.keys(obj).map((k) => {
+    const v = obj[k];
+    const id = prefix + '__' + k;
+    if (typeof v === 'boolean') {
+      return mode === 'edit' ? feCheckboxFolha(id, humanizeFolha(k), v) : fvCheckboxFolha(humanizeFolha(k), v);
     }
-  </script>
+    if (v && typeof v === 'object' && 'ativo' in v) {
+      const subFields = Object.keys(v).filter((sk) => sk !== 'ativo');
+      const sub = subFields.map((sk) => {
+        const subId = id + '__' + sk;
+        if (mode === 'edit') return `<input class="ef-input" style="max-width:140px;" id="${subId}" placeholder="${humanizeFolha(sk)}" value="${v[sk] || ''}" />`;
+        return v[sk] ? `<span class="badge badge-neutral">${humanizeFolha(sk)}: ${v[sk]}</span>` : '';
+      }).join('');
+      const cbHtml = mode === 'edit' ? feCheckboxFolha(id + '__ativo', humanizeFolha(k), v.ativo) : fvCheckboxFolha(humanizeFolha(k), v.ativo);
+      return `<div>${cbHtml}${(v.ativo || mode === 'edit') ? `<div class="fl-sub-indent">${sub}</div>` : ''}</div>`;
+    }
+    return '';
+  });
+  return `<div class="fl-checklist">${items.join('')}</div>`;
+}
+
+function readChecklistGroupFolha(obj, prefix) {
+  Object.keys(obj).forEach((k) => {
+    const v = obj[k];
+    const id = prefix + '__' + k;
+    if (typeof v === 'boolean') { const el = document.getElementById(id); if (el) obj[k] = el.checked; }
+    else if (v && typeof v === 'object' && 'ativo' in v) {
+      const el = document.getElementById(id + '__ativo'); if (el) v.ativo = el.checked;
+      Object.keys(v).filter((sk) => sk !== 'ativo').forEach((sk) => { const se = document.getElementById(id + '__' + sk); if (se) v[sk] = se.value; });
+    }
+  });
+}
+
+function accTriggerFolha(groupKey, sectionKey, label, isOpen) {
+  return `<button class="fl-acc-trigger${isOpen ? ' open' : ''}" onclick="toggleAccordionFolha('${groupKey}','${sectionKey}')"><span>${label}</span><i data-lucide="chevron-down" class="fl-acc-chev w-4 h-4"></i></button>`;
+}
+function toggleAccordionFolha(groupKey, sectionKey) { acordeonFolha[groupKey] = acordeonFolha[groupKey] === sectionKey ? null : sectionKey; renderTabContentFolha(); }
+
+/* ==================== GERAL ==================== */
+function renderGeralFolha(mode) {
+  const d = dadosFolha.geral;
+  const open = acordeonFolha.geral;
+  const eg = d.esocial.envioGeral;
+  return `
+  <div class="fl-acc">
+    ${accTriggerFolha('geral', 'esocial', 'eSocial', open === 'esocial')}
+    <div class="fl-acc-body${open === 'esocial' ? '' : ' hidden'}">
+      <div class="subsection-title" style="margin-top:14px;">Configurações de Envio · Geral</div>
+      <div class="field-group">
+        ${mode === 'edit' ? feCheckboxFolha('geral__esocial__gerarESocial', 'Gerar eSocial', eg.gerarESocial) : fvCheckboxFolha('Gerar eSocial', eg.gerarESocial)}
+      </div>
+      ${eg.gerarESocial ? `
+      <div class="field-group" style="margin-top:14px;">
+        ${mode === 'edit' ? feSelectFolha('geral__esocial__tipoAmbiente', 'Tipo de ambiente', eg.tipoAmbiente, OPCOES_FOLHA.tipoAmbiente) : fvFolha('Tipo de ambiente', eg.tipoAmbiente)}
+        ${mode === 'edit' ? feSelectFolha('geral__esocial__certificadoDigital', 'Certificado digital', eg.certificadoDigital, OPCOES_FOLHA.certificadoDigital) : fvFolha('Certificado digital', eg.certificadoDigital)}
+        ${mode === 'edit' ? feSelectFolha('geral__esocial__tipoCentralizacao', 'Tipo de centralização', eg.tipoCentralizacao, OPCOES_FOLHA.tipoCentralizacao) : fvFolha('Tipo de centralização', eg.tipoCentralizacao)}
+        ${mode === 'edit' ? feSelectFolha('geral__esocial__inscricaoTransmissorTipo', 'Inscrição do transmissor — tipo', eg.inscricaoTransmissorTipo, OPCOES_FOLHA.tipoInscricaoTransmissor) : fvFolha('Inscrição do transmissor — tipo', eg.inscricaoTransmissorTipo)}
+        ${mode === 'edit' ? feTextFolha('geral__esocial__inscricaoTransmissorNumero', 'Inscrição do transmissor — número', eg.inscricaoTransmissorNumero) : fvFolha('Inscrição do transmissor — número', eg.inscricaoTransmissorNumero)}
+        ${eg.certificadoDigital === 'Contador' ? (mode === 'edit' ? feTextFolha('geral__esocial__contadorCodigoNome', 'Contador (código/nome)', eg.contadorCodigoNome) : fvFolha('Contador (código/nome)', eg.contadorCodigoNome)) : ''}
+        ${eg.tipoCentralizacao === 'Centralizada' ? (mode === 'edit' ? feTextFolha('geral__esocial__empresaCentralizadoraCodigo', 'Empresa centralizadora (código)', eg.empresaCentralizadoraCodigo) : fvFolha('Empresa centralizadora (código)', eg.empresaCentralizadoraCodigo)) : ''}
+        ${mode === 'edit' ? feSelectFolha('geral__esocial__empresaJaEnviada', 'Empresa já enviada anteriormente', eg.empresaJaEnviada, OPCOES_FOLHA.simNao) : fvFolha('Empresa já enviada anteriormente', eg.empresaJaEnviada)}
+        ${eg.empresaJaEnviada === 'Sim' ? (mode === 'edit' ? feTextFolha('geral__esocial__competenciaInicioUso', 'Competência de início da utilização', eg.competenciaInicioUso) : fvFolha('Competência de início da utilização', eg.competenciaInicioUso)) : ''}
+        ${mode === 'edit' ? feCheckboxFolha('geral__esocial__possuiCentralizadoraOutroBanco', 'Possui a empresa centralizadora em outro banco de dados', eg.possuiCentralizadoraOutroBanco) : fvCheckboxFolha('Possui a empresa centralizadora em outro banco de dados', eg.possuiCentralizadoraOutroBanco)}
+      </div>
+
+      <div class="subsection-title">Faseamento</div>
+      <div class="field-group">
+        ${mode === 'edit' ? feSelectFolha('geral__esocial__faseamento__faseamento', 'Faseamento', d.esocial.faseamento.faseamento, OPCOES_FOLHA.faseamento) : fvFolha('Faseamento', d.esocial.faseamento.faseamento)}
+        ${mode === 'edit' ? feTextFolha('geral__esocial__faseamento__tabelaData', 'Tabela (data)', d.esocial.faseamento.tabelaData) : fvFolha('Tabela (data)', d.esocial.faseamento.tabelaData)}
+        ${mode === 'edit' ? feTextFolha('geral__esocial__faseamento__naoPeriodicosData', 'Não periódicos (data)', d.esocial.faseamento.naoPeriodicosData) : fvFolha('Não periódicos (data)', d.esocial.faseamento.naoPeriodicosData)}
+        ${mode === 'edit' ? feTextFolha('geral__esocial__faseamento__periodicosData', 'Periódicos (data)', d.esocial.faseamento.periodicosData) : fvFolha('Periódicos (data)', d.esocial.faseamento.periodicosData)}
+        ${mode === 'edit' ? feTextFolha('geral__esocial__faseamento__sstData', 'SST (data)', d.esocial.faseamento.sstData) : fvFolha('SST (data)', d.esocial.faseamento.sstData)}
+      </div>
+
+      <div class="subsection-title">SST</div>
+      <div class="field-group">
+        ${mode === 'edit' ? feCheckboxFolha('geral__esocial__sst__vincularOutroResponsavel', 'Vincular outro responsável', d.esocial.sst.vincularOutroResponsavel) : fvCheckboxFolha('Vincular outro responsável', d.esocial.sst.vincularOutroResponsavel)}
+      </div>
+      <div style="margin-top:10px;">${checklistGroupFolha(d.esocial.sst.eventos, mode, 'geral__esocial__sst__eventos')}</div>
+
+      <div class="subsection-title">Dados Cadastrais e Tributários</div>
+      <div class="field-group">
+        ${mode === 'edit' ? feSelectFolha('geral__esocial__dct__classificacaoTributaria', 'Classificação tributária', d.esocial.dadosCadastraisTributarios.classificacaoTributaria, OPCOES_FOLHA.classificacaoTributaria) : fvFolha('Classificação tributária', d.esocial.dadosCadastraisTributarios.classificacaoTributaria)}
+        ${mode === 'edit' ? feSelectFolha('geral__esocial__dct__cooperativa', 'Cooperativa', d.esocial.dadosCadastraisTributarios.cooperativa, OPCOES_FOLHA.simNao) : fvFolha('Cooperativa', d.esocial.dadosCadastraisTributarios.cooperativa)}
+        ${mode === 'edit' ? feSelectFolha('geral__esocial__dct__produtorRural', 'Produtor rural', d.esocial.dadosCadastraisTributarios.produtorRural, OPCOES_FOLHA.simNao) : fvFolha('Produtor rural', d.esocial.dadosCadastraisTributarios.produtorRural)}
+        ${mode === 'edit' ? feSelectFolha('geral__esocial__dct__calculaFunrural', 'Calcula FUNRURAL', d.esocial.dadosCadastraisTributarios.calculaFunrural, OPCOES_FOLHA.simNao) : fvFolha('Calcula FUNRURAL', d.esocial.dadosCadastraisTributarios.calculaFunrural)}
+        <div class="fl-field-full">
+          <div class="field-label" style="margin-bottom:6px;">Contratação de PCD</div>
+          ${mode === 'edit' ? feSelectFolha('geral__esocial__pcd__contratacaoPCD', '', d.esocial.contratacoesPCD.contratacaoPCD, OPCOES_FOLHA.contratacaoPcd) : fvFolha('', d.esocial.contratacoesPCD.contratacaoPCD)}
+        </div>
+      </div>
+      ` : ''}
+    </div>
+  </div>
+
+  <div class="fl-acc">
+    ${accTriggerFolha('geral', 'calculo', 'Cálculo', open === 'calculo')}
+    <div class="fl-acc-body${open === 'calculo' ? '' : ' hidden'}">
+      <div class="field-group" style="margin-top:14px;">
+        ${mode === 'edit' ? feTextFolha('geral__calculo__competenciaAtual', 'Competência atual', d.calculo.competenciaAtual) : fvFolha('Competência atual', d.calculo.competenciaAtual)}
+        ${mode === 'edit' ? feSelectFolha('geral__calculo__tipoFolhaAtual', 'Tipo folha atual', d.calculo.tipoFolhaAtual, OPCOES_FOLHA.tipoFolhaAtual) : fvFolha('Tipo folha atual', d.calculo.tipoFolhaAtual)}
+        ${mode === 'edit' ? feSelectFolha('geral__calculo__discriminarDSR', 'Discriminar DSR', d.calculo.discriminarDSR, OPCOES_FOLHA.simNao) : fvFolha('Discriminar DSR', d.calculo.discriminarDSR)}
+        ${mode === 'edit' ? feSelectFolha('geral__calculo__lancamentoHoras', 'Lançamento de horas', d.calculo.lancamentoHoras, OPCOES_FOLHA.lancamentoHoras) : fvFolha('Lançamento de horas', d.calculo.lancamentoHoras)}
+        ${mode === 'edit' ? feSelectFolha('geral__calculo__calculoProporcionalidade', 'Cálculo proporcionalidade', d.calculo.calculoProporcionalidade, OPCOES_FOLHA.calculoProporcionalidade) : fvFolha('Cálculo proporcionalidade', d.calculo.calculoProporcionalidade)}
+        ${mode === 'edit' ? feSelectFolha('geral__calculo__folhaProfessores', 'Folha de professores', d.calculo.folhaProfessores, OPCOES_FOLHA.simNao) : fvFolha('Folha de professores', d.calculo.folhaProfessores)}
+        ${mode === 'edit' ? feSelectFolha('geral__calculo__folhaSemanal', 'Folha semanal', d.calculo.folhaSemanal, OPCOES_FOLHA.simNao) : fvFolha('Folha semanal', d.calculo.folhaSemanal)}
+      </div>
+      <div class="fl-checklist" style="margin-top:14px;">
+        ${mode === 'edit' ? feCheckboxFolha('geral__calculo__calcularSalarioProporcionalAlteracao', 'Calcular salário no mês da alteração salarial proporcionalmente', d.calculo.calcularSalarioProporcionalAlteracao) : fvCheckboxFolha('Calcular salário no mês da alteração salarial proporcionalmente', d.calculo.calcularSalarioProporcionalAlteracao)}
+        ${mode === 'edit' ? feCheckboxFolha('geral__calculo__calcularINSSMultiplosVinculos', 'Calcular INSS múltiplos vínculos conforme eSocial < 02/2020', d.calculo.calcularINSSMultiplosVinculos) : fvCheckboxFolha('Calcular INSS múltiplos vínculos conforme eSocial < 02/2020', d.calculo.calcularINSSMultiplosVinculos)}
+      </div>
+    </div>
+  </div>
+
+  <div class="fl-acc">
+    ${accTriggerFolha('geral', 'unidade', 'Unidade de Cálculo', open === 'unidade')}
+    <div class="fl-acc-body${open === 'unidade' ? '' : ' hidden'}">
+      <div class="field-group" style="margin-top:14px;">
+        ${mode === 'edit' ? feTextFolha('geral__unidadeCalculo__vigencia', 'Vigência', d.unidadeCalculo.vigencia) : fvFolha('Vigência', d.unidadeCalculo.vigencia)}
+        ${mode === 'edit' ? feTextFolha('geral__unidadeCalculo__descricao', 'Descrição', d.unidadeCalculo.descricao) : fvFolha('Descrição', d.unidadeCalculo.descricao)}
+        ${mode === 'edit' ? feSelectFolha('geral__unidadeCalculo__opcaoUnidade', 'Opções para unidade do cálculo', d.unidadeCalculo.opcaoUnidade, OPCOES_FOLHA.opcaoUnidadeCalculo) : fvFolha('Opções para unidade do cálculo', d.unidadeCalculo.opcaoUnidade)}
+      </div>
+      ${d.unidadeCalculo.opcaoUnidade === 'Conforme categoria' ? `<div class="field-group" style="margin-top:14px;">${Object.keys(d.unidadeCalculo.unidadePorCategoria).map((k) => mode === 'edit' ? feTextFolha('geral__unidadeCalculo__unidadePorCategoria__' + k, humanizeFolha(k), d.unidadeCalculo.unidadePorCategoria[k]) : fvFolha(humanizeFolha(k), d.unidadeCalculo.unidadePorCategoria[k])).join('')}</div>` : ''}
+    </div>
+  </div>
+
+  <div class="fl-acc">
+    ${accTriggerFolha('geral', 'personaliza', 'Personaliza', open === 'personaliza')}
+    <div class="fl-acc-body${open === 'personaliza' ? '' : ' hidden'}">
+      ${['opcoesGeral', 'dsr', 'salarioFamilia', 'encargos', 'rescisaoGeral', 'rescisaoDataPagamento', 'avisoPrevio', 'covid19', 'afastamentos', 'horaNoturna', 'contribuicoesSindicato', 'outrosApi'].map((grp) => {
+        const titles = { opcoesGeral: 'Opções Gerais', dsr: 'DSR', salarioFamilia: 'Salário Família', encargos: 'Encargos', rescisaoGeral: 'Rescisão', rescisaoDataPagamento: 'Rescisão — Data de Pagamento', avisoPrevio: 'Aviso Prévio', covid19: 'Covid-19', afastamentos: 'Afastamentos', horaNoturna: 'Hora Noturna', contribuicoesSindicato: 'Contribuições ao Sindicato', outrosApi: 'Outros (Integrações API)' };
+        const obj = d.personaliza[grp];
+        let extraFields = '';
+        if (grp === 'avisoPrevio') {
+          extraFields = `<div class="field-group" style="margin-bottom:12px;">
+            ${mode === 'edit' ? feTextFolha('geral__personaliza__avisoPrevio__inicioCalculoProporcional', 'Início do cálculo proporcional', obj.inicioCalculoProporcional) : fvFolha('Início do cálculo proporcional', obj.inicioCalculoProporcional)}
+            ${mode === 'edit' ? feTextFolha('geral__personaliza__avisoPrevio__motivosDemissao', 'Motivos de demissão', obj.motivosDemissao) : fvFolha('Motivos de demissão', obj.motivosDemissao)}
+          </div>`;
+        }
+        if (grp === 'encargos') {
+          extraFields = `<div class="field-group" style="margin-bottom:12px;">${mode === 'edit' ? feTextFolha('geral__personaliza__encargos__aliquotaInssAutonomoCooperado', 'Alíquota INSS Autônomo Cooperado (%)', obj.aliquotaInssAutonomoCooperado) : fvFolha('Alíquota INSS Autônomo Cooperado (%)', obj.aliquotaInssAutonomoCooperado)}</div>`;
+        }
+        const boolOnly = Object.keys(obj).reduce((acc, k) => { if (typeof obj[k] === 'boolean' || (obj[k] && typeof obj[k] === 'object' && 'ativo' in obj[k])) acc[k] = obj[k]; return acc; }, {});
+        return `<div class="subsection-title">${titles[grp]}</div>${extraFields}${checklistGroupFolha(boolOnly, mode, 'geral__personaliza__' + grp)}`;
+      }).join('')}
+    </div>
+  </div>
+
+  <div class="section-card" style="margin-bottom:0;">
+    <div class="section-title"><i data-lucide="info"></i>Informações</div>
+    ${['adquireProducaoRural', 'comercializaProducaoRural', 'tomadorServicos', 'prestadorServicos'].map((k) => {
+      const labels = { adquireProducaoRural: 'Adquire Produção Rural', comercializaProducaoRural: 'Comercializa Produção Rural', tomadorServicos: 'Tomador de Serviços', prestadorServicos: 'Prestador de Serviços' };
+      const obj = d.informacoes[k];
+      return `<div style="margin-bottom:14px;">
+        ${mode === 'edit' ? feCheckboxFolha('geral__informacoes__' + k + '__ativo', labels[k], obj.ativo) : fvCheckboxFolha(labels[k], obj.ativo)}
+        ${(obj.ativo || mode === 'edit') ? `<div class="field-group" style="margin-top:8px;">
+          ${mode === 'edit' ? feTextFolha('geral__informacoes__' + k + '__lancamentoNotasFiscais', 'Lançamento das notas fiscais', obj.lancamentoNotasFiscais) : fvFolha('Lançamento das notas fiscais', obj.lancamentoNotasFiscais)}
+          ${mode === 'edit' ? feTextFolha('geral__informacoes__' + k + '__data', 'A partir de', obj.data) : fvFolha('A partir de', obj.data)}
+        </div>` : ''}
+      </div>`;
+    }).join('')}
+    <div style="margin-bottom:14px;">
+      ${mode === 'edit' ? feCheckboxFolha('geral__informacoes__recursosClubeFutebol__ativo', 'Recursos de Clube de Futebol', d.informacoes.recursosClubeFutebol.ativo) : fvCheckboxFolha('Recursos de Clube de Futebol', d.informacoes.recursosClubeFutebol.ativo)}
+      ${(d.informacoes.recursosClubeFutebol.ativo || mode === 'edit') ? `<div class="field-group" style="margin-top:8px;">${mode === 'edit' ? feTextFolha('geral__informacoes__recursosClubeFutebol__tipo', 'Tipo', d.informacoes.recursosClubeFutebol.tipo) : fvFolha('Tipo', d.informacoes.recursosClubeFutebol.tipo)}</div>` : ''}
+    </div>
+    ${mode === 'edit' ? feCheckboxFolha('geral__informacoes__permiteImportarNotasFiscaisCpfProducaoRural', 'Permite importar notas fiscais com CPF para produção rural', d.informacoes.permiteImportarNotasFiscaisCpfProducaoRural) : fvCheckboxFolha('Permite importar notas fiscais com CPF para produção rural', d.informacoes.permiteImportarNotasFiscaisCpfProducaoRural)}
+  </div>`;
+}
+
+function readGeralFolha() {
+  const d = dadosFolha.geral;
+  const eg = d.esocial.envioGeral;
+  ['tipoAmbiente', 'certificadoDigital', 'tipoCentralizacao', 'inscricaoTransmissorTipo', 'inscricaoTransmissorNumero', 'contadorCodigoNome', 'empresaCentralizadoraCodigo', 'empresaJaEnviada', 'competenciaInicioUso'].forEach((k) => { const el = document.getElementById('geral__esocial__' + k); if (el) eg[k] = el.value; });
+  const gerarEl = document.getElementById('geral__esocial__gerarESocial'); if (gerarEl) eg.gerarESocial = gerarEl.checked;
+  const cbOutroBanco = document.getElementById('geral__esocial__possuiCentralizadoraOutroBanco'); if (cbOutroBanco) eg.possuiCentralizadoraOutroBanco = cbOutroBanco.checked;
+  ['faseamento', 'tabelaData', 'naoPeriodicosData', 'periodicosData', 'sstData'].forEach((k) => { const el = document.getElementById('geral__esocial__faseamento__' + k); if (el) d.esocial.faseamento[k] = el.value; });
+  const vinc = document.getElementById('geral__esocial__sst__vincularOutroResponsavel'); if (vinc) d.esocial.sst.vincularOutroResponsavel = vinc.checked;
+  readChecklistGroupFolha(d.esocial.sst.eventos, 'geral__esocial__sst__eventos');
+  const ct = document.getElementById('geral__esocial__dct__classificacaoTributaria'); if (ct) d.esocial.dadosCadastraisTributarios.classificacaoTributaria = ct.value;
+  ['cooperativa', 'produtorRural', 'calculaFunrural'].forEach((k) => { const el = document.getElementById('geral__esocial__dct__' + k); if (el) d.esocial.dadosCadastraisTributarios[k] = el.value; });
+  const pcd = document.getElementById('geral__esocial__pcd__contratacaoPCD'); if (pcd) d.esocial.contratacoesPCD.contratacaoPCD = pcd.value;
+
+  ['competenciaAtual', 'tipoFolhaAtual', 'discriminarDSR', 'lancamentoHoras', 'calculoProporcionalidade', 'folhaProfessores', 'folhaSemanal'].forEach((k) => { const el = document.getElementById('geral__calculo__' + k); if (el) d.calculo[k] = el.value; });
+  const csp = document.getElementById('geral__calculo__calcularSalarioProporcionalAlteracao'); if (csp) d.calculo.calcularSalarioProporcionalAlteracao = csp.checked;
+  const cim = document.getElementById('geral__calculo__calcularINSSMultiplosVinculos'); if (cim) d.calculo.calcularINSSMultiplosVinculos = cim.checked;
+
+  ['vigencia', 'descricao', 'opcaoUnidade'].forEach((k) => { const el = document.getElementById('geral__unidadeCalculo__' + k); if (el) d.unidadeCalculo[k] = el.value; });
+  Object.keys(d.unidadeCalculo.unidadePorCategoria).forEach((k) => { const el = document.getElementById('geral__unidadeCalculo__unidadePorCategoria__' + k); if (el) d.unidadeCalculo.unidadePorCategoria[k] = el.value; });
+
+  ['opcoesGeral', 'dsr', 'salarioFamilia', 'encargos', 'rescisaoGeral', 'rescisaoDataPagamento', 'avisoPrevio', 'covid19', 'afastamentos', 'horaNoturna', 'contribuicoesSindicato', 'outrosApi'].forEach((grp) => {
+    // Lê direto em d.personaliza[grp] (não numa cópia via reduce) — campos
+    // booleanos precisam ser gravados no objeto real pra persistir ao salvar;
+    // campos de outros tipos (texto) são ignorados aqui e lidos à parte abaixo.
+    readChecklistGroupFolha(d.personaliza[grp], 'geral__personaliza__' + grp);
+  });
+  const aic = document.getElementById('geral__personaliza__encargos__aliquotaInssAutonomoCooperado'); if (aic) d.personaliza.encargos.aliquotaInssAutonomoCooperado = aic.value;
+  ['inicioCalculoProporcional', 'motivosDemissao'].forEach((k) => { const el = document.getElementById('geral__personaliza__avisoPrevio__' + k); if (el) d.personaliza.avisoPrevio[k] = el.value; });
+
+  ['adquireProducaoRural', 'comercializaProducaoRural', 'tomadorServicos', 'prestadorServicos'].forEach((k) => {
+    const obj = d.informacoes[k];
+    const ativoEl = document.getElementById('geral__informacoes__' + k + '__ativo'); if (ativoEl) obj.ativo = ativoEl.checked;
+    ['lancamentoNotasFiscais', 'data'].forEach((sk) => { const el = document.getElementById('geral__informacoes__' + k + '__' + sk); if (el) obj[sk] = el.value; });
+  });
+  const rcfAtivo = document.getElementById('geral__informacoes__recursosClubeFutebol__ativo'); if (rcfAtivo) d.informacoes.recursosClubeFutebol.ativo = rcfAtivo.checked;
+  const rcfTipo = document.getElementById('geral__informacoes__recursosClubeFutebol__tipo'); if (rcfTipo) d.informacoes.recursosClubeFutebol.tipo = rcfTipo.value;
+  const impCpf = document.getElementById('geral__informacoes__permiteImportarNotasFiscaisCpfProducaoRural'); if (impCpf) d.informacoes.permiteImportarNotasFiscaisCpfProducaoRural = impCpf.checked;
+}
+
+/* ==================== REGIME ==================== */
+function renderRegimeFolha(mode) {
+  const f = dadosFolha.regime.form;
+  return `
+  <div class="section-card">
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
+      <div id="fl-regime-vig"></div>
+    </div>
+    <div class="field-group">
+      ${mode === 'edit' ? feTextFolha('regime__descricao', 'Descrição', f.descricao, true) : fvFolha('Descrição', f.descricao, true)}
+      ${mode === 'edit' ? feTextFolha('regime__regime', 'Regime', f.regime) : fvFolha('Regime', f.regime)}
+      ${mode === 'edit' ? feTextFolha('regime__simplesFederalAte2007', 'Simples Federal até 06/2007', f.simplesFederalAte2007) : fvFolha('Simples Federal até 06/2007', f.simplesFederalAte2007)}
+      ${mode === 'edit' ? feSelectFolha('regime__simplesNacional', 'Simples Nacional', f.simplesNacional, OPCOES_FOLHA.simplesNacionalSituacao) : fvFolha('Simples Nacional', f.simplesNacional)}
+    </div>
+    <div class="field-group" style="margin-top:16px;">
+      ${mode === 'edit' ? feCheckboxFolha('regime__contribuiPis__ativo', 'Contribui PIS', f.contribuiPis.ativo) : fvCheckboxFolha('Contribui PIS', f.contribuiPis.ativo)}
+      ${(f.contribuiPis.ativo || mode === 'edit') ? (mode === 'edit' ? feTextFolha('regime__contribuiPis__percentual', 'Percentual (%)', f.contribuiPis.percentual) : fvFolha('Percentual (%)', f.contribuiPis.percentual)) : ''}
+      ${mode === 'edit' ? feSelectFolha('regime__possuiInssReceitaBruta', 'Possui INSS Empresa sobre a receita bruta', f.possuiInssReceitaBruta, OPCOES_FOLHA.simNao) : fvFolha('Possui INSS Empresa sobre a receita bruta', f.possuiInssReceitaBruta)}
+    </div>
+    ${mode === 'edit' ? feCheckboxFolha('regime__calcularPisCompetenciaFerias', 'Calcular PIS na competência da data de pagamento das férias', f.calcularPisCompetenciaFerias) : fvCheckboxFolha('Calcular PIS na competência da data de pagamento das férias', f.calcularPisCompetenciaFerias)}
+  </div>
+  ${f.possuiInssReceitaBruta === 'Sim' ? `
+  <div class="section-card" style="margin-bottom:0;">
+    <div class="section-title"><i data-lucide="percent"></i>CPRB — INSS sobre a receita bruta</div>
+    <div class="field-group">
+      ${mode === 'edit' ? feTextFolha('regime__cprb__atividades', 'Atividades', f.cprb.atividades) : fvFolha('Atividades', f.cprb.atividades)}
+      ${mode === 'edit' ? feSelectFolha('regime__cprb__exclusivamenteTiTic', 'Empresa exclusivamente TI/TIC', f.cprb.exclusivamenteTiTic, OPCOES_FOLHA.simNao) : fvFolha('Empresa exclusivamente TI/TIC', f.cprb.exclusivamenteTiTic)}
+      ${mode === 'edit' ? feSelectFolha('regime__cprb__exclusivamenteAtividadesRelacionadas', 'Empresa possui exclusivamente atividades relacionadas', f.cprb.exclusivamenteAtividadesRelacionadas, OPCOES_FOLHA.simNao) : fvFolha('Empresa possui exclusivamente atividades relacionadas', f.cprb.exclusivamenteAtividadesRelacionadas)}
+      ${mode === 'edit' ? feTextFolha('regime__cprb__aliquotaReceitasNaoRelacionadas', 'Alíquota para receitas não relacionadas (%)', f.cprb.aliquotaReceitasNaoRelacionadas, true) : fvFolha('Alíquota para receitas não relacionadas (%)', f.cprb.aliquotaReceitasNaoRelacionadas, true)}
+    </div>
+    <div style="margin-top:14px;">${checklistGroupFolha({ calcularInss13IntegralSemProporcionalidade: f.cprb.calcularInss13IntegralSemProporcionalidade, utilizarPercentualReceitaBrutaNovembro13Integral: f.cprb.utilizarPercentualReceitaBrutaNovembro13Integral, calcularInss13RescisaoSemProporcionalidade: f.cprb.calcularInss13RescisaoSemProporcionalidade, calcularInss13RescisaoUltimoServicoAlocado: f.cprb.calcularInss13RescisaoUltimoServicoAlocado, calcularInss13ProporcionalDesoneracaoServico: f.cprb.calcularInss13ProporcionalDesoneracaoServico }, mode, 'regime__cprb')}</div>
+  </div>` : ''}`;
+}
+function readRegimeFolha() {
+  const f = dadosFolha.regime.form;
+  ['descricao', 'regime', 'simplesFederalAte2007', 'simplesNacional', 'possuiInssReceitaBruta'].forEach((k) => { const el = document.getElementById('regime__' + k); if (el) f[k] = el.value; });
+  const pisAtivo = document.getElementById('regime__contribuiPis__ativo'); if (pisAtivo) f.contribuiPis.ativo = pisAtivo.checked;
+  const pisPerc = document.getElementById('regime__contribuiPis__percentual'); if (pisPerc) f.contribuiPis.percentual = pisPerc.value;
+  const pisFerias = document.getElementById('regime__calcularPisCompetenciaFerias'); if (pisFerias) f.calcularPisCompetenciaFerias = pisFerias.checked;
+  ['atividades', 'exclusivamenteTiTic', 'exclusivamenteAtividadesRelacionadas', 'aliquotaReceitasNaoRelacionadas'].forEach((k) => { const el = document.getElementById('regime__cprb__' + k); if (el) f.cprb[k] = el.value; });
+  readChecklistGroupFolha({ calcularInss13IntegralSemProporcionalidade: f.cprb.calcularInss13IntegralSemProporcionalidade, utilizarPercentualReceitaBrutaNovembro13Integral: f.cprb.utilizarPercentualReceitaBrutaNovembro13Integral, calcularInss13RescisaoSemProporcionalidade: f.cprb.calcularInss13RescisaoSemProporcionalidade, calcularInss13RescisaoUltimoServicoAlocado: f.cprb.calcularInss13RescisaoUltimoServicoAlocado, calcularInss13ProporcionalDesoneracaoServico: f.cprb.calcularInss13ProporcionalDesoneracaoServico }, 'regime__cprb');
+  ['calcularInss13IntegralSemProporcionalidade', 'utilizarPercentualReceitaBrutaNovembro13Integral', 'calcularInss13RescisaoSemProporcionalidade', 'calcularInss13RescisaoUltimoServicoAlocado', 'calcularInss13ProporcionalDesoneracaoServico'].forEach((k) => { const el = document.getElementById('regime__cprb__' + k); if (el) f.cprb[k] = el.checked; });
+}
+
+/* ==================== ARREDONDAMENTO ==================== */
+function renderArredondamentoFolha(mode) {
+  const f = dadosFolha.arredondamento;
+  return `
+  <div class="section-card">
+    <div class="section-title"><i data-lucide="users"></i>Calcula arredondamento para</div>
+    <div class="fl-checklist">
+      ${mode === 'edit' ? feCheckboxFolha('arred__calculaPara__empregados', 'Empregados', f.calculaPara.empregados) : fvCheckboxFolha('Empregados', f.calculaPara.empregados)}
+      ${mode === 'edit' ? feCheckboxFolha('arred__calculaPara__estagiarios', 'Estagiários', f.calculaPara.estagiarios) : fvCheckboxFolha('Estagiários', f.calculaPara.estagiarios)}
+      ${mode === 'edit' ? feCheckboxFolha('arred__calculaPara__contribuintes', 'Contribuintes', f.calculaPara.contribuintes) : fvCheckboxFolha('Contribuintes', f.calculaPara.contribuintes)}
+    </div>
+  </div>
+  <div class="section-card" style="margin-bottom:0;">
+    <div class="section-title"><i data-lucide="table"></i>Tabela de Configurações</div>
+    <table class="fl-table"><thead><tr><th>Tipo de Folha</th><th>Calcula</th><th>Valor</th><th>Forma de Desconto</th></tr></thead>
+    <tbody>${f.linhas.map((l, i) => `<tr>
+      <td>${l.tipoFolha}</td>
+      <td>${mode === 'edit' ? `<select id="arred__linha${i}__calcula">${OPCOES_FOLHA.simNao.map((o) => `<option ${o === l.calcula ? 'selected' : ''}>${o}</option>`).join('')}</select>` : `<span class="badge ${l.calcula === 'Sim' ? 'badge-success' : 'badge-neutral'}">${l.calcula}</span>`}</td>
+      <td>${mode === 'edit' ? `<input id="arred__linha${i}__valor" value="${l.valor || ''}" />` : (l.valor || '—')}</td>
+      <td>${mode === 'edit' ? `<input id="arred__linha${i}__formaDesconto" value="${l.formaDesconto || ''}" />` : (l.formaDesconto || '—')}</td>
+    </tr>`).join('')}</tbody></table>
+  </div>`;
+}
+function readArredondamentoFolha() {
+  const f = dadosFolha.arredondamento;
+  ['empregados', 'estagiarios', 'contribuintes'].forEach((k) => { const el = document.getElementById('arred__calculaPara__' + k); if (el) f.calculaPara[k] = el.checked; });
+  f.linhas.forEach((l, i) => { ['calcula', 'valor', 'formaDesconto'].forEach((k) => { const el = document.getElementById('arred__linha' + i + '__' + k); if (el) l[k] = el.value; }); });
+}
+
+/* ==================== ADIANTAMENTO ==================== */
+function propBlocoFolha(key, label, obj, mode, extraCampo) {
+  return `<div class="section-card" style="margin-bottom:12px;">
+    <div class="subsection-title" style="margin-top:0;">${label}</div>
+    ${mode === 'edit' ? feCheckboxFolha('adto__prop__' + key + '__ativo', 'Calcular adiantamento nesta competência', obj.ativo) : fvCheckboxFolha('Calcular adiantamento nesta competência', obj.ativo)}
+    ${(obj.ativo || mode === 'edit') ? `<div style="margin-top:10px;">
+      ${extraCampo && (mode === 'edit' ? feTextFolha('adto__prop__' + key + '__motivo', 'Motivo do afastamento', obj.motivo, true) : fvFolha('Motivo do afastamento', obj.motivo, true))}
+      ${checklistGroupFolha({ considerarProporcionalmenteDiasTrabalhados: obj.considerarProporcionalmenteDiasTrabalhados, seEstiverTrabalhandoNaDataPagamento: obj.seEstiverTrabalhandoNaDataPagamento, naoConsiderarLicencaRemuneradaComoTrabalhado: obj.naoConsiderarLicencaRemuneradaComoTrabalhado }, mode, 'adto__prop__' + key)}
+      ${mode === 'edit' ? feCheckboxFolha('adto__prop__' + key + '__seEstiverTrabalhandoMinimoDias__ativo', 'Se estiver trabalhando no mínimo N dias', obj.seEstiverTrabalhandoMinimoDias.ativo) : fvCheckboxFolha('Se estiver trabalhando no mínimo N dias', obj.seEstiverTrabalhandoMinimoDias.ativo)}
+      ${(obj.seEstiverTrabalhandoMinimoDias.ativo || mode === 'edit') ? (mode === 'edit' ? feTextFolha('adto__prop__' + key + '__minDias', 'Número mínimo de dias', obj.seEstiverTrabalhandoMinimoDias.dias) : fvFolha('Número mínimo de dias', obj.seEstiverTrabalhandoMinimoDias.dias)) : ''}
+    </div>` : ''}
+  </div>`;
+}
+function renderAdiantamentoFolha(mode) {
+  const f = dadosFolha.adiantamento;
+  const def = f.definicoes;
+  return `
+  <div class="section-card">
+    <div class="section-title"><i data-lucide="wallet"></i>Definições</div>
+    <div class="fl-checklist" style="margin-bottom:14px;">
+      ${mode === 'edit' ? feCheckboxFolha('adto__def__calcularPara__estagiarios', 'Calcular para Estagiários', def.calcularPara.estagiarios) : fvCheckboxFolha('Calcular para Estagiários', def.calcularPara.estagiarios)}
+      ${mode === 'edit' ? feCheckboxFolha('adto__def__calcularPara__contribuintes', 'Calcular para Contribuintes', def.calcularPara.contribuintes) : fvCheckboxFolha('Calcular para Contribuintes', def.calcularPara.contribuintes)}
+      ${mode === 'edit' ? feCheckboxFolha('adto__def__calcularPara__aprendiz', 'Calcular para Aprendiz', def.calcularPara.aprendiz) : fvCheckboxFolha('Calcular para Aprendiz', def.calcularPara.aprendiz)}
+    </div>
+    <div class="field-group">
+      ${mode === 'edit' ? feSelectFolha('adto__def__baseCalculo', 'Base de Cálculo', def.baseCalculo, OPCOES_FOLHA.baseCalculoAdiantamento) : fvFolha('Base de Cálculo', def.baseCalculo)}
+      ${mode === 'edit' ? feTextFolha('adto__def__percentual', 'Percentual (%)', def.percentual) : fvFolha('Percentual (%)', def.percentual)}
+    </div>
+    <div style="margin-top:14px;">
+      ${mode === 'edit' ? feCheckboxFolha('adto__def__percDiferenciado__ativo', 'Utilizar percentual diferenciado para estagiários', def.percentualDiferenciadoEstagiarios.ativo) : fvCheckboxFolha('Utilizar percentual diferenciado para estagiários', def.percentualDiferenciadoEstagiarios.ativo)}
+      ${(def.percentualDiferenciadoEstagiarios.ativo || mode === 'edit') ? (mode === 'edit' ? feTextFolha('adto__def__percDiferenciado__percentual', 'Percentual diferenciado (%)', def.percentualDiferenciadoEstagiarios.percentual) : fvFolha('Percentual diferenciado (%)', def.percentualDiferenciadoEstagiarios.percentual)) : ''}
+    </div>
+    <div style="margin-top:14px;">${checklistGroupFolha({ considerarComissaoCompetenciaAnterior: def.considerarComissaoCompetenciaAnterior, considerarGarantiaMinima: def.considerarGarantiaMinima, considerarApenasGarantiaMinimaComSalario: def.considerarApenasGarantiaMinimaComSalario, naoCalcularAntecipacaoComAdiantamentoLancado: def.naoCalcularAntecipacaoComAdiantamentoLancado }, mode, 'adto__def')}</div>
+    <div style="margin-top:14px;">
+      ${mode === 'edit' ? feCheckboxFolha('adto__def__permitirMais__ativo', 'Permitir mais de um adiantamento', def.permitirMaisDeUmAdiantamento.ativo) : fvCheckboxFolha('Permitir mais de um adiantamento', def.permitirMaisDeUmAdiantamento.ativo)}
+      ${(def.permitirMaisDeUmAdiantamento.ativo || mode === 'edit') ? (mode === 'edit' ? feTextFolha('adto__def__permitirMais__limitarPercentual', 'Limitar total das parcelas (%)', def.permitirMaisDeUmAdiantamento.limitarPercentual) : fvFolha('Limitar total das parcelas (%)', def.permitirMaisDeUmAdiantamento.limitarPercentual)) : ''}
+    </div>
+  </div>
+  <div class="section-title" style="margin: 0 4px 12px;"><i data-lucide="calendar-range"></i>Proporcionalidade</div>
+  ${propBlocoFolha('ferias', 'Férias', f.proporcionalidade.ferias, mode)}
+  ${propBlocoFolha('licencaMaternidade', 'Licença-maternidade', f.proporcionalidade.licencaMaternidade, mode)}
+  ${propBlocoFolha('outrosAfastamentos', 'Outros afastamentos', f.proporcionalidade.outrosAfastamentos, mode, true)}
+  ${propBlocoFolha('admissao', 'Admissão', f.proporcionalidade.admissao, mode)}`;
+}
+function readPropBlocoFolha(key, obj) {
+  const ativo = document.getElementById('adto__prop__' + key + '__ativo'); if (ativo) obj.ativo = ativo.checked;
+  const motivo = document.getElementById('adto__prop__' + key + '__motivo'); if (motivo) obj.motivo = motivo.value;
+  ['considerarProporcionalmenteDiasTrabalhados', 'seEstiverTrabalhandoNaDataPagamento', 'naoConsiderarLicencaRemuneradaComoTrabalhado'].forEach((k) => { const el = document.getElementById('adto__prop__' + key + '__' + k); if (el) obj[k] = el.checked; });
+  const minAtivo = document.getElementById('adto__prop__' + key + '__seEstiverTrabalhandoMinimoDias__ativo'); if (minAtivo) obj.seEstiverTrabalhandoMinimoDias.ativo = minAtivo.checked;
+  const minDias = document.getElementById('adto__prop__' + key + '__minDias'); if (minDias) obj.seEstiverTrabalhandoMinimoDias.dias = minDias.value;
+}
+function readAdiantamentoFolha() {
+  const f = dadosFolha.adiantamento;
+  const def = f.definicoes;
+  ['estagiarios', 'contribuintes', 'aprendiz'].forEach((k) => { const el = document.getElementById('adto__def__calcularPara__' + k); if (el) def.calcularPara[k] = el.checked; });
+  ['baseCalculo', 'percentual'].forEach((k) => { const el = document.getElementById('adto__def__' + k); if (el) def[k] = el.value; });
+  const pdAtivo = document.getElementById('adto__def__percDiferenciado__ativo'); if (pdAtivo) def.percentualDiferenciadoEstagiarios.ativo = pdAtivo.checked;
+  const pdPerc = document.getElementById('adto__def__percDiferenciado__percentual'); if (pdPerc) def.percentualDiferenciadoEstagiarios.percentual = pdPerc.value;
+  ['considerarComissaoCompetenciaAnterior', 'considerarGarantiaMinima', 'considerarApenasGarantiaMinimaComSalario', 'naoCalcularAntecipacaoComAdiantamentoLancado'].forEach((k) => { const el = document.getElementById('adto__def__' + k); if (el) def[k] = el.checked; });
+  const pmAtivo = document.getElementById('adto__def__permitirMais__ativo'); if (pmAtivo) def.permitirMaisDeUmAdiantamento.ativo = pmAtivo.checked;
+  const pmPerc = document.getElementById('adto__def__permitirMais__limitarPercentual'); if (pmPerc) def.permitirMaisDeUmAdiantamento.limitarPercentual = pmPerc.value;
+  readPropBlocoFolha('ferias', f.proporcionalidade.ferias);
+  readPropBlocoFolha('licencaMaternidade', f.proporcionalidade.licencaMaternidade);
+  readPropBlocoFolha('outrosAfastamentos', f.proporcionalidade.outrosAfastamentos);
+  readPropBlocoFolha('admissao', f.proporcionalidade.admissao);
+}
+
+/* ==================== 13º SALÁRIO ==================== */
+function renderDecimoFolha(mode) {
+  const d = dadosFolha.decimoTerceiro;
+  const geralBool = Object.keys(d.geral).reduce((acc, k) => { if (typeof d.geral[k] === 'boolean' || (d.geral[k] && typeof d.geral[k] === 'object')) acc[k] = d.geral[k]; return acc; }, {});
+  const adtoBool = Object.keys(d.decimoAdiantamento).reduce((acc, k) => { if (typeof d.decimoAdiantamento[k] === 'boolean' || (d.decimoAdiantamento[k] && typeof d.decimoAdiantamento[k] === 'object')) acc[k] = d.decimoAdiantamento[k]; return acc; }, {});
+  return `
+  <div class="section-card">
+    <div class="section-title"><i data-lucide="gift"></i>Geral</div>
+    ${checklistGroupFolha(geralBool, mode, 'decimo__geral')}
+  </div>
+  <div class="section-card" style="margin-bottom:0;">
+    <div class="section-title"><i data-lucide="banknote"></i>13º Adiantamento</div>
+    <div class="field-group" style="margin-bottom:14px;">
+      ${mode === 'edit' ? feTextFolha('decimo__decimoAdiantamento__percentual', 'Percentual de adiantamento (%)', d.decimoAdiantamento.percentual) : fvFolha('Percentual de adiantamento (%)', d.decimoAdiantamento.percentual)}
+    </div>
+    ${checklistGroupFolha(adtoBool, mode, 'decimo__decimoAdiantamento')}
+  </div>`;
+}
+function readDecimoFolha() {
+  const d = dadosFolha.decimoTerceiro;
+  // Lê direto em d.geral / d.decimoAdiantamento (não numa cópia via reduce)
+  // — ver comentário equivalente em readGeralFolha.
+  readChecklistGroupFolha(d.geral, 'decimo__geral');
+  const perc = document.getElementById('decimo__decimoAdiantamento__percentual'); if (perc) d.decimoAdiantamento.percentual = perc.value;
+  readChecklistGroupFolha(d.decimoAdiantamento, 'decimo__decimoAdiantamento');
+}
+
+/* ==================== FÉRIAS ==================== */
+function renderFeriasFolha(mode) {
+  const d = dadosFolha.ferias;
+  return `
+  <div class="section-card"><div class="section-title"><i data-lucide="palmtree"></i>Geral</div>${checklistGroupFolha(d.geral, mode, 'ferias__geral')}</div>
+  <div class="section-card"><div class="section-title"><i data-lucide="sliders-horizontal"></i>Opções</div>${checklistGroupFolha(d.opcoes, mode, 'ferias__opcoes')}</div>
+  <div class="section-card" style="margin-bottom:0;"><div class="section-title"><i data-lucide="file-x"></i>Rescisão</div>${checklistGroupFolha(d.rescisao, mode, 'ferias__rescisao')}</div>`;
+}
+function readFeriasFolha() {
+  const d = dadosFolha.ferias;
+  readChecklistGroupFolha(d.geral, 'ferias__geral');
+  readChecklistGroupFolha(d.opcoes, 'ferias__opcoes');
+  readChecklistGroupFolha(d.rescisao, 'ferias__rescisao');
+}
+
+/* ==================== CONTABILIDADE ==================== */
+function renderContabilidadeFolha(mode) {
+  const d = dadosFolha.contabilidade;
+  const g = d.geral;
+  return `
+  <div class="section-card">
+    <div class="section-title"><i data-lucide="book-open-check"></i>Geral</div>
+    ${mode === 'edit' ? feCheckboxFolha('cont__geral__geraLancamentosContabeis', 'Gera lançamentos contábeis', g.geraLancamentosContabeis) : fvCheckboxFolha('Gera lançamentos contábeis', g.geraLancamentosContabeis)}
+    ${(g.geraLancamentosContabeis || mode === 'edit') ? `<div style="margin-top:14px;">
+      ${mode === 'edit' ? feCheckboxFolha('cont__geral__ccc__ativo', 'Contabilidade por centro de custo', g.contabilidadePorCentroCusto.ativo) : fvCheckboxFolha('Contabilidade por centro de custo', g.contabilidadePorCentroCusto.ativo)}
+      ${(g.contabilidadePorCentroCusto.ativo || mode === 'edit') ? (mode === 'edit' ? feTextFolha('cont__geral__ccc__rateio', 'Rateio de lançamentos', g.contabilidadePorCentroCusto.rateio, true) : fvFolha('Rateio de lançamentos', g.contabilidadePorCentroCusto.rateio, true)) : ''}
+      <div class="field-group" style="margin-top:12px;">
+        ${mode === 'edit' ? feSelectFolha('cont__geral__separarLancamentosPor', 'Separar lançamentos por', g.separarLancamentosPor, OPCOES_FOLHA.separarLancamentosPor) : fvFolha('Separar lançamentos por', g.separarLancamentosPor)}
+        ${mode === 'edit' ? feTextFolha('cont__geral__geraLancamentosEmpresa', 'Gera lançamentos na empresa (código/nome)', g.geraLancamentosEmpresa) : fvFolha('Gera lançamentos na empresa (código/nome)', g.geraLancamentosEmpresa)}
+        ${mode === 'edit' ? feTextFolha('cont__geral__possuiScp', 'Possui SCP', g.possuiScp) : fvFolha('Possui SCP', g.possuiScp)}
+        ${mode === 'edit' ? feSelectFolha('cont__geral__configuracaoRelatorioProvisaoFerias', 'Relatório de provisão das férias', g.configuracaoRelatorioProvisaoFerias, OPCOES_FOLHA.configuracaoRelatorioProvisaoFerias, true) : fvFolha('Relatório de provisão das férias', g.configuracaoRelatorioProvisaoFerias, true)}
+      </div>
+      <div style="margin-top:12px;">
+        ${mode === 'edit' ? feCheckboxFolha('cont__geral__integ__ativo', 'Gerar integração contábil por colaborador', g.integracaoPorColaborador.ativo) : fvCheckboxFolha('Gerar integração contábil por colaborador', g.integracaoPorColaborador.ativo)}
+        ${(g.integracaoPorColaborador.ativo || mode === 'edit') ? `<div class="fl-sub-indent" style="margin-top:8px;">${['folhaMensal', 'ferias', 'rescisao', 'provisaoFerias', 'provisaoDecimoTerceiro'].map((k) => mode === 'edit' ? feCheckboxFolha('cont__geral__integ__' + k, humanizeFolha(k), g.integracaoPorColaborador[k]) : fvCheckboxFolha(humanizeFolha(k), g.integracaoPorColaborador[k])).join('')}</div>` : ''}
+      </div>
+    </div>` : ''}
+  </div>
+  <div class="section-card">
+    <div class="section-title"><i data-lucide="table-2"></i>Opções</div>
+    <div class="fl-checklist" style="margin-bottom:14px;">
+      ${mode === 'edit' ? feCheckboxFolha('cont__opcoes__usarMesmaConfigRescisao', 'Usar mesma config. da folha normal para Rescisão', d.opcoes.usarMesmaConfigRescisao) : fvCheckboxFolha('Usar mesma config. da folha normal para Rescisão', d.opcoes.usarMesmaConfigRescisao)}
+      ${mode === 'edit' ? feCheckboxFolha('cont__opcoes__usarMesmaConfigFerias', 'Usar mesma config. da folha normal para Férias', d.opcoes.usarMesmaConfigFerias) : fvCheckboxFolha('Usar mesma config. da folha normal para Férias', d.opcoes.usarMesmaConfigFerias)}
+    </div>
+    <table class="fl-table"><thead><tr><th>Tipo de Cálculo</th><th>Data</th></tr></thead>
+    <tbody>${d.opcoes.linhasTipoCalculo.map((l, i) => {
+      const disabled = (l.tipoCalculo === 'Rescisão' && d.opcoes.usarMesmaConfigRescisao) || (l.tipoCalculo === 'Férias' && d.opcoes.usarMesmaConfigFerias);
+      return `<tr><td>${l.tipoCalculo}</td><td>${mode === 'edit' && !disabled ? `<select id="cont__linha${i}__data"><option value="">—</option>${OPCOES_FOLHA.dataReferenciaContabil.map((o) => `<option ${o === l.data ? 'selected' : ''}>${o}</option>`).join('')}</select>` : (disabled ? '<span style="color:var(--text-tertiary);">herda da folha normal</span>' : (l.data || '—'))}</td></tr>`;
+    }).join('')}</tbody></table>
+    <div class="fl-checklist" style="margin-top:16px;">
+      ${mode === 'edit' ? feCheckboxFolha('cont__opcoes__integrarIrrfFeriasDataPagamento', 'Integrar IRRF Férias na data do pagamento', d.opcoes.integrarIrrfFeriasDataPagamento) : fvCheckboxFolha('Integrar IRRF Férias na data do pagamento', d.opcoes.integrarIrrfFeriasDataPagamento)}
+      ${mode === 'edit' ? feCheckboxFolha('cont__opcoes__gerarProvisaoSefipPagamentoEncargos', 'Gerar provisão SEFIP no pagamento de encargos', d.opcoes.gerarProvisaoSefipPagamentoEncargos) : fvCheckboxFolha('Gerar provisão SEFIP no pagamento de encargos', d.opcoes.gerarProvisaoSefipPagamentoEncargos)}
+      ${mode === 'edit' ? feCheckboxFolha('cont__opcoes__considerarUltimoDiaMesNaoUtil', 'Considerar o último dia do mês mesmo se não útil', d.opcoes.considerarUltimoDiaMesNaoUtil) : fvCheckboxFolha('Considerar o último dia do mês mesmo se não útil', d.opcoes.considerarUltimoDiaMesNaoUtil)}
+    </div>
+  </div>
+  <div class="section-card" style="margin-bottom:0;">
+    <div class="section-title"><i data-lucide="building-2"></i>Filial Ativa</div>
+    <div class="alert-banner" style="margin-bottom:0;"><i data-lucide="alert-triangle" style="color:var(--warning); width:18px; height:18px; flex-shrink:0;"></i><div style="font-size:13px; color:var(--text-secondary);">Conteúdo pendente de levantamento complementar. A existência desta sub-aba é confirmada, mas o detalhamento das colunas, botões e regras de seleção da grade de filiais ativas não foi capturado na fonte disponível.</div></div>
+  </div>`;
+}
+function readContabilidadeFolha() {
+  const d = dadosFolha.contabilidade;
+  const g = d.geral;
+  const glc = document.getElementById('cont__geral__geraLancamentosContabeis'); if (glc) g.geraLancamentosContabeis = glc.checked;
+  const cccAtivo = document.getElementById('cont__geral__ccc__ativo'); if (cccAtivo) g.contabilidadePorCentroCusto.ativo = cccAtivo.checked;
+  const cccRateio = document.getElementById('cont__geral__ccc__rateio'); if (cccRateio) g.contabilidadePorCentroCusto.rateio = cccRateio.value;
+  ['separarLancamentosPor', 'geraLancamentosEmpresa', 'possuiScp', 'configuracaoRelatorioProvisaoFerias'].forEach((k) => { const el = document.getElementById('cont__geral__' + k); if (el) g[k] = el.value; });
+  const integAtivo = document.getElementById('cont__geral__integ__ativo'); if (integAtivo) g.integracaoPorColaborador.ativo = integAtivo.checked;
+  ['folhaMensal', 'ferias', 'rescisao', 'provisaoFerias', 'provisaoDecimoTerceiro'].forEach((k) => { const el = document.getElementById('cont__geral__integ__' + k); if (el) g.integracaoPorColaborador[k] = el.checked; });
+  const umcr = document.getElementById('cont__opcoes__usarMesmaConfigRescisao'); if (umcr) d.opcoes.usarMesmaConfigRescisao = umcr.checked;
+  const umcf = document.getElementById('cont__opcoes__usarMesmaConfigFerias'); if (umcf) d.opcoes.usarMesmaConfigFerias = umcf.checked;
+  d.opcoes.linhasTipoCalculo.forEach((l, i) => { const el = document.getElementById('cont__linha' + i + '__data'); if (el) l.data = el.value; });
+  ['integrarIrrfFeriasDataPagamento', 'gerarProvisaoSefipPagamentoEncargos', 'considerarUltimoDiaMesNaoUtil'].forEach((k) => { const el = document.getElementById('cont__opcoes__' + k); if (el) d.opcoes[k] = el.checked; });
+}
+
+/* ==================== HONORÁRIOS ==================== */
+function renderHonorariosFolha(mode) {
+  const d = dadosFolha.honorarios;
+  return `
+  <div class="section-card" style="margin-bottom:0;">
+    ${mode === 'edit' ? feCheckboxFolha('hon__gerarVariaveisHonorarios', 'Gerar variáveis de honorários com valor dos encargos', d.gerarVariaveisHonorarios) : fvCheckboxFolha('Gerar variáveis de honorários com valor dos encargos', d.gerarVariaveisHonorarios)}
+    ${(d.gerarVariaveisHonorarios || mode === 'edit') ? `
+    <div class="field-group" style="margin-top:16px; margin-bottom:8px;">
+      ${mode === 'edit' ? feTextFolha('hon__escritorio', 'Escritório', d.escritorio, true) : fvFolha('Escritório', d.escritorio, true)}
+    </div>
+    <div class="subsection-title">Rubricas de encargos</div>
+    <table class="fl-table"><thead><tr><th>Rubrica</th><th>Descrição</th><th>Encargo</th><th>Fatura com contrato</th>${mode === 'edit' ? '<th></th>' : ''}</tr></thead>
+    <tbody id="hon-rubricas-tbody">${d.rubricas.length ? d.rubricas.map((r, i) => `<tr>
+      <td>${mode === 'edit' ? `<input id="hon__r${i}__rubrica" value="${r.rubrica || ''}" />` : r.rubrica}</td>
+      <td>${mode === 'edit' ? `<input id="hon__r${i}__descricao" value="${r.descricao || ''}" />` : r.descricao}</td>
+      <td>${mode === 'edit' ? `<input id="hon__r${i}__encargo" value="${r.encargo || ''}" />` : r.encargo}</td>
+      <td>${mode === 'edit' ? `<select id="hon__r${i}__faturaComContrato">${OPCOES_FOLHA.simNao.map((o) => `<option ${o === r.faturaComContrato ? 'selected' : ''}>${o}</option>`).join('')}</select>` : r.faturaComContrato}</td>
+      ${mode === 'edit' ? `<td><button class="btn btn-ghost btn-xs" onclick="removerRubricaFolha(${i})"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>` : ''}
+    </tr>`).join('') : `<tr><td colspan="${mode === 'edit' ? 5 : 4}" style="text-align:center; color:var(--text-tertiary); padding:16px;">Nenhuma rubrica cadastrada.</td></tr>`}</tbody></table>
+    ${mode === 'edit' ? `<button class="btn btn-secondary" style="margin-top:12px;" onclick="incluirRubricaFolha()"><i data-lucide="plus" class="w-4 h-4"></i>Incluir rubrica</button>` : ''}
+    ` : ''}
+  </div>`;
+}
+function incluirRubricaFolha() { dadosFolha.honorarios.rubricas.push({ rubrica: '', descricao: '', encargo: '', faturaComContrato: 'Não' }); readHonorariosFolha(); renderTabContentFolha(); }
+function removerRubricaFolha(i) { readHonorariosFolha(); dadosFolha.honorarios.rubricas.splice(i, 1); renderTabContentFolha(); }
+function readHonorariosFolha() {
+  const d = dadosFolha.honorarios;
+  const gv = document.getElementById('hon__gerarVariaveisHonorarios'); if (gv) d.gerarVariaveisHonorarios = gv.checked;
+  const esc = document.getElementById('hon__escritorio'); if (esc) d.escritorio = esc.value;
+  d.rubricas.forEach((r, i) => { ['rubrica', 'descricao', 'encargo', 'faturaComContrato'].forEach((k) => { const el = document.getElementById('hon__r' + i + '__' + k); if (el) r[k] = el.value; }); });
+}
+
+/* ==================== CRONOGRAMA ==================== */
+function renderCronogramaFolha(mode) {
+  const cat = dadosFolha.cronograma[cronogramaCategoriaFolha];
+  const labels = { empregados: 'Empregados', estagiarios: 'Estagiários', contribuintes: 'Contribuintes Individuais' };
+  return `
+  <div class="fl-cat-switch">${Object.keys(labels).map((k) => `<button class="fl-cat-btn${k === cronogramaCategoriaFolha ? ' active' : ''}" onclick="trocarCategoriaCronogramaFolha('${k}')">${labels[k]}</button>`).join('')}</div>
+  <div class="section-card">
+    <table class="fl-table"><thead><tr><th>Evento</th><th>Mês do pagamento</th><th>Forma de vencimento</th><th>Total de dias</th></tr></thead>
+    <tbody>${cat.linhas.map((l, i) => {
+      const inativo = l.formaVencimento === 'Último dia útil';
+      return `<tr>
+      <td>${l.evento}</td>
+      <td>${mode === 'edit' ? `<input id="cron__linha${i}__mesPagamento" value="${l.mesPagamento || ''}" />` : (l.mesPagamento || '—')}</td>
+      <td>${mode === 'edit' ? `<input id="cron__linha${i}__formaVencimento" value="${l.formaVencimento || ''}" onchange="renderTabContentFolha()" />` : (l.formaVencimento || '—')}</td>
+      <td>${inativo ? '<span style="color:var(--text-tertiary);">não aplicável</span>' : (mode === 'edit' ? `<input id="cron__linha${i}__totalDias" value="${l.totalDias || ''}" />` : (l.totalDias || '—'))}</td>
+    </tr>`;
+    }).join('')}</tbody></table>
+    <div style="margin-top:16px;">${mode === 'edit' ? feCheckboxFolha('cron__antecipacaoSabado', 'Antecipar pagamento quando a data cair no sábado', cat.antecipacaoSabado) : fvCheckboxFolha('Antecipar pagamento quando a data cair no sábado', cat.antecipacaoSabado)}</div>
+  </div>`;
+}
+function trocarCategoriaCronogramaFolha(cat) { if (modosEdicaoFolha['cronograma']) readCronogramaFolha(); cronogramaCategoriaFolha = cat; renderTabContentFolha(); }
+function readCronogramaFolha() {
+  const cat = dadosFolha.cronograma[cronogramaCategoriaFolha];
+  cat.linhas.forEach((l, i) => { ['mesPagamento', 'formaVencimento', 'totalDias'].forEach((k) => { const el = document.getElementById('cron__linha' + i + '__' + k); if (el) l[k] = el.value; }); });
+  const ant = document.getElementById('cron__antecipacaoSabado'); if (ant) cat.antecipacaoSabado = ant.checked;
+}
+
+/* ==================== HISTÓRICO ==================== */
+function renderHistoricoFolha() {
+  const eventos = historicoRuntimeFolha.eventos;
+  if (!eventos.length) return `<div class="section-card" style="margin-bottom:0;"><div class="empty-state"><div class="icon-wrap"><i data-lucide="history" class="w-6 h-6"></i></div><div style="font-size:13px; color:var(--text-secondary);">Nenhuma alteração registrada até o momento.</div></div></div>`;
+  return `<div class="section-card" style="margin-bottom:0;">
+    <div class="section-title"><i data-lucide="history"></i>Histórico de alterações</div>
+    <div style="font-size:12.5px; color:var(--text-secondary); margin:-10px 0 16px;">Quem alterou, o que foi alterado, de qual valor para qual valor, e quando — agrupado por evento, do mais recente para o mais antigo.</div>
+    ${eventos.map((ev) => `<div class="fl-hist-event">
+      <div class="fl-hist-head"><i data-lucide="clock" style="width:14px;height:14px;"></i>${ev.data} às ${ev.hora}<span class="badge badge-neutral"><i data-lucide="user" style="width:11px;height:11px;"></i>${ev.usuario}</span></div>
+      <div class="fl-hist-sub"><span class="badge badge-neutral">${ev.area}</span><span>${ev.acao}</span></div>
+      ${ev.alteracoes ? `<table class="fl-table" style="margin-top:10px;"><thead><tr><th>Campo alterado</th><th>Valor anterior</th><th>Novo valor</th></tr></thead><tbody>${ev.alteracoes.map((a) => `<tr><td>${a.campo}</td><td>${a.de}</td><td>${a.para}</td></tr>`).join('')}</tbody></table>` : `<div style="font-size:13px; color:var(--text-secondary); margin-top:8px;">${ev.descricao}</div>`}
+    </div>`).join('')}
+  </div>`;
+}
+
+/* ==================== Shell / navegação ==================== */
+const RENDER_ABA_FOLHA = { geral: renderGeralFolha, regime: renderRegimeFolha, arredondamento: renderArredondamentoFolha, adiantamento: renderAdiantamentoFolha, 'decimo-terceiro': renderDecimoFolha, ferias: renderFeriasFolha, contabilidade: renderContabilidadeFolha, honorarios: renderHonorariosFolha, cronograma: renderCronogramaFolha, historico: renderHistoricoFolha };
+const READ_ABA_FOLHA = { geral: readGeralFolha, regime: readRegimeFolha, arredondamento: readArredondamentoFolha, adiantamento: readAdiantamentoFolha, 'decimo-terceiro': readDecimoFolha, ferias: readFeriasFolha, contabilidade: readContabilidadeFolha, honorarios: readHonorariosFolha, cronograma: readCronogramaFolha };
+const CHAVE_AREA_LABEL_FOLHA = { geral: 'Geral', regime: 'Regime', arredondamento: 'Arredondamento', adiantamento: 'Adiantamento', 'decimo-terceiro': '13º Salário', ferias: 'Férias', contabilidade: 'Contabilidade', honorarios: 'Honorários', cronograma: 'Cronograma' };
+
+function selecionarAbaFolha(key) {
+  abaAtivaFolha = key;
+  renderTabsFolha();
+  renderTabContentFolha();
+}
+function renderTabsFolha() {
+  const wrap = document.getElementById('fl-tabs');
+  if (!wrap) return;
+  wrap.innerHTML = AREAS_FOLHA.map((a) => `<div class="fl-tab${a.key === abaAtivaFolha ? ' active' : ''}" onclick="selecionarAbaFolha('${a.key}')">${a.label}</div>`).join('');
+}
+function renderTabContentFolha() {
+  const wrap = document.getElementById('fl-tab-content');
+  if (!wrap) return;
+  const mode = modosEdicaoFolha[abaAtivaFolha] ? 'edit' : 'view';
+  wrap.innerHTML = RENDER_ABA_FOLHA[abaAtivaFolha](mode) + (mode === 'edit' ? `<div class="fl-action-row" style="justify-content:flex-start; margin-top:4px;"><button class="btn btn-secondary" onclick="cancelarEdicaoFolha()">Cancelar</button><button class="btn btn-primary" onclick="salvarAreaFolha()">Salvar parâmetros</button></div>` : '');
+
+  if (abaAtivaFolha === 'regime') document.getElementById('fl-regime-vig').innerHTML = renderVigenciaIndicatorRegimeFolha();
+
+  const actionWrap = document.getElementById('fl-action-row');
+  if (actionWrap) {
+    const podeEditar = AREAS_COM_EDICAO_FOLHA.includes(abaAtivaFolha) && !modosEdicaoFolha[abaAtivaFolha];
+    actionWrap.innerHTML = podeEditar ? `<button class="btn btn-secondary" onclick="abrirDrawerFolha('trocar-empresa')"><i data-lucide="building-2" class="w-4 h-4"></i>Trocar empresa</button><button class="btn btn-primary" onclick="entrarEdicaoFolha()"><i data-lucide="pencil" class="w-4 h-4"></i>Editar</button>` : `<button class="btn btn-secondary" onclick="abrirDrawerFolha('trocar-empresa')"><i data-lucide="building-2" class="w-4 h-4"></i>Trocar empresa</button>`;
+  }
+  refreshIcons();
+}
+
+function entrarEdicaoFolha() { modosEdicaoFolha[abaAtivaFolha] = true; renderTabContentFolha(); }
+function cancelarEdicaoFolha() { modosEdicaoFolha[abaAtivaFolha] = false; renderTabContentFolha(); }
+function salvarAreaFolha() {
+  if (READ_ABA_FOLHA[abaAtivaFolha]) READ_ABA_FOLHA[abaAtivaFolha]();
+  modosEdicaoFolha[abaAtivaFolha] = false;
+  historicoRuntimeFolha.eventos.unshift({ data: '21/09/2026', hora: '09:00', usuario: 'Você', area: CHAVE_AREA_LABEL_FOLHA[abaAtivaFolha], acao: 'Atualização de parâmetros', descricao: 'Parâmetros desta área foram atualizados nesta sessão.' });
+  renderTabContentFolha();
+  showToastFolha('Parâmetros salvos', 'As alterações foram aplicadas com sucesso.');
+}
+
+function renderVigenciaIndicatorRegimeFolha() {
+  const vigs = dadosFolha.regime.vigencias;
+  const atual = vigs.find((v) => !v.dataFim) || vigs[0];
+  const sel = vigenciaSelecionadaFolha ? vigs.find((v) => v.id === vigenciaSelecionadaFolha) : atual;
+  const isAtual = !vigenciaSelecionadaFolha || vigenciaSelecionadaFolha === atual.id;
+  const periodo = sel.dataFim ? `${sel.dataInicio} – ${sel.dataFim}` : `desde ${sel.dataInicio}`;
+  return `<div class="fl-vig">
+    <i data-lucide="calendar-clock" style="width:16px;height:16px;color:var(--text-secondary);"></i>
+    <div class="fl-vig-text"><span class="lbl">${isAtual ? 'Vigência atual' : 'Vigência histórica'}</span><span class="per">${periodo}</span></div>
+    <span class="badge ${isAtual ? 'badge-success' : 'badge-neutral'}">${isAtual ? 'Atual' : 'Somente leitura'}</span>
+    <button class="btn btn-ghost" style="padding:6px 10px;" onclick="abrirDrawerFolha('vigencia-historico')"><i data-lucide="history" class="w-4 h-4"></i>Ver histórico</button>
+  </div>`;
+}
+
+function renderShellFolha() {
+  const root = document.getElementById('fl-root');
+  const e = empresaAtualFolha ? EMPRESAS_FOLHA[empresaAtualFolha] : null;
+
+  if (!e) {
+    root.innerHTML = `
+    <div class="fl-crumb">folha de pagamento</div>
+    <div class="fl-select-wrap">
+      <div class="section-card">
+        <div class="section-title" style="margin-bottom:6px;"><i data-lucide="wallet"></i>Folha de Pagamento</div>
+        <div style="font-size:13px; color:var(--text-secondary); margin-bottom:18px;">Selecione uma empresa para continuar.</div>
+        <div class="ef-field">
+          <label class="ef-label">Empresa</label>
+          <select class="ef-select" id="fl-select-empresa" onchange="previewEmpresaFolha(this.value)">
+            <option value="">Buscar por nome, código ou CNPJ…</option>
+            ${Object.values(EMPRESAS_FOLHA).map((emp) => `<option value="${emp.codigo}">${emp.razaoSocial} — ${emp.codigo}</option>`).join('')}
+          </select>
+        </div>
+        <div class="fl-select-preview" id="fl-select-preview"></div>
+        <button class="btn btn-primary btn-lg" style="width:100%; justify-content:center; margin-top:18px;" id="fl-select-confirm" disabled onclick="confirmarSelecaoEmpresaFolha()">Selecionar empresa</button>
+      </div>
+    </div>`;
+    refreshIcons();
+    return;
+  }
+
+  root.innerHTML = `
+    <div class="fl-crumb"><a href="#" onclick="abrirDrawerFolha('trocar-empresa'); return false;">${e.razaoSocial}</a> / folha de pagamento</div>
+    <div class="fl-header-top">
+      <div>
+        <h1 class="fl-h1">Folha de Pagamento</h1>
+        <div class="fl-context-line">
+          <strong>${e.razaoSocial}</strong>
+          <span class="font-mono">${e.cnpj}</span>
+          <button class="fl-link-btn" onclick="abrirDrawerFolha('trocar-empresa')">Trocar empresa</button>
+        </div>
+      </div>
+    </div>
+    <div class="fl-tabs" id="fl-tabs"></div>
+    <div class="fl-action-row" id="fl-action-row"></div>
+    <div id="fl-tab-content"></div>`;
+
+  renderTabsFolha();
+  renderTabContentFolha();
+  refreshIcons();
+}
+
+function previewEmpresaFolha(codigo) {
+  const preview = document.getElementById('fl-select-preview');
+  const confirmBtn = document.getElementById('fl-select-confirm');
+  if (!codigo) { preview.classList.remove('show'); confirmBtn.disabled = true; return; }
+  const e = EMPRESAS_FOLHA[codigo];
+  preview.innerHTML = `<div style="font-size:13.5px; font-weight:600; color:var(--text-primary);">${e.razaoSocial}</div><div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">CNPJ ${e.cnpj} · ${e.regime}</div>`;
+  preview.classList.add('show');
+  confirmBtn.disabled = false;
+  confirmBtn.dataset.codigo = codigo;
+}
+function confirmarSelecaoEmpresaFolha() {
+  const codigo = document.getElementById('fl-select-confirm').dataset.codigo;
+  empresaAtualFolha = codigo;
+  abaAtivaFolha = 'geral';
+  inicializarDadosEmpresaFolha(codigo);
+  renderShellFolha();
+}
+
+/* ---- Drawer lateral ---- */
+function garantirOverlaysFolha() {
+  if (document.getElementById('folha-drawer-overlay')) return;
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+    <div class="drawer-overlay" id="folha-drawer-overlay" onclick="fecharDrawerFolha()"></div>
+    <div class="drawer" id="folha-drawer">
+      <div class="drawer-header"><div style="flex:1;min-width:0" id="folha-drawer-header-content"></div><button class="btn btn-ghost btn-xs" onclick="fecharDrawerFolha()"><i data-lucide="x" style="width:14px;height:14px"></i></button></div>
+      <div class="drawer-body" id="folha-drawer-body"></div>
+      <div class="drawer-footer" id="folha-drawer-footer"></div>
+    </div>`;
+  document.body.appendChild(wrap);
+}
+function abrirDrawerFolha(kind) {
+  garantirOverlaysFolha();
+  const header = document.getElementById('folha-drawer-header-content');
+  const body = document.getElementById('folha-drawer-body');
+  const footer = document.getElementById('folha-drawer-footer');
+
+  if (kind === 'trocar-empresa') {
+    header.innerHTML = `<div class="drawer-title">Trocar empresa</div>`;
+    body.innerHTML = `<div class="ef-field"><label class="ef-label">Empresa</label><select class="ef-select" id="fd-trocar-empresa-folha">${Object.values(EMPRESAS_FOLHA).map((emp) => `<option value="${emp.codigo}" ${emp.codigo === empresaAtualFolha ? 'selected' : ''}>${emp.razaoSocial} — ${emp.codigo}</option>`).join('')}</select></div>`;
+    footer.innerHTML = `<button class="btn btn-secondary" onclick="fecharDrawerFolha()">Cancelar</button><button class="btn btn-primary" onclick="confirmarTrocaEmpresaFolha()">Trocar empresa</button>`;
+  }
+  if (kind === 'vigencia-historico') {
+    header.innerHTML = `<div class="drawer-title">Histórico de vigências</div><div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">Selecione um período para consultar em modo somente leitura. Regras de abertura, encerramento e critérios automáticos de nova vigência ainda não estão implementadas nesta etapa.</div>`;
+    const vigs = dadosFolha.regime.vigencias;
+    const atual = vigs.find((v) => !v.dataFim) || vigs[0];
+    body.innerHTML = `<div class="fl-vt">${vigs.map((v) => {
+      const isCurrent = !v.dataFim;
+      const isSelected = (vigenciaSelecionadaFolha || atual.id) === v.id;
+      return `<div class="fl-vt-item${isSelected ? ' is-current' : ''}" onclick="selecionarVigenciaFolha('${v.id}')">
+        <div style="flex:1;"><div style="font-size:13px; font-weight:600; color:var(--text-primary);">${v.dataFim ? v.dataInicio + ' – ' + v.dataFim : 'desde ' + v.dataInicio}</div><div class="fl-vt-meta">${v.tipoEstabelecimento}</div></div>
+        <span class="badge ${isCurrent ? 'badge-success' : 'badge-neutral'}">${isCurrent ? 'Atual' : 'Encerrada'}</span>
+      </div>`;
+    }).join('')}</div>`;
+    footer.innerHTML = `<button class="btn btn-secondary" onclick="fecharDrawerFolha()">Fechar</button><button class="btn btn-primary" disabled title="Regra de abertura de nova vigência ainda não definida">Iniciar nova vigência</button>`;
+  }
+  document.getElementById('folha-drawer-overlay').classList.add('open');
+  document.getElementById('folha-drawer').classList.add('open');
+  refreshIcons();
+}
+function fecharDrawerFolha() { document.getElementById('folha-drawer-overlay').classList.remove('open'); document.getElementById('folha-drawer').classList.remove('open'); }
+function selecionarVigenciaFolha(id) {
+  const vigs = dadosFolha.regime.vigencias;
+  const atual = vigs.find((v) => !v.dataFim) || vigs[0];
+  vigenciaSelecionadaFolha = id === atual.id ? null : id;
+  fecharDrawerFolha();
+  renderTabContentFolha();
+}
+function confirmarTrocaEmpresaFolha() {
+  const codigo = document.getElementById('fd-trocar-empresa-folha').value;
+  empresaAtualFolha = codigo;
+  abaAtivaFolha = 'geral';
+  inicializarDadosEmpresaFolha(codigo);
+  fecharDrawerFolha();
+  renderShellFolha();
+  showToastFolha('Empresa alterada', `Exibindo folha de pagamento de ${EMPRESAS_FOLHA[codigo].razaoSocial}.`);
+}
+
+function showToastFolha(title, desc) {
+  let wrap = document.getElementById('fl-toast-wrap');
+  if (!wrap) { wrap = document.createElement('div'); wrap.className = 'fl-toast-wrap'; wrap.id = 'fl-toast-wrap'; document.body.appendChild(wrap); }
+  const el = document.createElement('div');
+  el.className = 'fl-toast';
+  el.innerHTML = `<i data-lucide="check-circle-2" style="color:var(--success); width:18px; height:18px; flex-shrink:0;"></i><div><div style="font-weight:600;">${title}</div><div style="color:var(--text-secondary); font-size:12px; margin-top:2px;">${desc}</div></div>`;
+  wrap.appendChild(el);
+  refreshIcons();
+  setTimeout(() => el.remove(), 5000);
+}
+
+renderShellFolha();
+</script>
+<script src="../assets/core/cockpit-01-shell.js"></script>
+<script src="../assets/core/cockpit-02-state-helpers.js"></script>
+<script src="../assets/core/cockpit-07-modals-init.js"></script>
+<script src="../assets/core/cockpit-09-cx-sidebar.js"></script>
 </body>
 </html>

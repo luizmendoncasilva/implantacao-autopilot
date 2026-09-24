@@ -7,7 +7,10 @@
   const D = window.EmpresasImplantacaoData;
   const E = window.EmpresasData;
 
-  const state = { status: "em_andamento", busca: "" };
+  // Status como array (multi-select) — pedido do Luiz na revisão de
+  // 10/09/2026 ("talvez até colocar uma multi select aqui seria bom").
+  // Array vazio (ou com as duas opções marcadas) equivale a "todos".
+  const state = { statuses: ["em_andamento"], busca: "" };
 
   function empresaNome(codigo) {
     const empresa = E.findEmpresaByCodigo(codigo);
@@ -23,14 +26,19 @@
     return (v || "").replace(/\D/g, "");
   }
 
-  function renderFiltroStatus(lista) {
-    const resumo = D.contarPorStatusEmpresa(lista);
-    const select = document.getElementById("f-status-empresa");
-    select.innerHTML =
-      '<option value="em_andamento">Em andamento (' + resumo.emAndamento + ")</option>" +
-      '<option value="implantada">Implantadas (' + resumo.implantada + ")</option>" +
-      '<option value="todos">Todos (' + resumo.total + ")</option>";
-    select.value = state.status;
+  function statusOptions() {
+    const resumo = D.contarPorStatusEmpresa(D.EMPRESAS_IMPLANTACAO);
+    return [
+      { value: "em_andamento", label: "Em andamento", count: resumo.emAndamento },
+      { value: "implantada", label: "Implantadas", count: resumo.implantada },
+    ];
+  }
+
+  function setupFiltroStatus() {
+    UI.initMultiSelect(document.getElementById("combo-status-empresa"), statusOptions(), state.statuses, (novosValores) => {
+      state.statuses = novosValores;
+      render();
+    });
   }
 
   function statusBadge(empresa) {
@@ -97,12 +105,11 @@
 
   function render() {
     const todas = D.EMPRESAS_IMPLANTACAO;
-    renderFiltroStatus(todas);
 
     const buscaNormalizada = state.busca.trim().toLowerCase();
     const digitosBusca = apenasDigitos(buscaNormalizada);
     const filtradas = todas
-      .filter((e) => state.status === "todos" || e.status === state.status)
+      .filter((e) => state.statuses.length === 0 || state.statuses.length === statusOptions().length || state.statuses.indexOf(e.status) !== -1)
       .filter(
         (e) =>
           !buscaNormalizada ||
@@ -140,15 +147,11 @@
     });
   }
 
-  document.getElementById("f-status-empresa").addEventListener("change", (e) => {
-    state.status = e.target.value;
-    render();
-  });
-
   document.getElementById("f-busca-empresa").addEventListener("input", (e) => {
     state.busca = e.target.value;
     render();
   });
 
+  setupFiltroStatus();
   render();
 })();

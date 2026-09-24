@@ -25,10 +25,11 @@
   }
 
   // Uma barra contínua por módulo (não segmentada por frente — isso já vive
-  // no console de cada módulo), com o nome do módulo do lado. O percentual
-  // só aparece no hover (UI.initSegbarTooltips, reaproveitado do segbar) —
-  // pedido de revisão (10/09/2026): não deixar o número sempre visível,
-  // só a barra + nome, com o detalhe no tooltip.
+  // no console de cada módulo), com o nome do módulo do lado. Percentual
+  // visível ao lado da barra (pedido do Luiz, 18/09/2026 — "quanto % da
+  // etapa" precisa aparecer direto na tabela geral, não só no tooltip) —
+  // substitui a decisão anterior de deixar só no hover; o tooltip continua
+  // existindo, agora como reforço, não como única fonte do número.
   function progressoModuloHtml(label, percentual) {
     const corClasse = percentual === 100 ? "is-success" : percentual > 0 ? "is-warning" : "";
     return (
@@ -36,7 +37,9 @@
       '<span class="text-xs text-muted" style="width:52px; flex-shrink:0;">' + label + "</span>" +
       '<div class="progress-bar-wrap" style="flex:1;" data-tooltip="' + label + ": " + percentual + '% concluído">' +
       '<div class="progress-bar"><div class="progress-bar-fill ' + corClasse + '" style="width:' + Math.max(percentual, 2) + '%;"></div></div>' +
-      "</div></div>"
+      "</div>" +
+      '<span class="text-xs font-medium" style="width:34px; flex-shrink:0; text-align:right;">' + percentual + "%</span>" +
+      "</div>"
     );
   }
 
@@ -55,6 +58,7 @@
     return (
       '<tr class="row-clickable" data-abrir-console="' + empresaImplant.empresaCodigo + '">' +
       '<td><span class="text-sm font-medium truncate">' + empresaNome(empresaImplant.empresaCodigo) + "</span></td>" +
+      "<td>" + UI.truncatedCell(empresaImplant.etapaAtual, null, "text-sm text-muted") + "</td>" +
       '<td class="col-pad-md">' + progressoModuloHtml("DP", percentualDp) + "</td>" +
       '<td class="col-pad-md">' + moduloEmBreveHtml("Fiscal") + "</td>" +
       '<td class="col-pad-md">' + moduloEmBreveHtml("Contábil") + "</td>" +
@@ -63,8 +67,31 @@
     );
   }
 
+  // ===== Dashboards do topo — pedido do Luiz (18/09/2026): a tela geral
+  // precisa dar o retrato de conjunto (quantas empresas, em que situação, %
+  // médio de conclusão do DP) antes de descer pra tabela linha a linha. =====
+  function renderDashboards() {
+    const todas = D.EMPRESAS_IMPLANTACAO;
+    const resumoStatus = D.contarPorStatusEmpresa(todas);
+    const emAndamento = todas.filter((e) => e.status === "em_andamento");
+    const mediaConclusao = emAndamento.length
+      ? Math.round(emAndamento.reduce((soma, e) => soma + D.percentualConclusao(D.resumoCompleto(e)), 0) / emAndamento.length)
+      : 0;
+    const cards = [
+      { label: "Empresas em implantação", value: resumoStatus.total, classe: "" },
+      { label: "Em andamento", value: resumoStatus.emAndamento, classe: "" },
+      { label: "Implantadas", value: resumoStatus.implantada, classe: "stat-card-success" },
+      { label: "Média de conclusão (DP, em andamento)", value: mediaConclusao + "%", classe: mediaConclusao === 100 ? "stat-card-success" : mediaConclusao > 0 ? "stat-card-warning" : "" },
+    ];
+    document.getElementById("dash-implantacao-geral-mount").innerHTML = cards
+      .map((c) => '<div class="stat-card' + (c.classe ? " " + c.classe : "") + '"><span class="stat-card-value">' + c.value + '</span><span class="stat-card-label">' + c.label + "</span></div>")
+      .join("");
+  }
+
   function render() {
     const todas = D.EMPRESAS_IMPLANTACAO;
+    renderDashboards();
+
     const buscaNormalizada = state.busca.trim().toLowerCase();
     const digitosBusca = apenasDigitos(buscaNormalizada);
     const filtradas = todas
@@ -78,7 +105,7 @@
 
     let html;
     if (filtradas.length === 0) {
-      html = '<tr><td colspan="5" class="row-empty-state">Nenhuma empresa encontrada para os filtros selecionados.</td></tr>';
+      html = '<tr><td colspan="6" class="row-empty-state">Nenhuma empresa encontrada para os filtros selecionados.</td></tr>';
     } else {
       html = filtradas.map(rowHtml).join("");
     }

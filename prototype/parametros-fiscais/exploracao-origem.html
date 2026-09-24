@@ -1,268 +1,225 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Exploração — Dados e Origem (Fiscal)</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1280" />
+<title>Exploração — Dados e Origem (Fiscal) · Cockpit</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Página de validação (não faz parte da navegação real do produto), migrada
+     para o visual do Cockpit. Badge de Origem / Campo com Origem / Indicador
+     Calculado não existem como componentes prontos no Cockpit — foram
+     recompostos aqui em cima dos tokens/classes existentes (.badge-neutral,
+     .field-group, .field-label/.field-value), sufixo "xoExpl" para não
+     colidir com nada global do core. */
+  body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: var(--surface-muted); }
+  .xo-page { max-width: 1080px; margin: 0 auto; padding: 32px 24px 96px; display: flex; flex-direction: column; gap: 32px; }
+  .xo-title { font-size: 22px; font-weight: 700; color: var(--text-primary); }
+  .xo-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+  .xo-alt-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); }
+  .xo-subgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
 
-  <!-- Reaproveita tokens/base/components tal como estão — nenhuma dessas
-       três folhas é alterada por esta página além da evolução aditiva já
-       aplicada em components.css (.detail-field-unavailable). Tudo que é
-       exclusivo desta página de layout/comparação vive no <style> abaixo,
-       com prefixo "xp-", para nunca colidir com nenhuma classe real. -->
-  <link rel="stylesheet" href="../shared/css/tokens.css" />
-  <link rel="stylesheet" href="../shared/css/base.css" />
-  <link rel="stylesheet" href="../shared/css/components.css" />
-  <style>
-    /* =====================================================================
-       ESTILOS EXCLUSIVOS DESTA PÁGINA — prefixo "xp-". Só cuidam do layout
-       de comparação (cards, grade, rótulos de seção); a representação real
-       de Badge de Origem / Campo com Origem / Indicador Calculado abaixo
-       vem inteiramente de shared/js/origem.js e
-       shared/js/indicador-calculado.js — os componentes oficiais.
-       ===================================================================== */
-    body { background: var(--muted); padding: 32px 24px 96px; }
-    .xp-page { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
-    .xp-title { font-size: 22px; font-weight: 600; }
-    .xp-subtitle { font-size: 13px; color: var(--muted-foreground); margin-top: 4px; }
+  .xo-origin-table { width: 100%; border-collapse: collapse; }
+  .xo-origin-table th { text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); padding: 0 16px 10px 0; border-bottom: 1px solid var(--border); }
+  .xo-origin-table td { padding: 12px 16px 12px 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .xo-origin-table tr:last-child td { border-bottom: none; }
 
-    .xp-section { display: flex; flex-direction: column; gap: 14px; }
-    .xp-section-title { font-size: 17px; font-weight: 600; }
-    .xp-section-desc { font-size: 13px; color: var(--muted-foreground); max-width: 720px; }
+  /* Skeleton reaproveitado do padrão de loading do Cockpit (não existe classe
+     global pronta, então segue o mesmo tom de --surface-muted/--border). */
+  .xo-skeleton { height: 14px; width: 96px; border-radius: 4px; background: var(--surface-muted); border: 1px solid var(--border); animation: xo-pulse 1.3s ease-in-out infinite; }
+  @keyframes xo-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
 
-    .xp-subgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
-    .xp-alt-card { display: flex; flex-direction: column; gap: 12px; }
-    .xp-alt-label {
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--muted-foreground);
-    }
-
-    /* Só usadas na tabela histórica A/B/C (registro da decisão) e na nota de
-       tooltip ilustrativa — não usadas pelos componentes oficiais abaixo. */
-    .xp-badge-icon { display: inline-flex; align-items: center; gap: 5px; }
-    .xp-origin-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; opacity: 0.7; }
-    .xp-meta-origem { font-size: 11.5px; color: var(--muted-foreground); display: inline-flex; align-items: center; gap: 5px; }
-    .xp-meta-sep { opacity: 0.55; }
-
-    .xp-origin-table { width: 100%; border-collapse: collapse; }
-    .xp-origin-table th {
-      text-align: left;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--muted-foreground);
-      padding: 0 16px 10px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .xp-origin-table td { padding: 12px 16px 12px 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
-    .xp-origin-table tr:last-child td { border-bottom: none; }
-
-    .xp-note { font-size: 12px; color: var(--muted-foreground); border-left: 2px solid var(--border); padding-left: 10px; }
-    .xp-approved { display: flex; align-items: center; gap: 8px; }
-  </style>
+  .xo-note { font-size: 12px; color: var(--text-secondary); border-left: 2px solid var(--border); padding-left: 10px; }
+</style>
 </head>
 <body>
-  <div class="xp-page">
 
-    <div class="alert alert-info gap-2">
-      <span>ⓘ</span>
-      <div class="alert-desc">
-        <b>Página de validação, não de navegação do produto.</b> Não está linkada em nenhum menu. Badge de Origem, Campo com Origem e Indicador Calculado nesta página vêm dos componentes oficiais (<code>shared/js/origem.js</code>, <code>shared/js/indicador-calculado.js</code>) — o objetivo é confirmar que a implementação reproduz a alternativa aprovada na exploração anterior. Layout de comparação (cards, grade, rótulos) continua local a esta página (prefixo <code>xp-</code>).
-      </div>
+<div class="xo-page">
+
+  <div class="alert-banner">
+    <i data-lucide="info" style="color: var(--brand-pink); width:18px; height:18px; flex-shrink:0;"></i>
+    <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.55;">
+      <strong style="color: var(--text-primary);">Página de validação, não de navegação do produto.</strong>
+      Não está linkada em nenhum menu. Badge de Origem, Campo com Origem e Indicador Calculado ainda não existem como componentes prontos no Cockpit — foram recompostos aqui em cima dos tokens/classes existentes (<code class="font-mono">.badge-neutral</code>, <code class="font-mono">.field-group</code>) para reproduzir a alternativa aprovada na exploração original.
     </div>
-
-    <div>
-      <div class="xp-title">Exploração — Dados e Origem</div>
-      <div class="xp-subtitle">Validação dos componentes oficiais de Badge de Origem, Campo com Origem e Indicador Calculado — trilha Fiscal.</div>
-    </div>
-
-    <!-- =================================================================
-         1. BADGE DE ORIGEM
-         ================================================================= -->
-    <div class="xp-section">
-      <div>
-        <div class="xp-section-title">Badge de Origem</div>
-        <div class="xp-section-desc">
-          Registro da comparação original (A/B/C) que levou à decisão, seguido da mesma origem renderizada pelo componente oficial (<code>OrigemBadge.render()</code>), para confirmar que reproduz a Alternativa A. Nenhuma variante usa <code>badge-success</code> / <code>badge-warning</code> / <code>badge-destructive</code> / <code>badge-info</code> — origem não é status.
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-content">
-          <table class="xp-origin-table">
-            <thead>
-              <tr>
-                <th>Origem</th>
-                <th>A — Badge textual neutro <span class="badge badge-success" style="margin-left:4px;">Aprovada</span></th>
-                <th>B — Badge + ícone neutro</th>
-                <th>C — Metadado textual discreto</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Manual</td>
-                <td><span class="badge badge-outline">Manual</span></td>
-                <td><span class="badge badge-outline xp-badge-icon"><span class="xp-origin-dot"></span>Manual</span></td>
-                <td><span class="xp-meta-origem">Origem <span class="xp-meta-sep">·</span> Manual</span></td>
-              </tr>
-              <tr>
-                <td>Cockpit</td>
-                <td><span class="badge badge-outline">Cockpit</span></td>
-                <td><span class="badge badge-outline xp-badge-icon"><span class="xp-origin-dot"></span>Cockpit</span></td>
-                <td><span class="xp-meta-origem">Origem <span class="xp-meta-sep">·</span> Cockpit</span></td>
-              </tr>
-              <tr>
-                <td>Motor de cálculo</td>
-                <td><span class="badge badge-outline">Motor de cálculo</span></td>
-                <td><span class="badge badge-outline xp-badge-icon"><span class="xp-origin-dot"></span>Motor de cálculo</span></td>
-                <td><span class="xp-meta-origem">Origem <span class="xp-meta-sep">·</span> Motor de cálculo</span></td>
-              </tr>
-              <tr>
-                <td>Legislação</td>
-                <td><span class="badge badge-outline">Legislação</span></td>
-                <td><span class="badge badge-outline xp-badge-icon"><span class="xp-origin-dot"></span>Legislação</span></td>
-                <td><span class="xp-meta-origem">Origem <span class="xp-meta-sep">·</span> Legislação</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-content flex flex-col gap-3">
-          <span class="xp-alt-label">Implementação oficial — OrigemBadge.render() para todos os 8 rótulos documentados</span>
-          <div id="mount-badges-oficiais" class="flex flex-wrap gap-2"></div>
-        </div>
-      </div>
-
-      <div class="xp-note">
-        Exploração separada (não implementada, não funcional): um tooltip no badge, explicando a origem com mais detalhe no hover, usado aqui só com o atributo nativo <code>title</code> para ilustrar a ideia —
-        <span class="badge badge-outline xp-badge-icon" title="Dado consultado no cadastro do Cockpit, não editável no Autopilot."><span class="xp-origin-dot"></span>Cockpit</span>
-        — isso não é uma implementação real de tooltip (o Design System documenta um componente Tooltip próprio, ainda não portado ao protótipo) e não faz parte do componente oficial. Registrar como decisão separada, só se a forma final do Badge exigir informação adicional que não caiba no rótulo curto.
-      </div>
-    </div>
-
-    <!-- =================================================================
-         2. CAMPO COM ORIGEM
-         ================================================================= -->
-    <div class="xp-section">
-      <div>
-        <div class="xp-section-title">Campo com Origem</div>
-        <div class="xp-section-desc">
-          Renderizado por <code>CampoOrigem.campo()</code> — evolução aditiva de <code>.detail-field</code>. O quarto exemplo (sem origem) prova a retrocompatibilidade: mesmo HTML que Empresas já monta hoje em <code>dados-gerais.js</code>.
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-content">
-          <div class="detail-section">
-            <h3 class="detail-section-title">Campo com Origem — casos de validação</h3>
-            <div class="detail-grid" id="mount-campo-origem"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- =================================================================
-         3. INDICADOR CALCULADO
-         ================================================================= -->
-    <div class="xp-section">
-      <div>
-        <div class="xp-section-title">Indicador Calculado</div>
-        <div class="xp-section-desc">
-          Renderizado por <code>IndicadorCalculado.render()</code> — especialização do Campo com Origem, integrada à mesma <code>.detail-grid</code> usada por qualquer outro campo da seção. Sem <code>.stat-card</code>, sem "Ver detalhe" (fora do escopo desta etapa).
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-content">
-          <div class="detail-section">
-            <h3 class="detail-section-title">Indicadores de apuração</h3>
-            <div class="detail-grid" id="mount-indicadores"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- =================================================================
-         4. ESTADOS
-         ================================================================= -->
-    <div class="xp-section">
-      <div>
-        <div class="xp-section-title">Estados</div>
-        <div class="xp-section-desc">
-          Os três estados de <code>IndicadorCalculado.render()</code>, usando RBT12 como referência. "Carregando" reaproveita <code>.skeleton</code>; "sem valor disponível" usa <code>.detail-field-unavailable</code> (texto discreto) — não o componente <code>Empty</code> do Design System.
-        </div>
-      </div>
-
-      <div class="xp-subgrid">
-        <div class="card xp-alt-card">
-          <div class="card-content flex flex-col gap-2">
-            <span class="xp-alt-label">Carregando</span>
-            <div id="mount-estado-loading"></div>
-          </div>
-        </div>
-        <div class="card xp-alt-card">
-          <div class="card-content flex flex-col gap-2">
-            <span class="xp-alt-label">Disponível</span>
-            <div id="mount-estado-disponivel"></div>
-          </div>
-        </div>
-        <div class="card xp-alt-card">
-          <div class="card-content flex flex-col gap-2">
-            <span class="xp-alt-label">Sem valor disponível</span>
-            <div id="mount-estado-indisponivel"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
   </div>
 
-  <script src="../shared/js/origem.js"></script>
-  <script src="../shared/js/indicador-calculado.js"></script>
-  <script>
-    // ===== 1. Badge de Origem — os 8 rótulos oficiais, via componente real =====
-    document.getElementById("mount-badges-oficiais").innerHTML = Object.values(OrigemBadge.ORIGENS)
-      .map((label) => OrigemBadge.render(label))
-      .join("");
+  <div>
+    <div class="xo-title">Exploração — Dados e Origem</div>
+    <div class="xo-subtitle">Validação de Badge de Origem, Campo com Origem e Indicador Calculado, adaptados ao design system do Cockpit — trilha Fiscal.</div>
+  </div>
 
-    // ===== 2. Campo com Origem — casos de validação pedidos na tarefa =====
-    document.getElementById("mount-campo-origem").innerHTML =
-      CampoOrigem.campo({
-        label: "Código de acesso ao PGDAS-D",
-        inputHtml: '<input class="field-input" type="text" value="**************" readonly />',
-        origem: CampoOrigem.ORIGENS.MANUAL,
-      }) +
-      CampoOrigem.campo({
-        label: "Tipo de estabelecimento",
-        value: "Matriz",
-        origem: CampoOrigem.ORIGENS.COCKPIT,
-      }) +
-      CampoOrigem.campo({
-        label: "Limite de receita",
-        value: "R$ 4.800.000,00",
-        origem: CampoOrigem.ORIGENS.LEGISLACAO,
-      }) +
-      CampoOrigem.campo({
-        label: "Campo existente sem origem (retrocompatibilidade)",
-        value: "Padaria Aurora Ltda",
-      });
+  <!-- 1. BADGE DE ORIGEM -->
+  <div>
+    <div class="section-head" style="margin-top:0;">
+      <div class="sh-text">
+        <div class="sh-title" style="font-size:16px;">Badge de Origem</div>
+        <div class="sh-sub">Registro da comparação original (A/B/C) que levou à decisão, seguido da origem renderizada com <code class="font-mono">.badge-neutral</code> do Cockpit. Nenhuma variante usa badge de status (success/warning/danger/info) — origem não é status.</div>
+      </div>
+    </div>
 
-    // ===== 3. Indicador Calculado — RBT12, RBA/RBAA, Fator R =====
-    document.getElementById("mount-indicadores").innerHTML =
-      IndicadorCalculado.render({ label: "RBT12", value: "R$ 1.250.000,00", origem: OrigemBadge.ORIGENS.MOTOR_CALCULO, state: "available" }) +
-      IndicadorCalculado.render({ label: "RBA / RBAA", value: "R$ 980.000,00", origem: OrigemBadge.ORIGENS.MOTOR_CALCULO, state: "available" }) +
-      IndicadorCalculado.render({ label: "Fator R", value: "31,4%", origem: OrigemBadge.ORIGENS.MOTOR_CALCULO, state: "available" });
+    <div class="section-card">
+      <table class="xo-origin-table">
+        <thead>
+          <tr>
+            <th>Origem</th>
+            <th>A — Badge textual neutro <span class="badge badge-success" style="margin-left:4px;">Aprovada</span></th>
+            <th>B — Badge + ícone neutro</th>
+            <th>C — Metadado textual discreto</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Manual</td>
+            <td><span class="badge badge-neutral">Manual</span></td>
+            <td><span class="badge badge-neutral"><i data-lucide="circle" style="width:6px;height:6px;fill:currentColor;"></i>Manual</span></td>
+            <td><span style="font-size:11.5px;color:var(--text-tertiary);">Origem <span style="opacity:.55">·</span> Manual</span></td>
+          </tr>
+          <tr>
+            <td>Cockpit</td>
+            <td><span class="badge badge-neutral">Cockpit</span></td>
+            <td><span class="badge badge-neutral"><i data-lucide="circle" style="width:6px;height:6px;fill:currentColor;"></i>Cockpit</span></td>
+            <td><span style="font-size:11.5px;color:var(--text-tertiary);">Origem <span style="opacity:.55">·</span> Cockpit</span></td>
+          </tr>
+          <tr>
+            <td>Motor de cálculo</td>
+            <td><span class="badge badge-neutral">Motor de cálculo</span></td>
+            <td><span class="badge badge-neutral"><i data-lucide="circle" style="width:6px;height:6px;fill:currentColor;"></i>Motor de cálculo</span></td>
+            <td><span style="font-size:11.5px;color:var(--text-tertiary);">Origem <span style="opacity:.55">·</span> Motor de cálculo</span></td>
+          </tr>
+          <tr>
+            <td>Legislação</td>
+            <td><span class="badge badge-neutral">Legislação</span></td>
+            <td><span class="badge badge-neutral"><i data-lucide="circle" style="width:6px;height:6px;fill:currentColor;"></i>Legislação</span></td>
+            <td><span style="font-size:11.5px;color:var(--text-tertiary);">Origem <span style="opacity:.55">·</span> Legislação</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-    // ===== 4. Estados =====
-    document.getElementById("mount-estado-loading").innerHTML = IndicadorCalculado.render({ label: "RBT12", state: "loading" });
-    document.getElementById("mount-estado-disponivel").innerHTML = IndicadorCalculado.render({ label: "RBT12", value: "R$ 1.250.000,00", origem: OrigemBadge.ORIGENS.MOTOR_CALCULO, state: "available" });
-    document.getElementById("mount-estado-indisponivel").innerHTML = IndicadorCalculado.render({ label: "RBT12", origem: OrigemBadge.ORIGENS.MOTOR_CALCULO, state: "unavailable" });
-  </script>
+    <div class="section-card" style="margin-top:16px;">
+      <span class="xo-alt-label">Implementação — badge-neutral para os 8 rótulos documentados</span>
+      <div id="mount-badges-oficiais" class="flex flex-wrap gap-2" style="margin-top:12px;"></div>
+    </div>
+
+    <div class="xo-note" style="margin-top:12px;">
+      Exploração separada (não implementada, não funcional): um tooltip no badge, explicando a origem com mais detalhe no hover — usado aqui só com o atributo nativo <code class="font-mono">title</code> para ilustrar a ideia —
+      <span class="badge badge-neutral" title="Dado consultado no cadastro do Cockpit, não editável no Autopilot."><i data-lucide="circle" style="width:6px;height:6px;fill:currentColor;"></i>Cockpit</span>
+      — o Cockpit ainda não tem um componente Tooltip próprio no protótipo. Registrar como decisão separada, só se a forma final do badge exigir informação adicional que não caiba no rótulo curto.
+    </div>
+  </div>
+
+  <!-- 2. CAMPO COM ORIGEM -->
+  <div>
+    <div class="section-head">
+      <div class="sh-text">
+        <div class="sh-title" style="font-size:16px;">Campo com Origem</div>
+        <div class="sh-sub">Campo padrão do Cockpit (<code class="font-mono">.field-label</code>/<code class="font-mono">.field-value</code>) com um <code class="font-mono">.badge-neutral</code> de origem abaixo do valor. O quarto exemplo (sem origem) prova a retrocompatibilidade com qualquer campo já existente.</div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title"><i data-lucide="file-text"></i>Campo com Origem — casos de validação</div>
+      <div class="field-group" id="mount-campo-origem"></div>
+    </div>
+  </div>
+
+  <!-- 3. INDICADOR CALCULADO -->
+  <div>
+    <div class="section-head">
+      <div class="sh-text">
+        <div class="sh-title" style="font-size:16px;">Indicador Calculado</div>
+        <div class="sh-sub">Especialização do Campo com Origem para valores vindos do motor de cálculo — mesma <code class="font-mono">.field-group</code> usada por qualquer outro campo da seção.</div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title"><i data-lucide="calculator"></i>Indicadores de apuração</div>
+      <div class="field-group" id="mount-indicadores"></div>
+    </div>
+  </div>
+
+  <!-- 4. ESTADOS -->
+  <div>
+    <div class="section-head">
+      <div class="sh-text">
+        <div class="sh-title" style="font-size:16px;">Estados</div>
+        <div class="sh-sub">Os três estados do Indicador Calculado, usando RBT12 como referência. "Carregando" usa um skeleton pulsante; "sem valor disponível" usa <code class="font-mono">.field-value.empty</code> (texto discreto do próprio Cockpit).</div>
+      </div>
+    </div>
+
+    <div class="xo-subgrid">
+      <div class="section-card" style="margin-bottom:0;">
+        <span class="xo-alt-label">Carregando</span>
+        <div id="mount-estado-loading" style="margin-top:10px;"></div>
+      </div>
+      <div class="section-card" style="margin-bottom:0;">
+        <span class="xo-alt-label">Disponível</span>
+        <div id="mount-estado-disponivel" style="margin-top:10px;"></div>
+      </div>
+      <div class="section-card" style="margin-bottom:0;">
+        <span class="xo-alt-label">Sem valor disponível</span>
+        <div id="mount-estado-indisponivel" style="margin-top:10px;"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+window.FLOW_CONFIG = { standalone: true };
+
+/* ---- Reconstrução local dos componentes de origem/indicador, sufixo "XoExpl" ---- */
+const ORIGENS_XO_EXPL = ['Manual', 'Cockpit', 'API gov. · Cockpit', 'Motor de cálculo', 'BHules', 'SERPRO', 'Legislação', 'Sistema'];
+
+function origemBadgeXoExpl(label) {
+  return `<span class="badge badge-neutral"><i data-lucide="circle" style="width:6px;height:6px;fill:currentColor;"></i>${label}</span>`;
+}
+
+function campoOrigemXoExpl({ label, value, inputHtml, origem }) {
+  const val = inputHtml || `<div class="field-value${value ? '' : ' empty'}">${value || 'Não informado'}</div>`;
+  return `<div>
+    <div class="field-label">${label}</div>
+    ${val}
+    ${origem ? `<div style="margin-top:6px;">${origemBadgeXoExpl(origem)}</div>` : ''}
+  </div>`;
+}
+
+function indicadorCalculadoXoExpl({ label, value, origem, state }) {
+  let val;
+  if (state === 'loading') val = '<div class="xo-skeleton"></div>';
+  else if (state === 'unavailable') val = '<div class="field-value empty">Não disponível no momento</div>';
+  else val = `<div class="field-value font-mono">${value}</div>`;
+  return `<div>
+    <div class="field-label">${label}</div>
+    ${val}
+    ${state !== 'loading' && origem ? `<div style="margin-top:6px;">${origemBadgeXoExpl(origem)}</div>` : ''}
+  </div>`;
+}
+
+document.getElementById('mount-badges-oficiais').innerHTML = ORIGENS_XO_EXPL.map(origemBadgeXoExpl).join('');
+
+document.getElementById('mount-campo-origem').innerHTML =
+  campoOrigemXoExpl({ label: 'Código de acesso ao PGDAS-D', inputHtml: '<div class="field-value font-mono">**************</div>', origem: 'Manual' }) +
+  campoOrigemXoExpl({ label: 'Tipo de estabelecimento', value: 'Matriz', origem: 'Cockpit' }) +
+  campoOrigemXoExpl({ label: 'Limite de receita', value: 'R$ 4.800.000,00', origem: 'Legislação' }) +
+  campoOrigemXoExpl({ label: 'Campo existente sem origem (retrocompatibilidade)', value: 'Padaria Aurora Ltda' });
+
+document.getElementById('mount-indicadores').innerHTML =
+  indicadorCalculadoXoExpl({ label: 'RBT12', value: 'R$ 1.250.000,00', origem: 'Motor de cálculo', state: 'available' }) +
+  indicadorCalculadoXoExpl({ label: 'RBA / RBAA', value: 'R$ 980.000,00', origem: 'Motor de cálculo', state: 'available' }) +
+  indicadorCalculadoXoExpl({ label: 'Fator R', value: '31,4%', origem: 'Motor de cálculo', state: 'available' });
+
+document.getElementById('mount-estado-loading').innerHTML = indicadorCalculadoXoExpl({ label: 'RBT12', state: 'loading' });
+document.getElementById('mount-estado-disponivel').innerHTML = indicadorCalculadoXoExpl({ label: 'RBT12', value: 'R$ 1.250.000,00', origem: 'Motor de cálculo', state: 'available' });
+document.getElementById('mount-estado-indisponivel').innerHTML = indicadorCalculadoXoExpl({ label: 'RBT12', origem: 'Motor de cálculo', state: 'unavailable' });
+</script>
+<script src="../assets/core/cockpit-01-shell.js"></script>
+<script src="../assets/core/cockpit-07-modals-init.js"></script>
+<script src="../assets/core/cockpit-09-cx-sidebar.js"></script>
 </body>
 </html>

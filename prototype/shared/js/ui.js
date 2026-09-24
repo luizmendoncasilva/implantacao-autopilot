@@ -126,6 +126,60 @@
     }
   }
 
+  // Multi-select popover — mesma estrutura do Combobox acima (trigger +
+  // panel + list), mas cada item é marcável independente sem fechar o
+  // painel, e o rótulo do trigger resume quantos estão marcados. Pedido do
+  // Luiz na revisão de 10/09/2026 ("talvez até colocar uma multi select
+  // aqui seria bom") para o filtro de status da lista de Implantação de
+  // Empresas. `options` = [{value, label, count}]; `currentValues` = array
+  // de value já selecionados; onChange(novoArrayDeValues) — array vazio (ou
+  // com todas as opções) equivale a "todos", sem filtro aplicado.
+  function initMultiSelect(root, options, currentValues, onChange) {
+    const trigger = root.querySelector(".combobox-trigger");
+    const list = root.querySelector(".combobox-list");
+    let selected = currentValues.slice();
+
+    function labelTrigger() {
+      const labelEl = trigger.querySelector(".combobox-label");
+      if (selected.length === 0 || selected.length === options.length) {
+        labelEl.textContent = root.getAttribute("data-all-label") || "Todos";
+      } else if (selected.length === 1) {
+        const o = options.find((x) => x.value === selected[0]);
+        labelEl.textContent = o ? o.label : selected[0];
+      } else {
+        labelEl.textContent = selected.length + " selecionados";
+      }
+      trigger.classList.add("has-value");
+    }
+
+    function renderList() {
+      list.innerHTML = "";
+      options.forEach((o) => {
+        const isSel = selected.indexOf(o.value) !== -1;
+        const item = document.createElement("div");
+        item.className = "combobox-item" + (isSel ? " is-selected" : "");
+        item.innerHTML =
+          '<span class="check">' + Icon("check", "size-4") + "</span>" +
+          '<span class="truncate">' + o.label + (typeof o.count === "number" ? ' <span class="combobox-item-sub" style="display:inline;">(' + o.count + ")</span>" : "") + "</span>";
+        item.addEventListener("click", () => {
+          selected = isSel ? selected.filter((v) => v !== o.value) : selected.concat([o.value]);
+          renderList();
+          labelTrigger();
+          onChange(selected.slice());
+        });
+        list.appendChild(item);
+      });
+    }
+
+    trigger.addEventListener("click", () => root.classList.toggle("is-open"));
+    document.addEventListener("click", (e) => {
+      if (!root.contains(e.target)) root.classList.remove("is-open");
+    });
+
+    renderList();
+    labelTrigger();
+  }
+
   const MESES_PT = [
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
     "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
@@ -327,5 +381,5 @@
     });
   }
 
-  global.UI = { openSheet, closeSheet, openDialog, closeDialog, showToast, truncatedCell, initToggleGroup, initCombobox, initDatePicker, initSegbarTooltips };
+  global.UI = { openSheet, closeSheet, openDialog, closeDialog, showToast, truncatedCell, initToggleGroup, initCombobox, initMultiSelect, initDatePicker, initSegbarTooltips };
 })(window);

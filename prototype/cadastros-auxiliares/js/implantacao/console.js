@@ -33,9 +33,15 @@
     { key: "rubricas", label: "Rubricas" },
     { key: "calculo", label: "Cálculo em Paralelo" },
     { key: "parametros", label: "Parâmetros" },
+    { key: "relatorios", label: "Relatórios" },
     { key: "historico", label: "Histórico" },
   ];
   let activeKey = "colaborador";
+  // Deep link direto para uma aba (ex.: vindo do resultado da importação
+  // quando "relatório personalizado" foi marcado — ver js/implantacao/
+  // importar.js) — ?empresa=...&tab=relatorios.
+  const tabInicial = E.getQueryParam("tab");
+  if (tabInicial && TABS.some((t) => t.key === tabInicial)) activeKey = tabInicial;
   // Filtro por status na aba "Dados do Colaborador" — pedido de revisão
   // (Jaqueline/Thais, 09/09/2026): em empresa com muitos colaboradores,
   // poder ir direto no que tem pendência em vez de rolar a lista toda.
@@ -397,6 +403,120 @@
     );
   }
 
+  // ===== Aba Relatórios — layouts personalizados de admissão/férias/
+  // rescisão (alinhamento Andressa/Jeniffer, 10/09/2026): "não
+  // necessariamente são esses relatórios que ele subiu [na Ficha
+  // Financeira]... pode ter outro, de admissão, que é específico, de
+  // rescisão, que é específico" (Andressa) — por isso é aba própria, não
+  // só a pergunta de sim/não do fluxo de importação. Sem layout salvo, a
+  // empresa usa o padrão Domínio — não bloqueia nada, é só informativo
+  // para a operação saber o que essa empresa usa em cada processo. =====
+  let layoutAtual = null;
+
+  function abrirImportarLayout(tipo) {
+    layoutAtual = tipo;
+    document.getElementById("layout-relatorio-title").textContent = "Importar layout — " + tipo;
+    document.getElementById("layout-relatorio-sub").textContent = empresaNome(codigoEmpresa);
+    document.getElementById("layout-relatorio-dropzone").style.display = "";
+    document.getElementById("layout-relatorio-arquivo-row").style.display = "none";
+    document.getElementById("btn-salvar-layout-relatorio").disabled = true;
+    UI.openSheet(document.getElementById("layout-relatorio-overlay"), document.getElementById("layout-relatorio-panel"));
+  }
+
+  function fecharImportarLayout() {
+    UI.closeSheet(document.getElementById("layout-relatorio-overlay"), document.getElementById("layout-relatorio-panel"));
+  }
+
+  function nomeArquivoMockLayout(tipo) {
+    const slug = empresaNome(codigoEmpresa)
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .replace(/[^a-zA-Z0-9]+/g, "");
+    return tipo + "_" + slug + ".pdf";
+  }
+
+  function selecionarArquivoMockLayout() {
+    document.getElementById("layout-relatorio-dropzone").style.display = "none";
+    document.getElementById("layout-relatorio-arquivo-row").style.display = "";
+    document.getElementById("layout-relatorio-arquivo-nome").textContent = nomeArquivoMockLayout(layoutAtual);
+    document.getElementById("btn-salvar-layout-relatorio").disabled = false;
+  }
+
+  function removerArquivoMockLayout() {
+    document.getElementById("layout-relatorio-arquivo-row").style.display = "none";
+    document.getElementById("layout-relatorio-dropzone").style.display = "";
+    document.getElementById("btn-salvar-layout-relatorio").disabled = true;
+  }
+
+  function dataHojeBr() {
+    const hoje = new Date();
+    return String(hoje.getDate()).padStart(2, "0") + "/" + String(hoje.getMonth() + 1).padStart(2, "0") + "/" + hoje.getFullYear();
+  }
+
+  function salvarLayoutRelatorio() {
+    const nomeArquivo = document.getElementById("layout-relatorio-arquivo-nome").textContent;
+    EI.importarLayoutRelatorio(codigoEmpresa, layoutAtual, nomeArquivo, dataHojeBr());
+    fecharImportarLayout();
+    renderContent();
+    UI.showToast("Layout importado", nomeArquivo + " salvo como layout de " + layoutAtual.toLowerCase() + " desta empresa.");
+  }
+
+  function removerPersonalizacaoLayout(tipo) {
+    EI.removerLayoutRelatorio(codigoEmpresa, tipo);
+    renderContent();
+    UI.showToast("Layout removido", "Voltou a usar o layout padrão Domínio para " + tipo.toLowerCase() + ".", "info");
+  }
+
+  function renderRelatorios() {
+    const layouts = EI.layoutsRelatorios(codigoEmpresa);
+    const linhas = layouts
+      .map(
+        (l) =>
+          "<tr><td>" + l.tipo + "</td>" +
+          '<td class="col-pad-md">' +
+          (l.personalizado
+            ? '<span class="badge badge-info">' + Icon("file-text", "size-3-5") + " Personalizado</span>"
+            : '<span class="badge badge-secondary">Padrão Domínio</span>') +
+          "</td>" +
+          "<td>" + (l.arquivo ? UI.truncatedCell(l.arquivo + " · importado em " + l.importadoEm, null, "text-sm") : '<span class="text-muted text-sm">—</span>') + "</td>" +
+          '<td class="col-pad-end"><div class="flex gap-2 justify-end">' +
+          (l.personalizado ? '<button type="button" class="btn-link link-info" data-remover-layout="' + l.tipo + '">Voltar ao padrão</button>' : "") +
+          '<button type="button" class="btn btn-outline btn-sm w-fit" data-importar-layout="' + l.tipo + '">' + Icon("upload", "size-3-5") + (l.personalizado ? " Substituir" : " Importar layout") + "</button>" +
+          "</div></td></tr>"
+      )
+      .join("");
+    return (
+      '<p class="text-sm text-muted">Layout de cada processo usado por esta empresa — sem personalização, o Autopilot segue o padrão Domínio. Não bloqueia a implantação; é informativo para a operação saber o que gerar em cada processo (alinhamento 10/09/2026).</p>' +
+      '<div class="table-wrap"><table class="dtable dtable-fixed">' +
+      '<colgroup><col style="width:140px" /><col style="width:180px" /><col /><col style="width:260px" /></colgroup>' +
+      '<thead><tr><th>Processo</th><th class="col-pad-md">Layout</th><th>Arquivo</th><th class="col-pad-end"></th></tr></thead>' +
+      "<tbody>" + linhas + "</tbody></table></div>"
+    );
+  }
+
+  function setupLayoutRelatorio() {
+    document.getElementById("icon-upload-layout").innerHTML = Icon("upload", "size-5");
+    document.getElementById("layout-relatorio-close").innerHTML = Icon("x", "size-4");
+    document.getElementById("layout-relatorio-arquivo-remover").innerHTML = Icon("x", "size-4");
+    const overlay = document.getElementById("layout-relatorio-overlay");
+    const panel = document.getElementById("layout-relatorio-panel");
+    document.getElementById("layout-relatorio-close").addEventListener("click", fecharImportarLayout);
+    overlay.addEventListener("click", fecharImportarLayout);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && panel.classList.contains("is-open")) fecharImportarLayout();
+    });
+    const dropzone = document.getElementById("layout-relatorio-dropzone");
+    dropzone.addEventListener("click", selecionarArquivoMockLayout);
+    dropzone.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        selecionarArquivoMockLayout();
+      }
+    });
+    document.getElementById("layout-relatorio-arquivo-remover").addEventListener("click", removerArquivoMockLayout);
+    document.getElementById("btn-salvar-layout-relatorio").addEventListener("click", salvarLayoutRelatorio);
+  }
+
   // ===== Aba Histórico (Épico 5 — RT-DP-02) =====
   function renderHistoricoTabela(logs) {
     const linhas = logs
@@ -494,6 +614,14 @@
           UI.showToast("Parâmetros confirmados", "Registrado que " + empresaNome(codigoEmpresa) + " está com os parâmetros de DP configurados.");
         });
       }
+    } else if (activeKey === "relatorios") {
+      mountEl.innerHTML = renderRelatorios();
+      document.querySelectorAll("[data-importar-layout]").forEach((btn) => {
+        btn.addEventListener("click", () => abrirImportarLayout(btn.getAttribute("data-importar-layout")));
+      });
+      document.querySelectorAll("[data-remover-layout]").forEach((btn) => {
+        btn.addEventListener("click", () => removerPersonalizacaoLayout(btn.getAttribute("data-remover-layout")));
+      });
     } else if (activeKey === "historico") {
       mountEl.innerHTML = renderHistorico();
     }
@@ -504,6 +632,7 @@
   VisualizarColaborador.setup();
   FilaColaborador.setup();
   setupVisualizarGenerico();
+  setupLayoutRelatorio();
   FilaColaborador.setOnChange(() => {
     renderHeader();
     renderContent();
