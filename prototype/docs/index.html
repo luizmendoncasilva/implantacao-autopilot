@@ -10,6 +10,10 @@
   O markdown vem de content.js (window.DocsContent), não de docs/*.md direto
   — ver comentário no topo de content.js para o motivo (build/Docker não
   copiam .md) e como atualizar quando a doc de origem mudar.
+
+  Sidebar: igual a toda outra trilha do protótipo (cockpit-09-cx-sidebar.js),
+  não a antiga Shell.mount (shared/js/shell.js) — unificação da navegação
+  pedida em cima da proposta de sidebar única do Cockpit.
 -->
 <!doctype html>
 <html lang="pt-BR">
@@ -23,10 +27,12 @@
   <link rel="stylesheet" href="../shared/css/components.css" />
   <link rel="stylesheet" href="../shared/css/layout.css" />
   <link rel="stylesheet" href="docs.css" />
+  <style>
+    .docs-page { max-width: 1200px; margin: 0 auto; padding: 24px; width: 100%; }
+  </style>
 </head>
 <body>
-  <div id="shell-root"></div>
-  <template id="page-content">
+  <div class="docs-page">
     <div class="flex flex-col gap-1" style="margin-bottom: 20px;">
       <h1 class="text-lg font-semibold">Documentação</h1>
       <p class="card-description">Especificações funcionais das trilhas do AutoPilot — leitura de apoio para acompanhar o protótipo.</p>
@@ -35,18 +41,23 @@
       <div class="docs-list-col" id="docs-list"></div>
       <div id="docs-reader"></div>
     </div>
-  </template>
+  </div>
 
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="../shared/js/icons.js"></script>
-  <script src="../shared/js/shell.js"></script>
   <script src="../shared/js/ui.js"></script>
-  <script src="../shared/js/fab-tools.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
   <script src="content.js"></script>
   <script>
-    Shell.mount(document.getElementById("shell-root"), { base: "../", active: "docs", crumb: "documentação" });
+    window.FLOW_CONFIG = { standalone: true };
   </script>
   <script src="docs.js"></script>
+  <script src="../assets/core/cockpit-01-shell.js"></script>
+  <script src="../assets/core/cockpit-02-state-helpers.js"></script>
+  <script src="../assets/core/cockpit-08-datatable.js"></script>
+  <script src="../assets/core/cockpit-07-modals-init.js"></script>
+  <script src="../assets/core/cockpit-09-cx-sidebar.js"></script>
 </body>
 </html>

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Exploração · Sidebar do Cockpit</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Inter:wght@400;500;600;700&display=swap" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<style>
+  :root {
+    --bg: #0F1727;
+    --txt-inactive: #A6A6A6;
+    --txt-active: #F9F9F9;
+    --coral: #f25461;
+    --page-bg: #F5F6F8;
+    --ink: #1C2739;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Inter', sans-serif; background: var(--page-bg); color: var(--ink); }
+
+  .page-header { padding: 28px 32px 20px; background: #fff; border-bottom: 1px solid #E4E7EC; }
+  .page-header h1 { margin: 0 0 6px; font-size: 20px; }
+  .page-header p { margin: 0; color: #667085; font-size: 14px; max-width: 760px; line-height: 1.5; }
+  .page-header .back { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #667085; text-decoration: none; margin-bottom: 10px; }
+  .page-header .back:hover { color: var(--ink); }
+
+  .variants { display: flex; gap: 20px; padding: 24px 32px 48px; overflow-x: auto; align-items: flex-start; }
+
+  .variant { flex: 0 0 300px; background: #fff; border: 1px solid #E4E7EC; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+  .variant-header { padding: 16px 18px; border-bottom: 1px solid #E4E7EC; }
+  .variant-header .badge { display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--coral); background: rgba(242,84,97,.08); border: 1px solid rgba(242,84,97,.25); border-radius: 999px; padding: 2px 8px; margin-bottom: 8px; }
+  .variant-header h2 { margin: 0 0 6px; font-size: 15px; }
+  .variant-header p { margin: 0 0 10px; font-size: 12.5px; color: #667085; line-height: 1.45; }
+  .variant-notes { margin: 0; padding-left: 16px; font-size: 12px; color: #475467; line-height: 1.6; }
+  .variant-notes li.con { color: #B54708; }
+
+  .variant-sidebar-wrap { background: #0B1220; padding: 0; flex: 1; display: flex; }
+
+  /* ---- réplica visual da sidebar do Cockpit (cx-*) ---- */
+  .cx-nav { font-family: Lato, 'Inter', sans-serif; background: var(--bg); width: 100%; display: flex; flex-direction: column; justify-content: space-between; min-height: 560px; }
+  .cx-nav ul { margin: 0; list-style: none; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .cx-nav-top { display: flex; gap: 10px; padding: 18px 16px 0; flex-direction: row; align-items: center; padding-bottom: 18px; }
+  .cx-brand-label { font-size: 1.05rem; font-weight: 700; color: #fff; white-space: nowrap; }
+  .cx-brand-label .dot { color: var(--coral); }
+  .cx-scroll { min-height: 0; flex: 1; overflow-y: auto; overflow-x: hidden; max-height: 640px; }
+  .cx-ul-section { padding: 8px 14px 12px; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .cx-ul-section:last-child { border-bottom: none; }
+  .cx-item, .cx-group-trigger { position: relative; display: flex; width: 100%; align-items: flex-start; gap: 8px; border-radius: 8px; padding: 7px 9px; min-height: 30px; color: var(--txt-inactive); background: none; border: none; cursor: pointer; font-family: inherit; text-align: left; text-decoration: none; transition: background .15s, color .15s; font-size: 13px; }
+  .cx-item:hover, .cx-group-trigger:hover { background: rgba(255,255,255,.07); color: var(--txt-active); }
+  .cx-item.active, .cx-group-trigger.active { background: rgba(255,255,255,.07); color: var(--txt-active); }
+  .cx-item.active .cx-item-label, .cx-group-trigger.active .cx-item-label { font-weight: 700; }
+  .cx-item-icon { margin-top: 1px; display: inline-flex; flex-shrink: 0; }
+  .cx-item-icon svg, .cx-item-icon i { width: 15px; height: 15px; }
+  .cx-item-body { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; flex: 1 1 auto; min-width: 0; }
+  .cx-item-label { flex: none; width: 100%; line-height: 18px; }
+  .cx-chev { margin-top: 1px; flex-shrink: 0; color: #69727D; transition: transform .2s ease-out; }
+  .cx-chev svg, .cx-chev i { width: 14px; height: 14px; }
+  .cx-group.open > .cx-group-trigger .cx-chev { transform: rotate(90deg); }
+  .cx-group-sub-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .18s ease-out; }
+  .cx-group.open > .cx-group-sub-wrap { grid-template-rows: 1fr; }
+  .cx-group-sub { margin-left: 12px; margin-top: 6px; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 6px; border-left: 1px solid rgba(255,255,255,.08); padding-left: 9px; }
+  .cx-tag { flex-shrink: 0; font-size: 8.5px; font-weight: 700; line-height: 1; padding: 2px 6px; border-radius: 999px; border: 1px solid; white-space: nowrap; }
+  .cx-proto-section + .cx-proto-section { margin-top: 4px; }
+  .cx-proto-label { padding: 10px 9px 4px; font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--coral); }
+  .cx-footer { display: flex; align-items: center; border-top: 1px solid rgba(255,255,255,.08); padding: 8px 14px; flex-shrink: 0; }
+  .cx-footer-inner { display: flex; min-height: 48px; width: 100%; align-items: center; gap: 8px; }
+  .cx-avatar { display: flex; width: 28px; height: 28px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 50%; background: #1C2739; font-size: 10px; font-weight: 700; color: var(--txt-active); }
+  .cx-footer-name { flex: 1; font-size: 13px; font-weight: 700; color: var(--txt-inactive); white-space: nowrap; }
+
+  /* switcher de contexto (variante 2) */
+  .cx-switcher { margin: 0 14px 14px; display: flex; background: rgba(255,255,255,.06); border-radius: 8px; padding: 3px; gap: 2px; }
+  .cx-switcher button { flex: 1; border: none; background: none; color: var(--txt-inactive); font-family: inherit; font-size: 11.5px; font-weight: 700; padding: 6px 4px; border-radius: 6px; cursor: pointer; transition: background .15s, color .15s; }
+  .cx-switcher button.is-active { background: var(--coral); color: #fff; }
+
+  .cx-back-link { display: flex; align-items: center; gap: 6px; margin: 0 14px 10px; padding: 6px 8px; font-size: 11.5px; color: var(--txt-inactive); text-decoration: none; border-radius: 6px; }
+  .cx-back-link:hover { background: rgba(255,255,255,.06); color: var(--txt-active); }
+  .cx-back-link svg, .cx-back-link i { width: 13px; height: 13px; }
+
+  .cx-root-tag { color: #f9a8d4; background: rgba(249,168,212,.12); border-color: rgba(249,168,212,.35); }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <a class="back" href="../prototype/index.html"><i data-lucide="arrow-left" style="width:13px;height:13px;"></i> voltar ao hub de protótipos</a>
+  <h1>Exploração de organização da sidebar do Cockpit</h1>
+  <p>Hoje a sidebar do <code>cockpit-09-cx-sidebar.js</code> empilha a navegação real do produto (Clientes, Tarefas, Solicitações, Ferramentas, Faturamento, Relatórios) com as 5 seções inteiras do protótipo de Implantação logo abaixo — a lista fica muito comprida e mistura dois contextos diferentes num único scroll. Abaixo, 4 formas de organizar isso, lado a lado, pra pensarmos junto qual faz mais sentido antes de mexer no arquivo real.</p>
+</div>
+
+<div class="variants">
+
+  <!-- ===================== VARIANTE 1 — BASELINE ===================== -->
+  <div class="variant">
+    <div class="variant-header">
+      <span class="badge" style="color:#667085;background:#F2F4F7;border-color:#E4E7EC;">como está hoje</span>
+      <h2>1. Tudo empilhado (baseline)</h2>
+      <p>Nav real do Cockpit + as 5 seções do protótipo (Plataforma, Regras, Parâmetros, Implantação, Apoio) uma embaixo da outra, sempre visíveis.</p>
+      <ul class="variant-notes">
+        <li>Fácil de implementar — é o que já existe.</li>
+        <li class="con">Sidebar fica muito alta, exige scroll até pra achar itens do produto real.</li>
+        <li class="con">Mistura "produto real" com "protótipo em avaliação" sem nenhuma separação visual forte.</li>
+      </ul>
+    </div>
+    <div class="variant-sidebar-wrap">
+      <div class="cx-nav">
+        <div class="cx-nav-top">
+          <span style="color:#F9F9F9;display:flex;"><svg width="18" height="18" viewBox="0 0 32 31" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M27.7557 0H3.26521C2.36377 0 1.54818.366052.955809.955166.366298 1.54714 0 2.36218 0 3.26301V27.737C0 28.6378.366298 29.4529.955809 30.0448 1.54532 30.6368 2.36377 31 3.26521 31H27.7557C28.6571 31 29.4727 30.6339 30.0651 30.0448 30.6574 29.4557 31.0209 28.6378 31.0209 27.737V3.26301C31.0209 2.36218 30.6546 1.54714 30.0651.955166 29.4756.366052 28.6571 0 27.7557 0ZM9.04871 23.3787C8.7282 23.699 8.30753 23.8591 7.88686 23.8591 7.46619 23.8591 7.04552 23.699 6.72501 23.3787L4.80194 21.4569 2.87888 19.5351C2.55836 19.2149 2.39811 18.7945 2.39811 18.3712 2.39811 17.948 2.55836 17.5304 2.87888 17.2101L5.38287 14.7078 7.88686 12.2055 10.9718 15.2884 14.0567 18.3712 11.5527 20.8735 9.04871 23.3758V23.3787ZM9.30626 10.8185L11.7902 8.33625 14.2742 5.85397C14.6061 5.52223 15.0411 5.35637 15.479 5.35637 15.9168 5.35637 16.3489 5.52223 16.6837 5.85397L19.1677 8.33625 21.6517 10.8185 18.5667 13.9014 15.4818 16.9842 12.3969 13.9014 9.31199 10.8185H9.30626ZM28.0819 19.4722L26.093 21.4598 24.1041 23.4473C23.8008 23.7505 23.403 23.902 23.0052 23.902 22.6075 23.902 22.2097 23.7505 21.9064 23.4473L19.368 20.9107 16.8297 18.3741 19.9146 15.2912 22.9995 12.2084 25.5379 14.745 28.0762 17.2816C28.3795 17.5848 28.5312 17.9823 28.5312 18.3798 28.5312 18.7773 28.3795 19.1748 28.0762 19.478L28.0819 19.4722Z" fill="currentColor"></path></svg></span>
+          <span class="cx-brand-label">Cockpit<span class="dot">.</span></span>
+        </div>
+        <div class="cx-scroll">
+          <ul class="cx-ul-section" data-nav-top></ul>
+          <ul class="cx-ul-section" data-nav-ferramentas></ul>
+          <ul class="cx-ul-section" data-nav-fechamento></ul>
+          <div class="cx-ul-section" style="border-bottom:none;padding-top:4px;" data-proto-sections></div>
+        </div>
+        <div class="cx-footer">
+          <div class="cx-footer-inner">
+            <span class="cx-avatar">OB</span>
+            <span class="cx-footer-name">Operador BHub</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== VARIANTE 2 — SWITCHER DE CONTEXTO ===================== -->
+  <div class="variant">
+    <div class="variant-header">
+      <span class="badge">proposta</span>
+      <h2>2. Switcher de contexto no topo</h2>
+      <p>Um toggle logo abaixo da marca troca entre "Cockpit" (nav real, como é hoje) e "Protótipo · Implantação" (só a árvore do protótipo). Nunca os dois juntos.</p>
+      <ul class="variant-notes">
+        <li>Sidebar sempre curta, sem scroll gigante.</li>
+        <li>Deixa claro que são dois contextos diferentes.</li>
+        <li class="con">Precisa de um clique a mais pra alternar entre um mundo e o outro.</li>
+      </ul>
+    </div>
+    <div class="variant-sidebar-wrap">
+      <div class="cx-nav">
+        <div class="cx-nav-top">
+          <span style="color:#F9F9F9;display:flex;"><svg width="18" height="18" viewBox="0 0 32 31" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M27.7557 0H3.26521C2.36377 0 1.54818.366052.955809.955166.366298 1.54714 0 2.36218 0 3.26301V27.737C0 28.6378.366298 29.4529.955809 30.0448 1.54532 30.6368 2.36377 31 3.26521 31H27.7557C28.6571 31 29.4727 30.6339 30.0651 30.0448 30.6574 29.4557 31.0209 28.6378 31.0209 27.737V3.26301C31.0209 2.36218 30.6546 1.54714 30.0651.955166 29.4756.366052 28.6571 0 27.7557 0ZM9.04871 23.3787C8.7282 23.699 8.30753 23.8591 7.88686 23.8591 7.46619 23.8591 7.04552 23.699 6.72501 23.3787L4.80194 21.4569 2.87888 19.5351C2.55836 19.2149 2.39811 18.7945 2.39811 18.3712 2.39811 17.948 2.55836 17.5304 2.87888 17.2101L5.38287 14.7078 7.88686 12.2055 10.9718 15.2884 14.0567 18.3712 11.5527 20.8735 9.04871 23.3758V23.3787ZM9.30626 10.8185L11.7902 8.33625 14.2742 5.85397C14.6061 5.52223 15.0411 5.35637 15.479 5.35637 15.9168 5.35637 16.3489 5.52223 16.6837 5.85397L19.1677 8.33625 21.6517 10.8185 18.5667 13.9014 15.4818 16.9842 12.3969 13.9014 9.31199 10.8185H9.30626ZM28.0819 19.4722L26.093 21.4598 24.1041 23.4473C23.8008 23.7505 23.403 23.902 23.0052 23.902 22.6075 23.902 22.2097 23.7505 21.9064 23.4473L19.368 20.9107 16.8297 18.3741 19.9146 15.2912 22.9995 12.2084 25.5379 14.745 28.0762 17.2816C28.3795 17.5848 28.5312 17.9823 28.5312 18.3798 28.5312 18.7773 28.3795 19.1748 28.0762 19.478L28.0819 19.4722Z" fill="currentColor"></path></svg></span>
+          <span class="cx-brand-label">Cockpit<span class="dot">.</span></span>
+        </div>
+        <div class="cx-switcher">
+          <button type="button" class="is-active" data-switch="cockpit">Cockpit</button>
+          <button type="button" data-switch="protótipo">Protótipo · Implantação</button>
+        </div>
+        <div class="cx-scroll">
+          <div data-switch-panel="cockpit">
+            <ul class="cx-ul-section" data-nav-top-2></ul>
+            <ul class="cx-ul-section" data-nav-ferramentas-2></ul>
+            <ul class="cx-ul-section" data-nav-fechamento-2></ul>
+          </div>
+          <div data-switch-panel="protótipo" style="display:none;">
+            <div class="cx-ul-section" style="border-bottom:none;" data-proto-sections-2></div>
+          </div>
+        </div>
+        <div class="cx-footer">
+          <div class="cx-footer-inner">
+            <span class="cx-avatar">OB</span>
+            <span class="cx-footer-name">Operador BHub</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== VARIANTE 3 — GRUPO ÚNICO COLAPSÁVEL ===================== -->
+  <div class="variant">
+    <div class="variant-header">
+      <span class="badge">proposta</span>
+      <h2>3. Um único grupo "Protótipo" na nav real</h2>
+      <p>A nav real do Cockpit fica intocada. As 5 seções do protótipo viram <em>um</em> item expansível ("Protótipo · Implantação de Empresas", com etiqueta rosa), que abre a árvore completa aninhada — igual "Parâmetros" hoje já funciona.</p>
+      <ul class="variant-notes">
+        <li>Sidebar real fica exatamente do tamanho de hoje quando fechado.</li>
+        <li>Um único ponto de entrada — fácil de esconder/remover quando o protótipo virar produto de verdade.</li>
+        <li class="con">3-4 níveis de indentação pra chegar em itens como "Folha de Pagamento".</li>
+      </ul>
+    </div>
+    <div class="variant-sidebar-wrap">
+      <div class="cx-nav">
+        <div class="cx-nav-top">
+          <span style="color:#F9F9F9;display:flex;"><svg width="18" height="18" viewBox="0 0 32 31" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M27.7557 0H3.26521C2.36377 0 1.54818.366052.955809.955166.366298 1.54714 0 2.36218 0 3.26301V27.737C0 28.6378.366298 29.4529.955809 30.0448 1.54532 30.6368 2.36377 31 3.26521 31H27.7557C28.6571 31 29.4727 30.6339 30.0651 30.0448 30.6574 29.4557 31.0209 28.6378 31.0209 27.737V3.26301C31.0209 2.36218 30.6546 1.54714 30.0651.955166 29.4756.366052 28.6571 0 27.7557 0ZM9.04871 23.3787C8.7282 23.699 8.30753 23.8591 7.88686 23.8591 7.46619 23.8591 7.04552 23.699 6.72501 23.3787L4.80194 21.4569 2.87888 19.5351C2.55836 19.2149 2.39811 18.7945 2.39811 18.3712 2.39811 17.948 2.55836 17.5304 2.87888 17.2101L5.38287 14.7078 7.88686 12.2055 10.9718 15.2884 14.0567 18.3712 11.5527 20.8735 9.04871 23.3758V23.3787ZM9.30626 10.8185L11.7902 8.33625 14.2742 5.85397C14.6061 5.52223 15.0411 5.35637 15.479 5.35637 15.9168 5.35637 16.3489 5.52223 16.6837 5.85397L19.1677 8.33625 21.6517 10.8185 18.5667 13.9014 15.4818 16.9842 12.3969 13.9014 9.31199 10.8185H9.30626ZM28.0819 19.4722L26.093 21.4598 24.1041 23.4473C23.8008 23.7505 23.403 23.902 23.0052 23.902 22.6075 23.902 22.2097 23.7505 21.9064 23.4473L19.368 20.9107 16.8297 18.3741 19.9146 15.2912 22.9995 12.2084 25.5379 14.745 28.0762 17.2816C28.3795 17.5848 28.5312 17.9823 28.5312 18.3798 28.5312 18.7773 28.3795 19.1748 28.0762 19.478L28.0819 19.4722Z" fill="currentColor"></path></svg></span>
+          <span class="cx-brand-label">Cockpit<span class="dot">.</span></span>
+        </div>
+        <div class="cx-scroll">
+          <ul class="cx-ul-section" data-nav-top-3></ul>
+          <ul class="cx-ul-section" data-nav-ferramentas-3></ul>
+          <ul class="cx-ul-section" data-nav-fechamento-3></ul>
+          <ul class="cx-ul-section" style="border-bottom:none;" data-proto-root-3></ul>
+        </div>
+        <div class="cx-footer">
+          <div class="cx-footer-inner">
+            <span class="cx-avatar">OB</span>
+            <span class="cx-footer-name">Operador BHub</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== VARIANTE 4 — SIDEBAR DEDICADA ===================== -->
+  <div class="variant">
+    <div class="variant-header">
+      <span class="badge">proposta</span>
+      <h2>4. Sidebar dedicada só ao protótipo</h2>
+      <p>Enquanto o usuário está navegando dentro do protótipo de Implantação, a nav real do Cockpit some inteira — sobra só um link "‹ Voltar ao Cockpit" no topo e a árvore do protótipo (mesmo agrupamento que já existe hoje no AutoPilot: Plataforma / Regras / Parâmetros / Implantação / Apoio).</p>
+      <ul class="variant-notes">
+        <li>Mais parecido com o que o AutoPilot já faz hoje — só muda a casca visual pro escuro do Cockpit.</li>
+        <li>Foco total: nada do produto real compete por atenção durante a avaliação do protótipo.</li>
+        <li class="con">Perde a sensação de "isso já mora dentro do Cockpit" — fica mais como um app à parte.</li>
+      </ul>
+    </div>
+    <div class="variant-sidebar-wrap">
+      <div class="cx-nav">
+        <div class="cx-nav-top">
+          <span style="color:#F9F9F9;display:flex;"><svg width="18" height="18" viewBox="0 0 32 31" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M27.7557 0H3.26521C2.36377 0 1.54818.366052.955809.955166.366298 1.54714 0 2.36218 0 3.26301V27.737C0 28.6378.366298 29.4529.955809 30.0448 1.54532 30.6368 2.36377 31 3.26521 31H27.7557C28.6571 31 29.4727 30.6339 30.0651 30.0448 30.6574 29.4557 31.0209 28.6378 31.0209 27.737V3.26301C31.0209 2.36218 30.6546 1.54714 30.0651.955166 29.4756.366052 28.6571 0 27.7557 0ZM9.04871 23.3787C8.7282 23.699 8.30753 23.8591 7.88686 23.8591 7.46619 23.8591 7.04552 23.699 6.72501 23.3787L4.80194 21.4569 2.87888 19.5351C2.55836 19.2149 2.39811 18.7945 2.39811 18.3712 2.39811 17.948 2.55836 17.5304 2.87888 17.2101L5.38287 14.7078 7.88686 12.2055 10.9718 15.2884 14.0567 18.3712 11.5527 20.8735 9.04871 23.3758V23.3787ZM9.30626 10.8185L11.7902 8.33625 14.2742 5.85397C14.6061 5.52223 15.0411 5.35637 15.479 5.35637 15.9168 5.35637 16.3489 5.52223 16.6837 5.85397L19.1677 8.33625 21.6517 10.8185 18.5667 13.9014 15.4818 16.9842 12.3969 13.9014 9.31199 10.8185H9.30626ZM28.0819 19.4722L26.093 21.4598 24.1041 23.4473C23.8008 23.7505 23.403 23.902 23.0052 23.902 22.6075 23.902 22.2097 23.7505 21.9064 23.4473L19.368 20.9107 16.8297 18.3741 19.9146 15.2912 22.9995 12.2084 25.5379 14.745 28.0762 17.2816C28.3795 17.5848 28.5312 17.9823 28.5312 18.3798 28.5312 18.7773 28.3795 19.1748 28.0762 19.478L28.0819 19.4722Z" fill="currentColor"></path></svg></span>
+          <span class="cx-brand-label">Protótipo<span class="dot">.</span></span>
+        </div>
+        <a class="cx-back-link" href="#"><i data-lucide="arrow-left"></i> Voltar ao Cockpit</a>
+        <div class="cx-scroll">
+          <div style="padding-top:4px;" data-proto-sections-4></div>
+        </div>
+        <div class="cx-footer">
+          <div class="cx-footer-inner">
+            <span class="cx-avatar">OB</span>
+            <span class="cx-footer-name">Operador BHub</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ---- mesmo conteúdo/estrutura do cockpit-09-cx-sidebar.js real ----
+  const NAV_TOP = [
+    { icon: 'users', label: 'Clientes' },
+    { icon: 'circle-check-big', label: 'Tarefas (GTO)' },
+    { icon: 'list-checks', label: 'Tarefas (novo)' },
+    { icon: 'send', label: 'Solicitações' },
+    { icon: 'folder', label: 'GDocs' },
+  ];
+  const FERRAMENTAS_SUB = [
+    { icon: 'clock', label: 'Agendar pagamentos' },
+    { icon: 'file-search', label: 'Buscador de Extratos' },
+    { icon: 'arrow-right-left', label: 'Conciliador' },
+    { icon: 'receipt', label: 'Integrador de notas fiscais' },
+    { icon: 'bot', label: 'Autopilot' },
+  ];
+  const NAV_FECHAMENTO = [
+    { icon: 'dollar-sign', label: 'Faturamento interno' },
+    { icon: 'chart-column', label: 'Relatórios' },
+  ];
+  const TAG_STYLES = {
+    refinado: { color: '#4ade80', bg: 'rgba(74,222,128,.12)', border: 'rgba(74,222,128,.35)' },
+    em_breve: { color: '#9ca3af', bg: 'rgba(156,163,175,.12)', border: 'rgba(156,163,175,.3)' },
+    em_refinamento: { color: '#60a5fa', bg: 'rgba(96,165,250,.12)', border: 'rgba(96,165,250,.35)' },
+    novo: { color: '#f9a8d4', bg: 'rgba(249,168,212,.12)', border: 'rgba(249,168,212,.35)' },
+    em_construcao: { color: '#fbbf24', bg: 'rgba(251,191,36,.12)', border: 'rgba(251,191,36,.35)' },
+    protótipo: { color: '#f9a8d4', bg: 'rgba(249,168,212,.12)', border: 'rgba(249,168,212,.35)' },
+  };
+  const SECTIONS = [
+    { label: 'Plataforma', items: [
+      { icon: 'building-2', label: 'Empresas', tag: 'refinado' },
+      { icon: 'folder', label: 'Cadastros Auxiliares', tag: 'refinado' },
+    ]},
+    { label: 'Regras', items: [
+      { icon: 'clipboard-list', label: 'Regras Gerais', tag: 'em_breve' },
+    ]},
+    { label: 'Parâmetros', items: [
+      { id: 'parametros', icon: 'sliders-horizontal', label: 'Parâmetros', tag: 'em_construcao', children: [
+        { icon: 'file-text', label: 'Fiscal', tag: 'em_refinamento' },
+        { id: 'parametros-dp', icon: 'users', label: 'DP', children: [
+          { icon: 'calendar', label: 'Folha de Pagamento', tag: 'em_refinamento' },
+          { icon: 'landmark', label: 'Sindicato / Convenção', tag: 'em_refinamento' },
+          { icon: 'file-text', label: 'Rubricas', tag: 'novo' },
+        ]},
+        { icon: 'calculator', label: 'Contábil', tag: 'em_breve' },
+      ]},
+    ]},
+    { label: 'Implantação', items: [
+      { id: 'implantacao', icon: 'rocket', label: 'Implantação de Empresas', tag: 'novo', children: [
+        { icon: 'users', label: 'DP', tag: 'novo' },
+        { icon: 'file-text', label: 'Fiscal', tag: 'em_breve' },
+        { icon: 'calculator', label: 'Contábil', tag: 'em_breve' },
+      ]},
+    ]},
+    { label: 'Apoio', items: [
+      { icon: 'file-text', label: 'Documentação' },
+    ]},
+  ];
+
+  function tagHtml(tagKey) {
+    if (!tagKey || !TAG_STYLES[tagKey]) return '';
+    const s = TAG_STYLES[tagKey];
+    return '<span class="cx-tag" style="color:' + s.color + ';background:' + s.bg + ';border-color:' + s.border + ';">' + tagKey.replace('_', ' ') + '</span>';
+  }
+  function lucide_(name) { return '<i data-lucide="' + name + '"></i>'; }
+  function plainItemHtml(it) {
+    return '<li><button type="button" class="cx-item">' +
+      '<span class="cx-item-icon">' + lucide_(it.icon) + '</span>' +
+      '<span class="cx-item-body"><span class="cx-item-label">' + it.label + '</span></span>' +
+      '</button></li>';
+  }
+  function renderNode(node, path) {
+    const nodePath = path + '/' + (node.id || node.label);
+    if (node.children) {
+      const childrenHtml = node.children.map(c => renderNode(c, nodePath)).join('');
+      return '<li class="cx-group" data-group="' + nodePath + '">' +
+        '<button type="button" class="cx-group-trigger" onclick="toggleGroup(this)">' +
+        '<span class="cx-item-icon">' + lucide_(node.icon) + '</span>' +
+        '<span class="cx-item-body"><span class="cx-item-label">' + node.label + '</span>' + tagHtml(node.tag) + '</span>' +
+        '<span class="cx-chev">' + lucide_('chevron-right') + '</span>' +
+        '</button>' +
+        '<div class="cx-group-sub-wrap"><ul class="cx-group-sub">' + childrenHtml + '</ul></div>' +
+        '</li>';
+    }
+    return '<li><span class="cx-item" style="cursor:default;">' +
+      '<span class="cx-item-icon">' + lucide_(node.icon) + '</span>' +
+      '<span class="cx-item-body"><span class="cx-item-label">' + node.label + '</span>' + tagHtml(node.tag) + '</span>' +
+      '</span></li>';
+  }
+  function ferramentasGroupHtml(path) {
+    const sub = FERRAMENTAS_SUB.map(plainItemHtml).join('');
+    return '<li class="cx-group" data-group="' + path + '/ferramentas">' +
+      '<button type="button" class="cx-group-trigger" onclick="toggleGroup(this)">' +
+      '<span class="cx-item-icon">' + lucide_('wrench') + '</span>' +
+      '<span class="cx-item-body"><span class="cx-item-label">Ferramentas</span></span>' +
+      '<span class="cx-chev">' + lucide_('chevron-right') + '</span>' +
+      '</button>' +
+      '<div class="cx-group-sub-wrap"><ul class="cx-group-sub">' + sub + '</ul></div>' +
+      '</li>';
+  }
+  function sectionsHtml() {
+    return SECTIONS.map(section => {
+      const itemsHtml = section.items.map(it => renderNode(it, section.label)).join('');
+      return '<div class="cx-proto-section"><div class="cx-proto-label">' + section.label + '</div><ul>' + itemsHtml + '</ul></div>';
+    }).join('');
+  }
+
+  window.toggleGroup = function (btn) {
+    btn.closest('.cx-group').classList.toggle('open');
+  };
+
+  // Variante 1 — baseline
+  document.querySelector('[data-nav-top]').innerHTML = NAV_TOP.map(plainItemHtml).join('');
+  document.querySelector('[data-nav-ferramentas]').innerHTML = ferramentasGroupHtml('v1');
+  document.querySelector('[data-nav-fechamento]').innerHTML = NAV_FECHAMENTO.map(plainItemHtml).join('');
+  document.querySelector('[data-proto-sections]').innerHTML = sectionsHtml();
+
+  // Variante 2 — switcher
+  document.querySelector('[data-nav-top-2]').innerHTML = NAV_TOP.map(plainItemHtml).join('');
+  document.querySelector('[data-nav-ferramentas-2]').innerHTML = ferramentasGroupHtml('v2');
+  document.querySelector('[data-nav-fechamento-2]').innerHTML = NAV_FECHAMENTO.map(plainItemHtml).join('');
+  document.querySelector('[data-proto-sections-2]').innerHTML = sectionsHtml();
+  document.querySelectorAll('.cx-switcher button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const wrap = btn.closest('.cx-nav');
+      wrap.querySelectorAll('.cx-switcher button').forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      wrap.querySelectorAll('[data-switch-panel]').forEach(p => {
+        p.style.display = p.getAttribute('data-switch-panel') === btn.getAttribute('data-switch') ? '' : 'none';
+      });
+    });
+  });
+
+  // Variante 3 — grupo único
+  document.querySelector('[data-nav-top-3]').innerHTML = NAV_TOP.map(plainItemHtml).join('');
+  document.querySelector('[data-nav-ferramentas-3]').innerHTML = ferramentasGroupHtml('v3');
+  document.querySelector('[data-nav-fechamento-3]').innerHTML = NAV_FECHAMENTO.map(plainItemHtml).join('');
+  document.querySelector('[data-proto-root-3]').innerHTML = renderNode({
+    id: 'protótipo-root', icon: 'rocket', label: 'Protótipo · Implantação de Empresas', tag: 'protótipo',
+    children: SECTIONS.map(section => ({ id: section.label, icon: 'folder-open', label: section.label, children: section.items })),
+  }, 'root');
+
+  // Variante 4 — dedicada
+  document.querySelector('[data-proto-sections-4]').innerHTML = sectionsHtml();
+
+  lucide.createIcons();
+</script>
+
+</body>
+</html>

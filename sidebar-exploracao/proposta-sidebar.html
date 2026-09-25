@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Proposta · Sidebar unificada (Cockpit + Implantação)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Inter:wght@400;500;600;700&display=swap" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<style>
+  :root {
+    --bg: #0F1727;
+    --txt-inactive: #A6A6A6;
+    --txt-active: #F9F9F9;
+    --coral: #f25461;
+    --page-bg: #F5F6F8;
+    --ink: #1C2739;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Inter', sans-serif; background: var(--page-bg); color: var(--ink); display: flex; min-height: 100vh; }
+
+  .cx-nav { font-family: Lato, 'Inter', sans-serif; background: var(--bg); width: 260px; flex-shrink: 0; box-shadow: inset -1px 0 0 rgba(255,255,255,.08); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow: hidden; }
+  .cx-nav-inner { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+  .cx-nav ul { margin: 0; list-style: none; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+  .cx-nav-top { display: flex; gap: 12px; padding: 22px 16px 20px; flex-direction: row; align-items: center; }
+  .cx-brand-label { font-size: 1.15rem; font-weight: 700; color: #fff; white-space: nowrap; }
+  .cx-brand-label .dot { color: var(--coral); }
+  .cx-scroll { min-height: 0; flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 8px; }
+  .cx-scroll::-webkit-scrollbar { width: 6px; }
+  .cx-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,.16); border-radius: 999px; }
+  .cx-nav .cx-ul-section { padding: 4px 14px 10px; }
+  .cx-item, .cx-group-trigger { position: relative; display: flex; width: 100%; align-items: flex-start; gap: 9px; border-radius: 8px; padding: 7px 9px; min-height: 32px; color: var(--txt-inactive); background: none; border: none; cursor: pointer; font-family: inherit; text-align: left; text-decoration: none; transition: background .15s, color .15s; font-size: 13.5px; }
+  .cx-item:hover, .cx-group-trigger:hover { background: rgba(255,255,255,.07); color: var(--txt-active); }
+  .cx-item.active, .cx-group-trigger.active { background: rgba(255,255,255,.07); color: var(--txt-active); }
+  .cx-item.active .cx-item-label, .cx-group-trigger.active .cx-item-label { font-weight: 700; }
+  .cx-item-icon { margin-top: 1px; display: inline-flex; flex-shrink: 0; }
+  .cx-item-icon svg, .cx-item-icon i { width: 15px; height: 15px; }
+  .cx-item-body { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; flex: 1 1 auto; min-width: 0; }
+  .cx-item-label { flex: none; width: 100%; line-height: 18px; }
+  .cx-chev { margin-top: 1px; flex-shrink: 0; color: #69727D; transition: transform .2s ease-out; }
+  .cx-chev svg, .cx-chev i { width: 14px; height: 14px; }
+  .cx-group.open > .cx-group-trigger .cx-chev { transform: rotate(90deg); }
+  .cx-group-sub-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .18s ease-out; }
+  .cx-group.open > .cx-group-sub-wrap { grid-template-rows: 1fr; }
+  .cx-nav .cx-group-sub { margin-left: 15px; margin-top: 4px; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 4px; border-left: 1px solid rgba(255,255,255,.14); padding-left: 12px; }
+  .cx-group-sub .cx-item, .cx-group-sub .cx-group-trigger { min-height: 28px; }
+  .cx-sep { height: 1px; background: rgba(255,255,255,.08); margin: 6px 18px 10px; }
+  .cx-footer { display: flex; align-items: center; border-top: 1px solid rgba(255,255,255,.08); padding: 8px 14px; flex-shrink: 0; }
+  .cx-footer-inner { display: flex; min-height: 52px; width: 100%; align-items: center; gap: 8px; }
+  .cx-avatar { display: flex; width: 30px; height: 30px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 50%; background: #1C2739; font-size: 10.5px; font-weight: 700; color: var(--txt-active); }
+  .cx-footer-name { flex: 1; font-size: 13px; font-weight: 700; color: var(--txt-inactive); white-space: nowrap; }
+
+  /* ---- área de conteúdo (mock leve, só pra dar contexto de tela real) ---- */
+  .main { flex: 1; }
+  .app-header { padding: 20px 32px; background: #fff; border-bottom: 1px solid #E4E7EC; }
+  .app-breadcrumb { font-size: 12.5px; color: #98A2B3; margin-bottom: 4px; }
+  .app-title { font-size: 18px; font-weight: 700; margin: 0; }
+  .app-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; color: #B54708; background: #FFFAEB; border: 1px solid #FEDF89; border-radius: 999px; padding: 4px 10px; margin-bottom: 10px; }
+  .app-content { padding: 32px; max-width: 640px; }
+  .app-content p { color: #475467; font-size: 14px; line-height: 1.6; }
+  .app-content ul { color: #475467; font-size: 14px; line-height: 1.8; padding-left: 20px; }
+  .placeholder-card { background: #fff; border: 1px solid #E4E7EC; border-radius: 12px; padding: 24px; margin-top: 20px; color: #98A2B3; font-size: 13px; text-align: center; }
+</style>
+</head>
+<body>
+
+<nav class="cx-nav">
+  <div class="cx-nav-inner">
+    <div class="cx-nav-top">
+      <span style="color:#F9F9F9;display:flex;"><svg width="18" height="18" viewBox="0 0 32 31" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M27.7557 0H3.26521C2.36377 0 1.54818.366052.955809.955166.366298 1.54714 0 2.36218 0 3.26301V27.737C0 28.6378.366298 29.4529.955809 30.0448 1.54532 30.6368 2.36377 31 3.26521 31H27.7557C28.6571 31 29.4727 30.6339 30.0651 30.0448 30.6574 29.4557 31.0209 28.6378 31.0209 27.737V3.26301C31.0209 2.36218 30.6546 1.54714 30.0651.955166 29.4756.366052 28.6571 0 27.7557 0ZM9.04871 23.3787C8.7282 23.699 8.30753 23.8591 7.88686 23.8591 7.46619 23.8591 7.04552 23.699 6.72501 23.3787L4.80194 21.4569 2.87888 19.5351C2.55836 19.2149 2.39811 18.7945 2.39811 18.3712 2.39811 17.948 2.55836 17.5304 2.87888 17.2101L5.38287 14.7078 7.88686 12.2055 10.9718 15.2884 14.0567 18.3712 11.5527 20.8735 9.04871 23.3758V23.3787ZM9.30626 10.8185L11.7902 8.33625 14.2742 5.85397C14.6061 5.52223 15.0411 5.35637 15.479 5.35637 15.9168 5.35637 16.3489 5.52223 16.6837 5.85397L19.1677 8.33625 21.6517 10.8185 18.5667 13.9014 15.4818 16.9842 12.3969 13.9014 9.31199 10.8185H9.30626ZM28.0819 19.4722L26.093 21.4598 24.1041 23.4473C23.8008 23.7505 23.403 23.902 23.0052 23.902 22.6075 23.902 22.2097 23.7505 21.9064 23.4473L19.368 20.9107 16.8297 18.3741 19.9146 15.2912 22.9995 12.2084 25.5379 14.745 28.0762 17.2816C28.3795 17.5848 28.5312 17.9823 28.5312 18.3798 28.5312 18.7773 28.3795 19.1748 28.0762 19.478L28.0819 19.4722Z" fill="currentColor"></path></svg></span>
+      <span class="cx-brand-label">Cockpit<span class="dot">.</span></span>
+    </div>
+    <div class="cx-scroll">
+      <ul class="cx-ul-section" data-group-trabalho></ul>
+      <div class="cx-sep"></div>
+      <ul class="cx-ul-section" data-group-autopilot></ul>
+      <div class="cx-sep"></div>
+      <ul class="cx-ul-section" data-group-ferramentas></ul>
+      <div class="cx-sep"></div>
+      <ul class="cx-ul-section" data-group-fechamento></ul>
+      <div class="cx-sep"></div>
+      <ul class="cx-ul-section" data-group-apoio></ul>
+    </div>
+  </div>
+  <div class="cx-footer">
+    <div class="cx-footer-inner">
+      <span class="cx-avatar">OB</span>
+      <span class="cx-footer-name">Operador BHub</span>
+    </div>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="app-header">
+    <div class="app-breadcrumb">cockpit.bhub.ai / autopilot</div>
+    <h1 class="app-title">Autopilot navegável pela sidebar</h1>
+  </div>
+  <div class="app-content">
+    <span class="app-badge">🔍 protótipo para validação</span>
+    <p>Hoje, clicar em "Autopilot" leva pra uma tela hub com 5 cards (Contábil, Parametrizador do Autopilot, eSocial, Cadastros, Implantações de Empresas) — é preciso entrar nela pra só então escolher onde ir. Esta proposta troca esse hub por navegação direta na própria sidebar, agrupada por domínio em vez de por ferramenta.</p>
+    <p><b>Como os 5 cards de hoje viraram a árvore:</b></p>
+    <ul>
+      <li><b>Autopilot</b> ganhou seção própria, com divisória acima e abaixo — não é mais um item dentro de "Ferramentas", fica logo depois de GDocs e antes de Ferramentas. Continua um accordion, com 4 filhos: <b>DP</b>, <b>Fiscal</b>, <b>Contábil</b> e <b>Parametrização</b>.</li>
+      <li><b>DP</b> abre em <b>Painel eSocial</b> (era o card "eSocial").</li>
+      <li><b>Parametrização</b> (era o card "Parametrizador do Autopilot") abre em <b>Empresas</b>, <b>Cadastros</b> (era o card "Cadastros") e <b>Implantação</b> (era o card "Implantações de Empresas").</li>
+      <li><b>Fiscal</b> e <b>Contábil</b> (era o card "Contábil") ficam como itens diretos, sem sub-nível — hoje não têm conteúdo pra desdobrar.</li>
+    </ul>
+    <div class="placeholder-card">Clique nos itens da sidebar à esquerda pra navegar pela estrutura proposta.</div>
+  </div>
+</div>
+
+<script>
+  function lucide_(name) { return '<i data-lucide="' + name + '"></i>'; }
+
+  function renderNode(node, path) {
+    const nodePath = path + '/' + (node.id || node.label);
+    if (node.children) {
+      const childrenHtml = node.children.map(c => renderNode(c, nodePath)).join('');
+      const highlightCls = node.highlight ? ' cx-highlight-block' : '';
+      return '<li class="cx-group' + highlightCls + '" data-group="' + nodePath + '">' +
+        '<button type="button" class="cx-group-trigger" onclick="toggleGroup(this)">' +
+        '<span class="cx-item-icon">' + lucide_(node.icon) + '</span>' +
+        '<span class="cx-item-body"><span class="cx-item-label">' + node.label + '</span></span>' +
+        '<span class="cx-chev">' + lucide_('chevron-right') + '</span>' +
+        '</button>' +
+        '<div class="cx-group-sub-wrap"><ul class="cx-group-sub">' + childrenHtml + '</ul></div>' +
+        '</li>';
+    }
+    return '<li><button type="button" class="cx-item">' +
+      '<span class="cx-item-icon">' + lucide_(node.icon) + '</span>' +
+      '<span class="cx-item-body"><span class="cx-item-label">' + node.label + '</span></span>' +
+      '</button></li>';
+  }
+
+  window.toggleGroup = function (btn) {
+    btn.closest('.cx-group').classList.toggle('open');
+  };
+
+  const TRABALHO = [
+    { icon: 'users', label: 'Clientes' },
+    { icon: 'circle-check-big', label: 'Tarefas (GTO)' },
+    { icon: 'list-checks', label: 'Tarefas (novo)' },
+    { icon: 'send', label: 'Solicitações' },
+    { icon: 'folder', label: 'GDocs' },
+  ];
+
+  const AUTOPILOT = { id: 'autopilot', icon: 'bot', label: 'Autopilot', children: [
+    { id: 'autopilot-dp', icon: 'users', label: 'DP', children: [
+      { icon: 'landmark', label: 'Painel eSocial' },
+    ]},
+    { icon: 'file-text', label: 'Fiscal' },
+    { icon: 'calculator', label: 'Contábil' },
+    { id: 'autopilot-parametrizacao', icon: 'sliders-horizontal', label: 'Parametrização', children: [
+      { icon: 'building-2', label: 'Empresas' },
+      { icon: 'database', label: 'Cadastros Auxiliares' },
+      { icon: 'clipboard-list', label: 'Regras Gerais' },
+      { id: 'autopilot-parametro', icon: 'sliders-horizontal', label: 'Parâmetro', children: [
+        { icon: 'file-text', label: 'Fiscal' },
+        { id: 'autopilot-parametrizacao-dp', icon: 'users', label: 'DP', children: [
+          { icon: 'calendar', label: 'Folha de Pagamento' },
+          { icon: 'landmark', label: 'Sindicato / Convenção' },
+          { icon: 'receipt', label: 'Rubricas' },
+        ]},
+        { icon: 'calculator', label: 'Contábil' },
+      ]},
+      { id: 'autopilot-implantacao', icon: 'rocket', label: 'Implantação', children: [
+        { icon: 'users', label: 'DP' },
+        { icon: 'file-text', label: 'Fiscal' },
+        { icon: 'calculator', label: 'Contábil' },
+      ]},
+    ]},
+  ]};
+
+  const FERRAMENTAS = [
+    { icon: 'clock', label: 'Agendar pagamentos' },
+    { icon: 'file-search', label: 'Buscador de Extratos' },
+    { icon: 'arrow-right-left', label: 'Conciliador' },
+    { icon: 'receipt', label: 'Integrador de notas fiscais' },
+  ];
+
+  const FECHAMENTO = [
+    { icon: 'dollar-sign', label: 'Faturamento interno' },
+    { icon: 'chart-column', label: 'Relatórios' },
+  ];
+
+  const APOIO = [
+    { icon: 'file-text', label: 'Documentação' },
+  ];
+
+  function ferramentasGroup(items, path, icon, label) {
+    return '<li class="cx-group open" data-group="' + path + '">' +
+      '<button type="button" class="cx-group-trigger" onclick="toggleGroup(this)">' +
+      '<span class="cx-item-icon">' + lucide_(icon) + '</span>' +
+      '<span class="cx-item-body"><span class="cx-item-label">' + label + '</span></span>' +
+      '<span class="cx-chev">' + lucide_('chevron-right') + '</span>' +
+      '</button>' +
+      '<div class="cx-group-sub-wrap"><ul class="cx-group-sub">' + items.map(it => renderNode(it, path)).join('') + '</ul></div>' +
+      '</li>';
+  }
+
+  document.querySelector('[data-group-trabalho]').innerHTML = TRABALHO.map(it => renderNode(it, 'trabalho')).join('');
+  document.querySelector('[data-group-autopilot]').innerHTML = renderNode(AUTOPILOT, 'autopilot-section');
+  document.querySelector('[data-group-ferramentas]').innerHTML = ferramentasGroup(FERRAMENTAS, 'ferramentas', 'wrench', 'Ferramentas');
+  document.querySelector('[data-group-fechamento]').innerHTML = FECHAMENTO.map(it => renderNode(it, 'fechamento')).join('');
+  document.querySelector('[data-group-apoio]').innerHTML = APOIO.map(it => renderNode(it, 'apoio')).join('');
+
+  // abre "Autopilot" → "Parametrização" por padrão, pra já mostrar a proposta
+  document.querySelector('[data-group="autopilot-section/autopilot"]').classList.add('open');
+  document.querySelector('[data-group="autopilot-section/autopilot/autopilot-parametrizacao"]').classList.add('open');
+
+  lucide.createIcons();
+</script>
+
+</body>
+</html>

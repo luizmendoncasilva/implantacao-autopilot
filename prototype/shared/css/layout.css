@@ -306,4 +306,4 @@
 .app-header-actions .label { font-size: 11px; color: var(--muted-foreground); }
 
 .app-content { flex: 1; overflow-y: auto; padding: 24px; }
-.app-content-inner { max-width: 1280px; }
+.app-content-inner { max-width: 1200px; }

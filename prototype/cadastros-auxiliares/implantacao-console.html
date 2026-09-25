@@ -13,7 +13,7 @@
   body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: var(--surface-muted); }
   .font-mono { font-family: 'JetBrains Mono', monospace; }
 
-  .console-page-wrap { max-width: 1180px; margin: 0 auto; padding: 28px 32px 64px; display: flex; flex-direction: column; gap: 16px; }
+  .console-page-wrap { max-width: 1200px; margin: 0 auto; padding: 28px 32px 64px; display: flex; flex-direction: column; gap: 16px; width: 100%; }
 
   .back-link { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 500; color: var(--brand-blue); text-decoration: none; width: fit-content; }
   .back-link:hover { text-decoration: underline; }
@@ -387,12 +387,18 @@ function progressoHtmlConsole(r, parametrosOk) {
     r.calculoParalelo.comDivergencia > 0 ? "is-warning" :
     r.calculoParalelo.validadas === r.calculoParalelo.total ? "is-success" : "";
   const param = parametrosOk ? "is-success" : "";
+  // Fração real dos campos do checklist (ex.: 3/5 preenchidos), não o gate
+  // binário de confirmação — "1/1"/"0/1" não batia com o checklist da aba
+  // Parâmetros, que lista os campos um a um (bug reportado 25/09/2026).
+  const pendentesParam = EI.camposPendentesParametros(codigoEmpresaConsole);
+  const totalCamposParam = EI.TODOS_CAMPOS_PARAMETROS_DP.length;
+  const preenchidosParam = totalCamposParam - pendentesParam.length;
   return (
     '<div class="segbar">' +
     segmentoConsole(col, "Colaboradores: " + r.colaboradores.prontos + "/" + r.colaboradores.total + " prontos") +
     segmentoConsole(fin, "Competências de folha: " + r.financeiro.carregadas + "/" + r.financeiro.necessarias + " carregadas") +
     segmentoConsole(calc, "Cálculo em paralelo: " + r.calculoParalelo.validadas + "/" + r.calculoParalelo.total + " validadas" + (r.calculoParalelo.comDivergencia ? " · " + r.calculoParalelo.comDivergencia + " com divergência" : "")) +
-    segmentoConsole(param, "Parâmetros DP: " + (parametrosOk ? "1/1 confirmados" : "0/1 confirmados")) +
+    segmentoConsole(param, "Parâmetros DP: " + preenchidosParam + "/" + totalCamposParam + " preenchidos" + (parametrosOk ? " · confirmados" : "")) +
     "</div>"
   );
 }
@@ -435,7 +441,7 @@ function renderHeaderConsole() {
       '<div class="stat-card"><span class="stat-card-value">' + r.colaboradores.prontos + "/" + r.colaboradores.total + '</span><span class="stat-card-label">Colaboradores prontos</span></div>' +
       '<div class="stat-card"><span class="stat-card-value">' + r.financeiro.carregadas + "/" + r.financeiro.necessarias + '</span><span class="stat-card-label">Competências de folha carregadas</span></div>' +
       '<div class="stat-card' + (r.calculoParalelo.comDivergencia > 0 ? " stat-card-warning" : " stat-card-success") + '"><span class="stat-card-value">' + r.calculoParalelo.validadas + "/" + r.calculoParalelo.total + '</span><span class="stat-card-label">Competências validadas em paralelo</span></div>' +
-      '<div class="stat-card ' + (parametrosOk ? "stat-card-success" : "stat-card-warning") + ' stat-card-clickable" onclick="irParaAbaConsole(\'parametros\')"><span class="stat-card-value">' + (parametrosOk ? "1/1" : "0/1") + '</span><span class="stat-card-label">Parâmetros DP confirmados</span></div>' +
+      '<div class="stat-card ' + (parametrosOk ? "stat-card-success" : "stat-card-warning") + ' stat-card-clickable" onclick="irParaAbaConsole(\'parametros\')"><span class="stat-card-value">' + (EI.TODOS_CAMPOS_PARAMETROS_DP.length - EI.camposPendentesParametros(codigoEmpresaConsole).length) + "/" + EI.TODOS_CAMPOS_PARAMETROS_DP.length + '</span><span class="stat-card-label">Parâmetros DP confirmados</span></div>' +
       '<div class="stat-card"><span class="stat-card-value">' + r.rubricas.total + '</span><span class="stat-card-label">Rubricas utilizadas (12 meses)</span></div>' +
     "</div>";
   refreshIcons();
@@ -915,7 +921,7 @@ function renderRelatoriosTab() {
   const layouts = EI.layoutsRelatorios(codigoEmpresaConsole);
   const mount = document.getElementById("console-content");
   mount.innerHTML =
-    '<p class="tab-desc">Layout de cada processo usado por esta empresa — sem personalização, o Autopilot segue o padrão Domínio. Não bloqueia a implantação; é informativo para a operação saber o que gerar em cada processo (alinhamento 10/09/2026).</p>' +
+    '<p class="tab-desc">Layout de cada processo usado por esta empresa — sem personalização, o Autopilot segue o padrão Domínio. Não bloqueia a implantação; é informativo para a operação saber o que gerar em cada processo.</p>' +
     '<div id="dt-relatorios-console"></div>';
   dtCreate("relatorios-console", {
     columns: [

@@ -34,7 +34,7 @@
   style.textContent = `
   .cx-nav { font-family: Lato, 'Inter', sans-serif; background: ${BG}; width: 236px; box-shadow: inset -1px 0 0 rgba(255,255,255,0.08); position: fixed; left: 0; top: 0; bottom: 0; z-index: 40; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; transition: width .2s ease-out; }
   .cx-nav.cx-collapsed { width: 64px; }
-  .cx-nav ul { margin: 0; list-style: none; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .cx-nav ul { margin: 0; list-style: none; padding: 0; display: flex; flex-direction: column; gap: 10px; }
   .cx-nav-top { display: flex; gap: 12px; padding: 24px 16px 0; flex-direction: row; align-items: center; padding-bottom: 30px; }
   .cx-brand-label { font-size: 1.2rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; transition: opacity .2s ease-out; }
   .cx-brand-label .dot { color: ${CORAL}; }
@@ -47,17 +47,30 @@
   .cx-scroll::-webkit-scrollbar-track { background: transparent; }
   .cx-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.16); border-radius: 999px; }
   .cx-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.28); }
-  .cx-ul-section { padding: 8px 18px 14px; border-bottom: 1px solid rgba(255,255,255,.08); }
+  /* ".cx-nav " no seletor (em vez de só ".cx-ul-section") não é enfeite: sem
+     esse segundo qualificador de classe, a especificidade empata com a de
+     ".cx-nav ul" (reset de padding logo acima) e, empatada, o reset é que
+     ganha por causa da ordem — zerando o padding vertical da seção inteira
+     e colando um grupo no outro. Mesma razão no ".cx-group-sub" abaixo. */
+  .cx-nav .cx-ul-section { padding: 8px 18px 14px; border-bottom: 1px solid rgba(255,255,255,.08); }
   .cx-ul-section:last-child { border-bottom: none; }
   .cx-item, .cx-group-trigger { position: relative; display: flex; width: 100%; align-items: flex-start; gap: 8px; border-radius: 8px; padding: 8px 10px; min-height: 32px; color: ${TXT_INACTIVE}; background: none; border: none; cursor: default; font-family: inherit; text-align: left; text-decoration: none; transition: background .15s ease-out, color .15s ease-out; }
   a.cx-item { cursor: pointer; }
-  .cx-item:hover, .cx-group-trigger:hover { background: rgba(255,255,255,.07); color: ${TXT_ACTIVE}; }
+  .cx-item:hover:not(.cx-item-disabled), .cx-group-trigger:hover { background: rgba(255,255,255,.07); color: ${TXT_ACTIVE}; }
   .cx-item.active, .cx-group-trigger.active { background: rgba(255,255,255,.07); color: ${TXT_ACTIVE}; }
   .cx-item.active .cx-item-label, .cx-group-trigger.active .cx-item-label { font-weight: 700; }
+  /* Item "em breve": não navega (sem href), cursor indica isso, e fica mais
+     apagado que os demais — o tooltip nativo (atributo title) mostra "Em
+     breve" no hover, sem precisar de JS/CSS de tooltip customizado. */
+  .cx-item-disabled { cursor: not-allowed; opacity: .5; }
   .cx-item-icon { margin-top: 2px; display: inline-flex; flex-shrink: 0; transition: transform .2s ease-out; }
-  .cx-item:hover .cx-item-icon, .cx-group-trigger:hover .cx-item-icon { transform: rotate(-6deg) scale(1.1); }
+  .cx-item:hover:not(.cx-item-disabled) .cx-item-icon, .cx-group-trigger:hover .cx-item-icon { transform: rotate(-6deg) scale(1.1); }
   .cx-item-icon svg { width: 16px; height: 16px; }
-  .cx-item-label { flex: 1; overflow: hidden; text-align: left; font-size: 14px; line-height: 20px; white-space: nowrap; transition: opacity .2s ease-out; }
+  /* white-space normal (era nowrap): nos níveis mais profundos da árvore
+     (Autopilot > Parametrização > Parâmetro > DP > Folha de Pagamento) o
+     recuo acumulado não deixa largura suficiente pros labels mais longos —
+     em vez de cortar o texto sem aviso (sem "…"), deixa quebrar em 2 linhas. */
+  .cx-item-label { flex: 1; overflow: hidden; text-align: left; font-size: 14px; line-height: 18px; white-space: normal; transition: opacity .2s ease-out; }
   .cx-chev { margin-top: 2px; flex-shrink: 0; color: #69727D; transition: transform .2s ease-out; }
   .cx-group.open > .cx-group-trigger .cx-chev { transform: rotate(90deg); }
   .cx-group-sub-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .2s ease-out; }
@@ -66,7 +79,12 @@
      cx-group-sub-wrap de um grupo aninhado fechado só por estar dentro de
      um grupo aberto mais externo. */
   .cx-group.open > .cx-group-sub-wrap { grid-template-rows: 1fr; }
-  .cx-group-sub { margin-left: 14px; margin-top: 6px; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 6px; border-left: 1px solid rgba(255,255,255,.08); padding-left: 10px; }
+  /* Recuo por nível reduzido (era 14+10=24px) — com a árvore da proposta
+     unificada chegando a 4-5 níveis (Autopilot > Parametrização > Parâmetro
+     > DP > Folha de Pagamento), 24px por nível cortava o texto de labels
+     mais longos nos níveis mais profundos, sobrando pouca largura útil nos
+     236px fixos da sidebar. */
+  .cx-nav .cx-group-sub { margin-left: 8px; margin-top: 10px; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 10px; border-left: 1px solid rgba(255,255,255,.08); padding-left: 6px; }
   .cx-group-sub .cx-item, .cx-group-sub .cx-group-trigger { min-height: 28px; }
   /* Corpo do item: label em cima, tag embaixo (em vez de lado a lado) —
      pedido explícito pra caber labels longos sem a tag forçar quebra de
@@ -102,8 +120,13 @@
   .cx-nav.cx-collapsed .cx-footer { padding-left: 12px; padding-right: 12px; }
   .cx-nav.cx-collapsed ul { gap: 8px; }
   .cx-nav.cx-collapsed .cx-item,
-  .cx-nav.cx-collapsed .cx-group-trigger { width: 40px; height: 40px; padding: 0; margin: 0 auto; align-items: center; justify-content: center; }
+  .cx-nav.cx-collapsed .cx-group-trigger { width: 40px; height: 40px; padding: 0; margin: 0 auto; align-items: center; justify-content: center; gap: 0; }
   .cx-nav.cx-collapsed .cx-item-icon { margin-top: 0; }
+  /* Sem isso, .cx-item-body (flex:1 1 auto, vazio mas ainda presente —
+     só o label/tag dentro dele é que somem) continuava disputando espaço na
+     caixa de 40px, empurrando o ícone pra esquerda em vez de centralizado
+     (ficava "torto"). */
+  .cx-nav.cx-collapsed .cx-item-body { display: none; }
   .cx-nav.cx-collapsed .cx-footer-inner { justify-content: center; padding: 0; }
   `;
   document.head.appendChild(style);
@@ -116,13 +139,14 @@
     return '<i data-lucide="' + name + '" style="width:16px;height:16px;"></i>';
   }
 
-  function tagHtml(tagKey) {
-    if (!tagKey || !TAG_STYLES[tagKey]) return '';
-    const s = TAG_STYLES[tagKey];
-    return (
-      '<span class="cx-tag" style="color:' + s.color + ';background:' + s.bg + ';border-color:' + s.border + ';">' +
-      TAG_LABELS[tagKey] + '</span>'
-    );
+  // Pedido explícito do usuário (24/09/2026): tirar os selos visuais
+  // (refinado/em construção/em refinamento/novo/em breve) da sidebar antes da
+  // apresentação a stakeholders — ficam "poluindo" a árvore de navegação.
+  // `node.tag` continua existindo nos dados (SECTIONS/AUTOPILOT) só para
+  // acionar a lógica de desabilitar item "em breve" em renderNode; esta
+  // função só para de desenhar o <span class="cx-tag">.
+  function tagHtml() {
+    return '';
   }
 
   const NAV_TOP = [
@@ -138,7 +162,6 @@
     { icon: 'file-search', label: 'Buscador de Extratos' },
     { icon: 'arrow-right-left', label: 'Conciliador' },
     { icon: 'receipt', label: 'Integrador de notas fiscais' },
-    { icon: 'bot', label: 'Autopilot' },
   ];
 
   const NAV_FECHAMENTO = [
@@ -169,67 +192,60 @@
     em_construcao: 'em construção',
   };
 
-  /* Reorganizado em seções (Plataforma/Regras/Parâmetros/Implantação/Apoio),
-     mesmo agrupamento visual usado no menu atual do sistema — pedido
-     explícito do usuário em cima de um print de referência. Cada seção tem
-     um rótulo simples (não é grupo clicável); dentro dela, os itens podem
-     ter filhos (`children`), recursivamente, pra reproduzir o 3º nível do
-     print (Parâmetros > DP > Folha de Pagamento). Só o item "folha" (sem
-     `children`) vira link; com `children` vira grupo expansível — mesmo
-     comportamento de toggle/abrir-item-ativo de antes, agora recursivo. */
-  const SECTIONS = [
-    {
-      label: 'Plataforma',
-      items: [
-        { href: 'empresas/index.html', icon: 'building-2', label: 'Empresas', tag: 'refinado' },
-        { href: 'cadastros-auxiliares/socios.html', icon: 'folder', label: 'Cadastros Auxiliares', tag: 'refinado' },
-      ],
-    },
-    {
-      label: 'Regras',
-      items: [
-        { href: 'regras-gerais/index.html', icon: 'clipboard-list', label: 'Regras Gerais', tag: 'em_breve' },
-      ],
-    },
-    {
-      label: 'Parâmetros',
-      items: [
-        {
-          id: 'parametros', icon: 'sliders-horizontal', label: 'Parâmetros', tag: 'em_construcao',
-          children: [
-            { href: 'parametros-fiscais/index.html', icon: 'file-text', label: 'Fiscal', tag: 'em_refinamento' },
-            {
-              id: 'parametros-dp', icon: 'users', label: 'DP',
-              children: [
-                { href: 'folha-pagamento/index.html', icon: 'calendar', label: 'Folha de Pagamento', tag: 'em_refinamento' },
-                { href: 'sindicatos/index.html', icon: 'landmark', label: 'Sindicato / Convenção', tag: 'em_refinamento' },
-                { href: 'rubricas/index.html', icon: 'file-text', label: 'Rubricas', tag: 'novo' },
-              ],
-            },
-            { href: 'parametros/contabil.html', icon: 'calculator', label: 'Contábil', tag: 'em_breve' },
-          ],
-        },
-      ],
-    },
-    {
-      label: 'Implantação',
-      items: [
-        {
-          id: 'implantacao-empresas', icon: 'rocket', label: 'Implantação de Empresas', tag: 'novo',
-          children: [
-            { href: 'cadastros-auxiliares/implantacao-geral.html', icon: 'users', label: 'DP', tag: 'novo' },
-            { icon: 'file-text', label: 'Fiscal', tag: 'em_breve' },
-            { icon: 'calculator', label: 'Contábil', tag: 'em_breve' },
-          ],
-        },
-      ],
-    },
-    {
-      label: 'Apoio',
-      items: [
-        { href: 'docs/index.html', icon: 'file-text', label: 'Documentação' },
-      ],
-    },
+  /* Sidebar unificada (proposta validada em sidebar-exploracao/proposta-sidebar.html):
+     "Autopilot" ganhou seção própria — não é mais um item dentro de
+     "Ferramentas" — com divisória acima e abaixo, logo depois de GDocs e
+     antes de Ferramentas. A proposta original tinha 4 filhos (DP > Painel
+     eSocial, Fiscal, Contábil e Parametrização), mas DP/Fiscal/Contábil não
+     têm nenhuma tela própria neste protótipo — só ficavam "em breve"
+     desabilitados — e foram ocultados a pedido do usuário (25/09/2026) pra
+     não poluir a árvore antes da apresentação a stakeholders. "Regras
+     Gerais" (dentro de Parametrização) foi ocultado pelo mesmo motivo — só
+     tinha um placeholder "em construção" atrás do link. Autopilot ficou com
+     um único filho, Parametrização (> Empresas, Cadastros Auxiliares,
+     Parâmetro (> Fiscal, DP (> Folha de Pagamento, Sindicato/Convenção,
+     Rubricas), Contábil) e Implantação (> DP, Fiscal, Contábil)). Itens sem
+     `href` (Fiscal/Contábil de Implantação) continuam com tag `em_breve`,
+     que o renderNode trata como desabilitado (sem navegação, tooltip "Em
+     breve" no hover). */
+  const AUTOPILOT = {
+    id: 'autopilot', icon: 'bot', label: 'Autopilot',
+    children: [
+      {
+        id: 'autopilot-parametrizacao', icon: 'sliders-horizontal', label: 'Parametrização', tag: 'em_construcao',
+        children: [
+          { href: 'empresas/index.html', icon: 'building-2', label: 'Empresas', tag: 'refinado' },
+          { href: 'cadastros-auxiliares/socios.html', icon: 'database', label: 'Cadastros Auxiliares', tag: 'refinado' },
+          {
+            id: 'autopilot-parametro', icon: 'sliders-horizontal', label: 'Parâmetro',
+            children: [
+              { href: 'parametros-fiscais/index.html', icon: 'file-text', label: 'Fiscal', tag: 'em_refinamento' },
+              {
+                id: 'autopilot-parametro-dp', icon: 'users', label: 'DP',
+                children: [
+                  { href: 'folha-pagamento/index.html', icon: 'calendar', label: 'Folha de Pagamento', tag: 'em_refinamento' },
+                  { href: 'sindicatos/index.html', icon: 'landmark', label: 'Sindicato / Convenção', tag: 'em_refinamento' },
+                  { href: 'rubricas/index.html', icon: 'file-text', label: 'Rubricas', tag: 'novo' },
+                ],
+              },
+              { href: 'parametros/contabil.html', icon: 'calculator', label: 'Contábil', tag: 'em_breve' },
+            ],
+          },
+          {
+            id: 'autopilot-implantacao', icon: 'rocket', label: 'Implantação', tag: 'novo',
+            children: [
+              { href: 'cadastros-auxiliares/implantacao-geral.html', icon: 'users', label: 'DP', tag: 'novo' },
+              { icon: 'file-text', label: 'Fiscal', tag: 'em_breve' },
+              { icon: 'calculator', label: 'Contábil', tag: 'em_breve' },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  const APOIO_ITEMS = [
+    { href: 'docs/index.html', icon: 'file-text', label: 'Documentação' },
   ];
 
   /* Persistência entre navegações (cada clique é uma troca de página real,
@@ -285,22 +301,22 @@
   // expansível) — recursivo pra suportar os 3 níveis do print de
   // referência (Parâmetros > DP > Folha de Pagamento). `path` identifica o
   // grupo de forma estável entre navegações (pra abrir/fechar persistido em
-  // sessionStorage), sem depender de índice de array.
-  function nodeHasActive(node, cur) {
-    if (node.href === cur) return true;
-    if (!node.children) return false;
-    return node.children.some(function (c) { return nodeHasActive(c, cur); });
-  }
-
-  function renderNode(node, cur, savedOpen, path) {
+  // sessionStorage), sem depender de índice de array. `defaultOpen` só é
+  // passado como true na chamada de topo do próprio Autopilot (pedido do
+  // usuário, 25/09/2026: só Autopilot vem aberto por padrão — o restante
+  // (Parametrização, Parâmetro, DP, Implantação...) vem fechado até o
+  // usuário clicar, sem o auto-abrir/destacar que existia antes ao navegar
+  // pra uma página dentro deles). Grupo não ganha mais classe `.active`
+  // (negrito/fundo) só por ter um descendente ativo — esse destaque agora é
+  // exclusivo do item-folha que é literalmente a página atual.
+  function renderNode(node, cur, savedOpen, path, defaultOpen) {
     const nodePath = path + '/' + (node.id || node.label);
     if (node.children) {
-      const hasActive = nodeHasActive(node, cur);
-      const isOpen = hasActive || (savedOpen[nodePath] !== undefined ? savedOpen[nodePath] : false);
+      const isOpen = savedOpen[nodePath] !== undefined ? savedOpen[nodePath] : !!defaultOpen;
       const childrenHtml = node.children.map(function (c) { return renderNode(c, cur, savedOpen, nodePath); }).join('');
       return (
         '<li class="cx-group' + (isOpen ? ' open' : '') + '" data-group="' + nodePath + '">' +
-        '<button type="button" class="cx-group-trigger' + (hasActive ? ' active' : '') + '" onclick="cxToggleGroup(this)">' +
+        '<button type="button" class="cx-group-trigger" onclick="cxToggleGroup(this)">' +
         '<span class="cx-item-icon">' + lucide(node.icon) + '</span>' +
         '<span class="cx-item-body"><span class="cx-item-label">' + node.label + '</span>' + tagHtml(node.tag) + '</span>' +
         '<span class="cx-chev">' + lucide('chevron-right') + '</span>' +
@@ -309,12 +325,18 @@
         '</li>'
       );
     }
-    // Item sem href (ex.: "Fiscal"/"Contábil" da Implantação de Empresas,
-    // tela ainda não existe) — mesmo visual, só não é clicável.
-    const tag = node.href
-      ? 'a href="' + basePrefix() + node.href + '" class="cx-item' + (node.href === cur ? ' active' : '') + '"'
-      : 'span class="cx-item" style="cursor:default;"';
-    const closeTag = node.href ? 'a' : 'span';
+    // "Em breve" (tag `em_breve`) nunca navega, mesmo quando `href` existe
+    // (ex.: Regras Gerais e Parâmetro > Contábil apontam pra uma página real,
+    // mas ela só tem um aviso "em construção" — não vale a pena navegar até
+    // lá na demo). Os itens sem `href` nenhum (ex.: Painel eSocial, Fiscal/
+    // Contábil da Implantação) caem no mesmo caminho. Ambos os casos viram
+    // <span> desabilitado, com tooltip nativo "Em breve" no hover.
+    const emBreve = node.tag === 'em_breve';
+    const disabled = emBreve || !node.href;
+    const tag = disabled
+      ? 'span class="cx-item cx-item-disabled"' + (emBreve ? ' title="Em breve"' : '')
+      : 'a href="' + basePrefix() + node.href + '" class="cx-item' + (node.href === cur ? ' active' : '') + '"';
+    const closeTag = disabled ? 'span' : 'a';
     return (
       '<li><' + tag + '>' +
       '<span class="cx-item-icon">' + lucide(node.icon) + '</span>' +
@@ -329,18 +351,11 @@
     const topHtml = NAV_TOP.map(plainItemHtml).join('');
     const ferramentasHtml = FERRAMENTAS_SUB.map(plainItemHtml).join('');
     const fechamentoHtml = NAV_FECHAMENTO.map(plainItemHtml).join('');
+    const autopilotHtml = renderNode(AUTOPILOT, cur, savedOpen, 'autopilot-section', true);
+    const apoioHtml = APOIO_ITEMS.map(function (it) { return renderNode(it, cur, savedOpen, 'apoio'); }).join('');
 
-    const sectionsHtml = SECTIONS.map(function (section) {
-      const itemsHtml = section.items.map(function (it) { return renderNode(it, cur, savedOpen, section.label); }).join('');
-      return (
-        '<div class="cx-proto-section">' +
-        '<div class="cx-proto-label">' + section.label + '</div>' +
-        '<ul>' + itemsHtml + '</ul>' +
-        '</div>'
-      );
-    }).join('');
-
-    const ferramentasOpen = savedOpen.ferramentas !== undefined ? savedOpen.ferramentas : true;
+    // Fechado por padrão, igual a todo o resto (só Autopilot vem aberto).
+    const ferramentasOpen = savedOpen.ferramentas !== undefined ? savedOpen.ferramentas : false;
 
     return (
       '<div class="cx-nav-top">' +
@@ -350,6 +365,10 @@
       '</div>' +
       '<div class="cx-scroll" id="cx-scroll">' +
       '<ul class="cx-ul-section" aria-label="Trabalho">' + topHtml + '</ul>' +
+      /* Autopilot: seção própria, com divisória acima (borda do próprio
+         cx-ul-section anterior) e abaixo (borda deste) — não é mais um item
+         dentro de "Ferramentas", fica logo depois de GDocs e antes dela. */
+      '<ul class="cx-ul-section" aria-label="Autopilot">' + autopilotHtml + '</ul>' +
       '<ul class="cx-ul-section" aria-label="Ferramentas">' +
       '<li class="cx-group' + (ferramentasOpen ? ' open' : '') + '" data-group="ferramentas">' +
       '<button type="button" class="cx-group-trigger" onclick="cxToggleGroup(this)">' +
@@ -361,7 +380,7 @@
       '</li>' +
       '</ul>' +
       '<ul class="cx-ul-section" aria-label="Fechamento">' + fechamentoHtml + '</ul>' +
-      '<div class="cx-ul-section" style="border-bottom:none;padding-top:4px;">' + sectionsHtml + '</div>' +
+      '<ul class="cx-ul-section" style="border-bottom:none;" aria-label="Apoio">' + apoioHtml + '</ul>' +
       '</div>' +
       '<div class="cx-footer">' +
       '<div class="cx-footer-inner">' +
