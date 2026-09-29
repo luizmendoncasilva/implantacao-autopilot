@@ -1471,6 +1471,14 @@ function resolverDependenteVisColab(indice) {
 function abrirDrawerVisColab(id) {
   const c = CD.getColaboradores().find((x) => x.id === Number(id));
   if (!c) return;
+  // Rede de segurança: colaborador "pronto" sem fichaCompleta (mock antigo
+  // sem o campo, ou estado já salvo no localStorage antes de
+  // gerarFichaCompletaParaColaborador existir) — gera e persiste na hora,
+  // em vez de mostrar só Dados gerais/Campos conciliados pra sempre.
+  if (c.status === "pronto" && !c.fichaCompleta) {
+    c.fichaCompleta = CD.gerarFichaCompletaParaColaborador(c);
+    persistirColaboradorVisColab(c);
+  }
   colaboradorVisColabAberto = c;
   document.getElementById("viscolab-avatar").textContent = CD.iniciais(c.nome);
   document.getElementById("viscolab-drawer-title").textContent = c.nome;

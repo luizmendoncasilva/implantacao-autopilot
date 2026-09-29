@@ -241,6 +241,14 @@
   function open(id, onChange) {
     const colaborador = D.getColaboradores().find((c) => c.id === Number(id));
     if (!colaborador) return;
+    // Rede de segurança: colaborador "pronto" sem fichaCompleta (mock antigo
+    // sem o campo, ou estado já persistido antes de
+    // gerarFichaCompletaParaColaborador existir) — gera e persiste na hora,
+    // em vez de mostrar só Dados gerais/Campos conciliados pra sempre.
+    if (colaborador.status === "pronto" && !colaborador.fichaCompleta) {
+      colaborador.fichaCompleta = D.gerarFichaCompletaParaColaborador(colaborador);
+      persistirColaborador(colaborador);
+    }
     document.getElementById("visualizar-avatar").textContent = D.iniciais(colaborador.nome);
     document.getElementById("visualizar-title").textContent = colaborador.nome;
     document.getElementById("visualizar-sub").textContent = empresaNome(colaborador.empresaCodigo) + " · CPF " + colaborador.cpf;

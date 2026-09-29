@@ -294,6 +294,7 @@
     if (!colaborador) return;
     const encontrouDivergencia = colaborador.camposDivergentes && colaborador.camposDivergentes.length > 0;
     colaborador.status = encontrouDivergencia ? "divergencia" : "pronto";
+    if (!encontrouDivergencia && !colaborador.fichaCompleta) colaborador.fichaCompleta = D.gerarFichaCompletaParaColaborador(colaborador);
     const colaboradores = D.getColaboradores().map((c) => (c.id === colaborador.id ? colaborador : c));
     D.setColaboradores(colaboradores);
     onChange();
@@ -598,6 +599,7 @@
     if (!colaboradorAberto) return;
     const todosResolvidos = D.camposNaoResolvidos(colaboradorAberto).length === 0;
     colaboradorAberto.status = todosResolvidos ? "pronto" : "divergencia";
+    if (todosResolvidos && !colaboradorAberto.fichaCompleta) colaboradorAberto.fichaCompleta = D.gerarFichaCompletaParaColaborador(colaboradorAberto);
     // Persiste o próprio objeto mutado (com as escolhas de campo já feitas),
     // não uma cópia recém-lida do storage — ver comentário de
     // `colaboradorAberto` acima.
@@ -616,6 +618,7 @@
   function criarColaboradorSemLake() {
     if (!colaboradorAberto) return;
     colaboradorAberto.status = "pronto";
+    if (!colaboradorAberto.fichaCompleta) colaboradorAberto.fichaCompleta = D.gerarFichaCompletaParaColaborador(colaboradorAberto);
     const nome = colaboradorAberto.nome;
     const colaboradores = D.getColaboradores().map((c) => (c.id === colaboradorAberto.id ? colaboradorAberto : c));
     D.setColaboradores(colaboradores);
