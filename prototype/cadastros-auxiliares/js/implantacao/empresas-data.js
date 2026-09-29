@@ -1,7 +1,7 @@
 /*
   Mock do console de Implantação DP por empresa — a superfície visual dos
   Épicos 1 a 5 do épico-pai CTB-263/CTB-269 (Linear):
-  - Épico 1 (CTB-263) — Dados do Colaborador (carga + Ficha Financeira)
+  - Épico 1 (CTB-263) — Dados do Colaborador (carga + Ficha de Registro)
   - Épico 2 (CTB-264) — Dados Financeiros (relatórios de folha, histórico)
   - Épico 3 (CTB-265) — Rubricas: SEM de-para (alinhamento Andressa/Jeniffer,
     10/09/2026) — o Autopilot não faz mais de-para manual de rubrica; a aba
@@ -41,8 +41,8 @@
       logs: [
         { dataHora: "05/08/2026 09:12", operador: "Andressa Teles Rodrigues", acao: "Iniciou implantação", detalhe: "Contrato assinado, card de DP criado no Pipefy.", aprovadoPor: null },
         { dataHora: "06/08/2026 11:40", operador: "Luiz Felipe Mendonça Silva", acao: "Outorgou procurações", detalhe: "e-CAC, FGTS Digital, Conectividade Social.", aprovadoPor: null },
-        { dataHora: "12/08/2026 14:32", operador: "Luiz Felipe Mendonça Silva", acao: "Importou lote de Ficha Financeira", detalhe: "Ficha_Financeira_Metalurgica_Sigma.pdf — 18 colaboradores processados.", aprovadoPor: null },
-        { dataHora: "13/08/2026 10:05", operador: "Luiz Felipe Mendonça Silva", acao: "Resolveu divergência", detalhe: "Daniel Marques Porfiro — campo Salário, valor da Ficha Financeira mantido.", aprovadoPor: null },
+        { dataHora: "12/08/2026 14:32", operador: "Luiz Felipe Mendonça Silva", acao: "Importou lote de Ficha de Registro", detalhe: "Ficha_Registro_Metalurgica_Sigma.pdf — 18 colaboradores processados.", aprovadoPor: null },
+        { dataHora: "13/08/2026 10:05", operador: "Luiz Felipe Mendonça Silva", acao: "Resolveu divergência", detalhe: "Daniel Marques Porfiro — campo Salário, valor da Ficha de Registro mantido.", aprovadoPor: null },
         { dataHora: "18/08/2026 16:20", operador: "Sistema", acao: "Identificou rubricas utilizadas", detalhe: "14 rubricas identificadas nos últimos 12 meses, com natureza e incidências.", aprovadoPor: null },
         { dataHora: "20/08/2026 08:50", operador: "Sistema", acao: "Carregou competência de histórico", detalhe: "Competência 07/2026 — extrato, folha completa e resumo gravados.", aprovadoPor: null },
       ],
@@ -60,7 +60,7 @@
       },
       logs: [
         { dataHora: "10/08/2026 09:00", operador: "Andressa Teles Rodrigues", acao: "Iniciou implantação", detalhe: "Contrato assinado, card de DP criado no Pipefy.", aprovadoPor: null },
-        { dataHora: "14/08/2026 15:10", operador: "Luiz Felipe Mendonça Silva", acao: "Importou lote de Ficha Financeira", detalhe: "Ficha_Financeira_Comercio_Horizonte.pdf — 9 colaboradores processados.", aprovadoPor: null },
+        { dataHora: "14/08/2026 15:10", operador: "Luiz Felipe Mendonça Silva", acao: "Importou lote de Ficha de Registro", detalhe: "Ficha_Registro_Comercio_Horizonte.pdf — 9 colaboradores processados.", aprovadoPor: null },
         { dataHora: "21/08/2026 10:30", operador: "Sistema", acao: "Carregou competência de histórico", detalhe: "Competência 04/2026 — extrato e folha completa gravados, com divergência de total contra o relatório de origem.", aprovadoPor: null },
       ],
     },
@@ -78,7 +78,7 @@
       },
       logs: [
         { dataHora: "15/03/2026 09:00", operador: "Andressa Teles Rodrigues", acao: "Iniciou implantação", detalhe: "Contrato assinado, card de DP criado no Pipefy.", aprovadoPor: null },
-        { dataHora: "22/03/2026 11:15", operador: "Luiz Felipe Mendonça Silva", acao: "Importou lote de Ficha Financeira", detalhe: "6 colaboradores processados, sem divergência.", aprovadoPor: null },
+        { dataHora: "22/03/2026 11:15", operador: "Luiz Felipe Mendonça Silva", acao: "Importou lote de Ficha de Registro", detalhe: "6 colaboradores processados, sem divergência.", aprovadoPor: null },
         { dataHora: "02/04/2026 14:00", operador: "Sistema", acao: "Carregou histórico completo", detalhe: "12 competências — dezembro/2025 a novembro/2026 fechadas.", aprovadoPor: null },
         { dataHora: "20/04/2026 16:45", operador: "Luiz Felipe Mendonça Silva", acao: "Executou cálculo em paralelo", detalhe: "12 competências calculadas — nenhuma divergência contra o Domínio.", aprovadoPor: null },
         { dataHora: "28/04/2026 10:00", operador: "Andressa Teles Rodrigues", acao: "Concluiu implantação", detalhe: "Passagem de bastão para a operação — status Em Operação no Cockpit.", aprovadoPor: "Jeniffer Dauricio" },

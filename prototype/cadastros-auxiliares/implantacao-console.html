@@ -81,7 +81,7 @@
   .list-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
   .list-row:last-child { border-bottom: none; }
 
-  /* Campo de comparação (Lake × Ficha Financeira) */
+  /* Campo de comparação (Lake × Ficha de Registro) */
   .field-compare { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; background: var(--surface-subtle); }
   .field-compare.is-resolved { border-color: #bbe8cc; background: var(--success-soft); }
   .field-compare-head { font-size: 12.5px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
@@ -1007,7 +1007,7 @@ function fieldCompareHtmlConcil(campo, indice) {
     const selecionado = campo.valorEscolhido === origem;
     return (
       '<div class="field-compare-option' + (selecionado ? " is-selected" : "") + '" onclick="escolherOrigemCampoConcil(' + indice + ',\'' + origem + '\')">' +
-      '<div class="field-compare-option-src">' + (origem === "lake" ? "Lake (Domínio)" : "Ficha Financeira") + "</div>" +
+      '<div class="field-compare-option-src">' + (origem === "lake" ? "Lake (Domínio)" : "Ficha de Registro") + "</div>" +
       '<div class="field-compare-option-val' + (vazio ? " is-missing" : "") + '">' + (vazio ? "Não informado" : esc(String(valor))) + "</div>" +
       '<div class="field-compare-check"><i data-lucide="check"></i></div>' +
       "</div>"
@@ -1100,7 +1100,7 @@ function atualizarResumoConcil(c) {
   document.getElementById("concil-resumo-texto").innerHTML =
     naoResolvidos === 0
       ? "<b>Todos os campos foram resolvidos.</b> Ao salvar, este colaborador passa para o status Pronto."
-      : "<b>" + naoResolvidos + (naoResolvidos === 1 ? " campo divergente" : " campos divergentes") + " entre o Lake e a Ficha Financeira.</b> Escolha, campo a campo, qual valor está correto. Os campos sem divergência não aparecem aqui.";
+      : "<b>" + naoResolvidos + (naoResolvidos === 1 ? " campo divergente" : " campos divergentes") + " entre o Lake e a Ficha de Registro.</b> Escolha, campo a campo, qual valor está correto. Os campos sem divergência não aparecem aqui.";
 }
 
 function configurarDrawerConcilParaTipo(tipo) {
@@ -1117,10 +1117,10 @@ function configurarDrawerConcilParaTipo(tipo) {
 function renderNovoSemLakeConcil(c) {
   configurarDrawerConcilParaTipo("novo");
   document.getElementById("concil-resumo-texto").innerHTML =
-    "<b>Colaborador não encontrado no Lake (Domínio).</b> A Ficha Financeira trouxe os dados abaixo, mas não existe cadastro correspondente desta empresa no Lake — pode ser uma admissão recente ainda não sincronizada.";
+    "<b>Colaborador não encontrado no Lake (Domínio).</b> A Ficha de Registro trouxe os dados abaixo, mas não existe cadastro correspondente desta empresa no Lake — pode ser uma admissão recente ainda não sincronizada.";
   const campos = c.dadosFicha || {};
   const linhas = Object.keys(campos).map((rotulo) => '<div class="ef-field"><span class="ef-label">' + esc(rotulo) + '</span><div class="field-value">' + esc(String(campos[rotulo])) + "</div></div>").join("");
-  document.getElementById("concil-campos").innerHTML = '<div class="subsection-title">Dados extraídos da Ficha Financeira</div><div class="field-group field-group-2">' + linhas + "</div>";
+  document.getElementById("concil-campos").innerHTML = '<div class="subsection-title">Dados extraídos da Ficha de Registro</div><div class="field-group field-group-2">' + linhas + "</div>";
 }
 
 function atualizarFilaConcil() {
@@ -1183,7 +1183,7 @@ function criarColaboradorSemLakeConcil() {
   fecharDrawerConcil();
   renderHeaderConsole();
   renderColaboradorTab();
-  showToastConsole("Colaborador criado", nome + " foi cadastrado no Autopilot a partir da Ficha Financeira.");
+  showToastConsole("Colaborador criado", nome + " foi cadastrado no Autopilot a partir da Ficha de Registro.");
 }
 function ignorarNovoSemLakeConcil() {
   fecharDrawerConcil();
@@ -1194,7 +1194,7 @@ function irParaProximoPendenteConcil() {
   abrirDrawerConcil(proximoId);
 }
 
-// Simular chegada da Ficha Financeira / retorno do eSocial (só protótipo —
+// Simular chegada da Ficha de Registro / retorno do eSocial (só protótipo —
 // no produto real, ambos rodam sozinhos em back-end).
 function simularConciliacaoFichaConcil(id) {
   const c = encontrarColaboradorConcil(id);
@@ -1207,10 +1207,10 @@ function simularConciliacaoFichaConcil(id) {
   renderHeaderConsole();
   renderColaboradorTab();
   if (encontrouDivergencia) {
-    showToastConsole("Ficha Financeira conciliada", c.nome + " tem divergência com o Lake — confira abaixo.", "info");
+    showToastConsole("Ficha de Registro conciliada", c.nome + " tem divergência com o Lake — confira abaixo.", "info");
     abrirDrawerConcil(c.id);
   } else {
-    showToastConsole("Ficha Financeira conciliada", c.nome + " está pronto — nenhuma divergência encontrada.");
+    showToastConsole("Ficha de Registro conciliada", c.nome + " está pronto — nenhuma divergência encontrada.");
   }
 }
 function simularRetornoEsocialConcil(id) {
@@ -1222,7 +1222,7 @@ function simularRetornoEsocialConcil(id) {
   CD.setColaboradores(colaboradores);
   renderHeaderConsole();
   renderColaboradorTab();
-  showToastConsole("eSocial retornou a categoria", c.nome + ": " + categoria + " — entrou na fila aguardando a Ficha Financeira.");
+  showToastConsole("eSocial retornou a categoria", c.nome + ": " + categoria + " — entrou na fila aguardando a Ficha de Registro.");
 }
 
 // ================= Drawer de dependentes (RF-DP-406) =================
@@ -1281,7 +1281,7 @@ function abrirModalRejeitado(id) {
   colaboradorRejeitadoIdConsole = id;
   document.getElementById("rejeitado-modal-nome").textContent = c.nome + " · CPF " + c.cpf;
   document.getElementById("rejeitado-modal-motivo").textContent = c.motivoRejeicao || "Motivo não informado.";
-  document.getElementById("rejeitado-modal-linha").textContent = "Linha " + c.linhaFicha + " da Ficha Financeira — " + empresaNomeConsole(c.empresaCodigo);
+  document.getElementById("rejeitado-modal-linha").textContent = "Linha " + c.linhaFicha + " da Ficha de Registro — " + empresaNomeConsole(c.empresaCodigo);
   const def = RAZOES_CAMPO_INVALIDO_CONSOLE[c.campoInvalido];
   document.getElementById("rejeitado-modal-label").textContent = (def ? def.rotulo : "Valor") + " extraído — corrija antes de reprocessar";
   const input = document.getElementById("rejeitado-modal-input");
@@ -1335,7 +1335,7 @@ function valorFinalCampoVisColab(campo) {
 }
 function origemLabelVisColab(v) {
   if (v === "lake") return "Lake (Domínio)";
-  if (v === "ficha") return "Ficha Financeira";
+  if (v === "ficha") return "Ficha de Registro";
   if (v === "manual") return "digitado manualmente";
   return "";
 }

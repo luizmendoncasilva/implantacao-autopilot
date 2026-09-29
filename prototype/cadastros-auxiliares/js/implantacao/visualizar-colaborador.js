@@ -32,7 +32,7 @@
 
   function origemLabel(valorEscolhido) {
     if (valorEscolhido === "lake") return "Lake (Domínio)";
-    if (valorEscolhido === "ficha") return "Ficha Financeira";
+    if (valorEscolhido === "ficha") return "Ficha de Registro";
     if (valorEscolhido === "manual") return "digitado manualmente";
     return "";
   }

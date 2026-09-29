@@ -109,7 +109,7 @@
     // "chegando" e a conciliação automática de back-end rodando — não abre
     // nada por si só, só dispara simularConciliacaoFicha() (ver comentário
     // lá). Prototipagem: no produto real isso acontece sozinho quando um
-    // novo lote de Ficha Financeira é importado, não por clique do operador.
+    // novo lote de Ficha de Registro é importado, não por clique do operador.
     const simulaConciliacao = colaborador.status === "pendente_conciliacao";
     // Mesma ideia para "aguardando eSocial" — no produto real o retorno do
     // eSocial chega sozinho, sem clique (RF-DP-409).
@@ -231,7 +231,7 @@
     colaboradorRejeitadoId = id;
     document.getElementById("dialog-rejeitado-nome").textContent = colaborador.nome + " · CPF " + colaborador.cpf;
     document.getElementById("dialog-rejeitado-motivo").textContent = colaborador.motivoRejeicao || "Motivo não informado.";
-    document.getElementById("dialog-rejeitado-linha").textContent = "Linha " + colaborador.linhaFicha + " da Ficha Financeira — " + empresaNome(colaborador.empresaCodigo);
+    document.getElementById("dialog-rejeitado-linha").textContent = "Linha " + colaborador.linhaFicha + " da Ficha de Registro — " + empresaNome(colaborador.empresaCodigo);
 
     const def = RAZOES_CAMPO_INVALIDO[colaborador.campoInvalido];
     document.getElementById("dialog-rejeitado-label").textContent = (def ? def.rotulo : "Valor") + " extraído — corrija antes de reprocessar";
@@ -282,7 +282,7 @@
     }
   }
 
-  // ===== Simular chegada da Ficha Financeira (só protótipo) =====
+  // ===== Simular chegada da Ficha de Registro (só protótipo) =====
   // "pendente_conciliacao" é o estado antes de qualquer Ficha existir para o
   // colaborador — no produto real, a conciliação contra o Lake roda sozinha
   // em back-end assim que um lote de Ficha é importado. Como este protótipo
@@ -298,16 +298,16 @@
     D.setColaboradores(colaboradores);
     onChange();
     if (encontrouDivergencia) {
-      UI.showToast("Ficha Financeira conciliada", colaborador.nome + " tem divergência com o Lake — confira abaixo.", "info");
+      UI.showToast("Ficha de Registro conciliada", colaborador.nome + " tem divergência com o Lake — confira abaixo.", "info");
       abrirDrawerConcil(colaborador.id);
     } else {
-      UI.showToast("Ficha Financeira conciliada", colaborador.nome + " está pronto — nenhuma divergência encontrada.");
+      UI.showToast("Ficha de Registro conciliada", colaborador.nome + " está pronto — nenhuma divergência encontrada.");
     }
   }
 
   // ===== Simular retorno do eSocial (RF-DP-401/409) — só protótipo =====
   // Categoria resolvida, o colaborador volta ao fluxo normal: entra em
-  // "pendente_conciliacao" aguardando a Ficha Financeira, como qualquer
+  // "pendente_conciliacao" aguardando a Ficha de Registro, como qualquer
   // outro colaborador recém-carregado.
   function simularRetornoEsocial(id) {
     const colaborador = encontrarColaborador(id);
@@ -317,7 +317,7 @@
     const colaboradores = D.getColaboradores().map((c) => (c.id === colaborador.id ? colaborador : c));
     D.setColaboradores(colaboradores);
     onChange();
-    UI.showToast("eSocial retornou a categoria", colaborador.nome + ": " + categoria + " — entrou na fila aguardando a Ficha Financeira.");
+    UI.showToast("eSocial retornou a categoria", colaborador.nome + ": " + categoria + " — entrou na fila aguardando a Ficha de Registro.");
   }
 
   // ===== Drawer de dependentes (RF-DP-406) — sufixo próprio pra não colidir
@@ -377,14 +377,14 @@
       const selecionado = campo.valorEscolhido === origem;
       return (
         '<div class="field-compare-option' + (selecionado ? " is-selected" : "") + '" data-origem="' + origem + '" data-campo="' + indice + '">' +
-        '<div class="field-compare-option-src">' + (origem === "lake" ? "Lake (Domínio)" : "Ficha Financeira") + "</div>" +
+        '<div class="field-compare-option-src">' + (origem === "lake" ? "Lake (Domínio)" : "Ficha de Registro") + "</div>" +
         '<div class="field-compare-option-val' + (vazio ? " is-missing" : "") + '">' + (vazio ? "Não informado" : valor) + "</div>" +
         '<div class="field-compare-check">' + Icon("check", "size-3-5") + "</div>" +
         "</div>"
       );
     }
 
-    // Terceiro caminho — nem Lake nem Ficha Financeira têm o valor correto
+    // Terceiro caminho — nem Lake nem Ficha de Registro têm o valor correto
     // (os dois desatualizados, por exemplo): a pessoa digita o valor à mão.
     // Três estados possíveis: link para abrir, input aberto para digitar, ou
     // o valor já digitado (mesmo cartão "selecionado" dos dois de cima, só
@@ -523,7 +523,7 @@
     document.getElementById("concil-resumo-texto").innerHTML =
       naoResolvidos === 0
         ? "<b>Todos os campos foram resolvidos.</b> Ao salvar, este colaborador passa para o status Pronto."
-        : "<b>" + naoResolvidos + (naoResolvidos === 1 ? " campo divergente" : " campos divergentes") + " entre o Lake e a Ficha Financeira.</b> Escolha, campo a campo, qual valor está correto. Os campos sem divergência não aparecem aqui.";
+        : "<b>" + naoResolvidos + (naoResolvidos === 1 ? " campo divergente" : " campos divergentes") + " entre o Lake e a Ficha de Registro.</b> Escolha, campo a campo, qual valor está correto. Os campos sem divergência não aparecem aqui.";
   }
 
   // Alterna a cor/ícone do alerta de resumo e quais botões do rodapé
@@ -542,19 +542,19 @@
 
   // ===== Conteúdo do drawer para status "nao_encontrado_lake" — sem
   // contraparte do Lake para comparar, só os dados extraídos da própria
-  // Ficha Financeira (somente leitura, reaproveitando .detail-grid) e a
+  // Ficha de Registro (somente leitura, reaproveitando .detail-grid) e a
   // decisão de criar o cadastro ou deixar pendente. =====
   function renderNovoSemLake(colaborador) {
     configurarDrawerParaTipo("novo");
     document.getElementById("concil-resumo-texto").innerHTML =
-      "<b>Colaborador não encontrado no Lake (Domínio).</b> A Ficha Financeira trouxe os dados abaixo, mas não existe cadastro correspondente desta empresa no Lake — pode ser uma admissão recente ainda não sincronizada.";
+      "<b>Colaborador não encontrado no Lake (Domínio).</b> A Ficha de Registro trouxe os dados abaixo, mas não existe cadastro correspondente desta empresa no Lake — pode ser uma admissão recente ainda não sincronizada.";
 
     const campos = colaborador.dadosFicha || {};
     const linhas = Object.keys(campos)
       .map((rotulo) => '<div class="detail-field"><span class="detail-field-label">' + rotulo + '</span><div class="detail-field-value">' + escapeHtml(String(campos[rotulo])) + "</div></div>")
       .join("");
     document.getElementById("concil-campos").innerHTML =
-      '<div class="detail-section"><h3 class="detail-section-title">Dados extraídos da Ficha Financeira</h3><div class="detail-grid">' + linhas + "</div></div>";
+      '<div class="detail-section"><h3 class="detail-section-title">Dados extraídos da Ficha de Registro</h3><div class="detail-grid">' + linhas + "</div></div>";
   }
 
   function atualizarFila() {
@@ -621,7 +621,7 @@
     D.setColaboradores(colaboradores);
     fecharDrawerConcil();
     onChange();
-    UI.showToast("Colaborador criado", nome + " foi cadastrado no Autopilot a partir da Ficha Financeira.");
+    UI.showToast("Colaborador criado", nome + " foi cadastrado no Autopilot a partir da Ficha de Registro.");
   }
 
   function ignorarNovoSemLake() {
