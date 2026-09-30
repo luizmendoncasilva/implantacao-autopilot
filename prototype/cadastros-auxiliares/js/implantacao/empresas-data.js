@@ -88,9 +88,12 @@
 
   // Épico 2 — competências de histórico de folha, janela dezembro/2025 até a
   // última fechada (RF-DP-509 reporta as ausentes, nunca estima).
-  const COMPETENCIAS_JANELA = ["12/2025", "01/2026", "02/2026", "03/2026", "04/2026", "05/2026", "06/2026", "07/2026", "08/2026"];
+  const COMPETENCIAS_JANELA = ["12/2025", "01/2026", "02/2026", "03/2026", "04/2026", "05/2026", "06/2026", "07/2026", "08/2026", "09/2026", "10/2026", "11/2026"];
 
   function gerarFinanceiro(empresaCodigo, qtdCarregadas) {
+    // Mais recente primeiro (mesmo critério do log de Histórico) — mapeia em
+    // ordem cronológica (índice bate com COMPETENCIAS_JANELA) e só inverte no
+    // final, pra não bagunçar os índices fixos usados na divergência mock.
     return COMPETENCIAS_JANELA.map((competencia, i) => {
       if (i >= qtdCarregadas) return { competencia, status: "ausente" };
       // Exemplos de divergência de total (RF-DP-507) — o valor gravado não
@@ -112,7 +115,7 @@
         liquido: "R$ " + liquido.toLocaleString("pt-BR") + ",00",
         liquidoOrigem: "R$ " + (divergente ? liquido + 120 : liquido).toLocaleString("pt-BR") + ",00",
       };
-    });
+    }).reverse();
   }
 
   // Épico 3 — rubricas usadas pela empresa nos últimos 12 meses. SEM
