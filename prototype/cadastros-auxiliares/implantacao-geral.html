@@ -104,7 +104,17 @@ function apenasDigitosImplantGeral(v) {
 }
 
 function progressoModuloHtmlImplantGeral(label, percentual) {
-  var corClasse = percentual === 100 ? "is-success" : percentual > 0 ? "is-warning" : "";
+  // 100% vira status "Implantada" (badge), não mais barra + "100%" — ver
+  // item 15.1 #6 da spec (transição de status da empresa).
+  if (percentual === 100) {
+    return (
+      '<div class="ig-em-breve">' +
+      '<span class="ig-em-breve-label">' + label + "</span>" +
+      '<span class="badge badge-success"><i data-lucide="check" style="width:13px;height:13px"></i> Implantada</span>' +
+      "</div>"
+    );
+  }
+  var corClasse = percentual > 0 ? "is-warning" : "";
   return (
     '<div class="ig-progress" title="' + label + ": " + percentual + '% concluído">' +
     '<span class="ig-progress-label">' + label + "</span>" +
