@@ -71,16 +71,45 @@
       : '<span class="badge badge-info">' + Icon("clock", "size-3-5") + " Em andamento</span>";
   }
 
+  // Formata a data/hora atual no mesmo padrão dos demais logs do Histórico
+  // ("DD/MM/AAAA HH:MM") — ver empresas-data.js.
+  function agoraFormatado() {
+    const d = new Date();
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const hh = String(d.getHours()).padStart(2, "0");
+    const min = String(d.getMinutes()).padStart(2, "0");
+    return dd + "/" + mm + "/" + d.getFullYear() + " " + hh + ":" + min;
+  }
+
+  // Ação manual, nunca automática (decisão Andressa, 30/09/2026) — só fica
+  // disponível com as 3 frentes + parâmetros confirmados; fica registrado
+  // no log quem concluiu (item 15.2 da spec — "transição de status").
+  function concluirImplantacao() {
+    if (empresaImplant.status === "implantada") return;
+    const dataHora = agoraFormatado();
+    empresaImplant.status = "implantada";
+    empresaImplant.dataConclusao = dataHora.split(" ")[0];
+    empresaImplant.logs = (empresaImplant.logs || []).concat([
+      { dataHora, operador: "Operador BHub", acao: "Concluiu implantação", detalhe: "Passagem de bastão para a operação — status Em Operação no Cockpit.", aprovadoPor: null },
+    ]);
+    renderHeader();
+    renderContent();
+    UI.showToast("Implantação concluída", empresaNome(codigoEmpresa) + " passou para o status Implantada.");
+  }
+
   function renderHeader() {
     const r = EI.resumoCompleto(empresaImplant);
     const percentual = EI.percentualConclusao(r);
     const parametrosOk = EI.parametrosConfirmados(codigoEmpresa);
+    const podeConcluir = empresaImplant.status !== "implantada" && percentual === 100 && parametrosOk;
     document.getElementById("console-header-mount").innerHTML =
       '<div class="flex items-start justify-between gap-3 flex-wrap">' +
       '<div class="flex flex-col gap-1">' +
       '<div class="flex items-center gap-2 flex-wrap"><h1 class="text-xl font-semibold">' + empresaNome(codigoEmpresa) + "</h1>" + statusBadgeEmpresa() + "</div>" +
       '<p class="text-sm text-muted">' + empresaImplant.etapaAtual + "</p>" +
       "</div>" +
+      (podeConcluir ? '<button type="button" class="btn" id="btn-concluir-implantacao">' + Icon("check", "size-3-5") + " Concluir implantação</button>" : "") +
       "</div>" +
       '<div class="flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted" style="margin-top:4px;">' +
       "<span><b class=\"text-foreground\">Início:</b> " + empresaImplant.dataInicio + "</span>" +
@@ -103,6 +132,8 @@
     UI.initSegbarTooltips();
     const linkParametros = document.getElementById("link-ir-parametros");
     if (linkParametros) linkParametros.addEventListener("click", () => irParaAba("parametros"));
+    const btnConcluir = document.getElementById("btn-concluir-implantacao");
+    if (btnConcluir) btnConcluir.addEventListener("click", concluirImplantacao);
   }
 
   // ===== Drawer genérico "Visualizar" (somente leitura) =====

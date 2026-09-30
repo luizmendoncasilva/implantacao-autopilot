@@ -417,12 +417,18 @@ function renderHeaderConsole() {
   const r = EI.resumoCompleto(empresaImplantConsole);
   const parametrosOk = EI.parametrosConfirmados(codigoEmpresaConsole);
   const percentual = EI.percentualConclusao(r, codigoEmpresaConsole);
+  // Transição "Em andamento" → "Implantada" é uma ação manual, nunca
+  // automática (decisão Andressa, 30/09/2026, item 15.2 da spec) — o botão
+  // só aparece quando as 4 frentes batem 100%, e fica registrado no log
+  // quem concluiu (ver concluirImplantacaoConsole).
+  const podeConcluir = empresaImplantConsole.status !== "implantada" && percentual === 100;
   document.getElementById("console-header").innerHTML =
     '<div class="console-header-top">' +
       '<div>' +
         '<div class="flex items-center gap-2 flex-wrap"><h1>' + esc(empresaNomeConsole(codigoEmpresaConsole)) + "</h1>" + statusBadgeEmpresaConsole() + "</div>" +
         '<p style="font-size:13px;color:var(--text-secondary);margin:4px 0 0;">' + esc(empresaImplantConsole.etapaAtual) + "</p>" +
       "</div>" +
+      (podeConcluir ? '<button type="button" class="btn btn-primary" onclick="concluirImplantacaoConsole()"><i data-lucide="check-circle-2" style="width:14px;height:14px"></i> Concluir implantação</button>' : "") +
     "</div>" +
     '<div class="console-header-meta">' +
       "<span><b>Início:</b> " + empresaImplantConsole.dataInicio + "</span>" +
@@ -445,6 +451,33 @@ function renderHeaderConsole() {
       '<div class="stat-card"><span class="stat-card-value">' + r.rubricas.total + '</span><span class="stat-card-label">Rubricas utilizadas (12 meses)</span></div>' +
     "</div>";
   refreshIcons();
+}
+
+// Formata a data/hora atual no mesmo padrão dos demais logs do Histórico
+// ("DD/MM/AAAA HH:MM") — ver empresas-data.js.
+function agoraFormatadoConsole() {
+  const d = new Date();
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const hh = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  return dd + "/" + mm + "/" + d.getFullYear() + " " + hh + ":" + min;
+}
+
+// Ação manual, nunca automática (decisão Andressa, 30/09/2026) — só some
+// disponível com as 4 frentes em 100%; fica registrado no log quem
+// concluiu (item 15.2 da spec — "transição de status").
+function concluirImplantacaoConsole() {
+  if (empresaImplantConsole.status === "implantada") return;
+  const dataHora = agoraFormatadoConsole();
+  empresaImplantConsole.status = "implantada";
+  empresaImplantConsole.dataConclusao = dataHora.split(" ")[0];
+  empresaImplantConsole.logs = (empresaImplantConsole.logs || []).concat([
+    { dataHora, operador: "Operador BHub", acao: "Concluiu implantação", detalhe: "Passagem de bastão para a operação — status Em Operação no Cockpit.", aprovadoPor: null },
+  ]);
+  renderHeaderConsole();
+  renderContentConsole();
+  showToastConsole("Implantação concluída", empresaNomeConsole(codigoEmpresaConsole) + " passou para o status Implantada.");
 }
 
 // ===== Modal genérico "Visualizar" (somente leitura — Financeiro/Cálculo) =====
