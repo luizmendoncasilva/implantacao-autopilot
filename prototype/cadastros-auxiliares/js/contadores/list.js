@@ -34,8 +34,8 @@
     return (
       '<tr class="row-clickable" data-abrir="' + contador.id + '">' +
       "<td>" + UI.truncatedCell(contador.nome, null, "text-sm font-medium") + "</td>" +
-      '<td class="col-pad-md">' + contador.cpf + "</td>" +
-      '<td class="col-pad-md">' + contador.crc + "</td>" +
+      '<td class="col-pad-md cell-mono">' + contador.cpf + "</td>" +
+      '<td class="col-pad-md cell-mono">' + contador.crc + "</td>" +
       '<td class="col-pad-md">' + empresasVinculadasHtml(contador) + "</td>" +
       '<td class="col-pad-end">' + Icon("arrow-right", "size-4") + "</td>" +
       "</tr>"

@@ -34,9 +34,9 @@
   function rowHtml(s) {
     return (
       '<tr class="row-clickable" data-abrir="' + s.codigo + '" tabindex="0" role="button">' +
-      '<td class="col-pad-sm">' + s.codigo + "</td>" +
+      '<td class="col-pad-sm cell-mono">' + s.codigo + "</td>" +
       "<td>" + UI.truncatedCell(s.nome, null, "text-sm font-medium") + "</td>" +
-      '<td class="col-pad-md">' + s.cnpj + "</td>" +
+      '<td class="col-pad-md cell-mono">' + s.cnpj + "</td>" +
       '<td class="col-pad-md">' + s.tipoEntidade + "</td>" +
       '<td class="col-pad-md">' + s.cidade + "/" + s.uf + "</td>" +
       '<td class="col-pad-end">' + Icon("arrow-right", "size-4") + "</td>" +

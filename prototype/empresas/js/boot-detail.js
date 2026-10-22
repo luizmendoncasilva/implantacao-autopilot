@@ -1,5 +1,5 @@
 /*
-  Bootstrap comum às 7 páginas de detalhe de empresa. Cada página define
+  Bootstrap comum às 6 páginas de detalhe de empresa. Cada página define
   `window.ACTIVE_TAB` e `window.renderTabContent(empresa)` antes de incluir
   este script (que deve ser o último <script> do <body>).
 */
@@ -22,4 +22,6 @@
   if (typeof window.renderTabContent === "function") {
     window.renderTabContent(empresa);
   }
+
+  UI.showTabSkeleton(document.getElementById("tab-content"));
 })();

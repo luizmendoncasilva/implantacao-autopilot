@@ -83,7 +83,7 @@
     const contadorResp = D.resolveContadorResponsavel(m.codigo);
     return (
       '<tr class="row-clickable" data-abrir="' + m.codigo + '">' +
-      '<td class="col-pad-sm">' + m.codigo + "</td>" +
+      '<td class="col-pad-sm cell-mono">' + m.codigo + "</td>" +
       '<td><div class="flex items-center gap-2 min-w-0">' +
       '<button type="button" class="btn-icon-chev" data-toggle-matriz="' + m.codigo + '" aria-expanded="' + expandida + '">' +
       '<span style="display:inline-flex;transition:transform .2s ease-out;transform:rotate(' + (expandida ? 90 : 0) + 'deg);">' + Icon("chevron-right", "size-4") + "</span>" +
@@ -92,7 +92,7 @@
       '<span class="badge badge-info shrink-0">Matriz</span>' +
       (filiais.length > 0 ? '<span class="text-xs shrink-0 text-muted">· ' + filiais.length + (filiais.length === 1 ? " filial" : " filiais") + "</span>" : "") +
       "</div></td>" +
-      '<td class="col-pad-md">' + m.dadosGerais.cnpj + "</td>" +
+      '<td class="col-pad-md cell-mono">' + m.dadosGerais.cnpj + "</td>" +
       '<td class="col-pad-md" title="' + (contadorResp ? contadorResp.nome : "") + '">' + UI.truncatedCell(contadorResp ? contadorResp.nome : "—") + "</td>" +
       '<td class="col-pad-sm">' + D.situacaoBadge(m.dadosGerais) + "</td>" +
       '<td class="col-pad-end">' + Icon("arrow-right", "size-4") + "</td>" +
@@ -127,9 +127,9 @@
           const contadorResp = D.resolveContadorResponsavel(f.codigo);
           return (
             '<tr class="row-clickable" data-abrir="' + f.codigo + '">' +
-            '<td class="col-pad-sm">' + f.codigo + "</td>" +
+            '<td class="col-pad-sm cell-mono">' + f.codigo + "</td>" +
             '<td><div class="flex items-center gap-2 min-w-0"><span class="badge badge-secondary shrink-0">Filial</span><span class="text-sm truncate" title="' + nomeFilial(f) + '">' + nomeFilial(f) + "</span></div></td>" +
-            '<td class="col-pad-md">' + f.dadosGerais.cnpj + "</td>" +
+            '<td class="col-pad-md cell-mono">' + f.dadosGerais.cnpj + "</td>" +
             '<td class="col-pad-md" title="' + (contadorResp ? contadorResp.nome : "") + '">' + UI.truncatedCell(contadorResp ? contadorResp.nome : "—") + "</td>" +
             '<td class="col-pad-sm">' + D.situacaoBadge(f.dadosGerais) + "</td>" +
             '<td class="col-pad-end">' + Icon("arrow-right", "size-4") + "</td>" +
@@ -165,13 +165,13 @@
     const contadorResp = D.resolveContadorResponsavel(e.codigo);
     return (
       '<tr class="row-clickable" data-abrir="' + e.codigo + '">' +
-      '<td class="col-pad-sm">' + e.codigo + "</td>" +
+      '<td class="col-pad-sm cell-mono">' + e.codigo + "</td>" +
       "<td>" +
       (badge
         ? '<div class="flex items-center gap-2 min-w-0"><span class="badge badge-secondary shrink-0">Filial</span><span class="text-sm font-medium truncate" title="' + nomeFilial(e) + '">' + nomeFilial(e) + "</span></div>"
         : UI.truncatedCell(e.nome, null, "text-sm font-medium")) +
       "</td>" +
-      '<td class="col-pad-md">' + e.dadosGerais.cnpj + "</td>" +
+      '<td class="col-pad-md cell-mono">' + e.dadosGerais.cnpj + "</td>" +
       '<td class="col-pad-md" title="' + (contadorResp ? contadorResp.nome : "") + '">' + UI.truncatedCell(contadorResp ? contadorResp.nome : "—") + "</td>" +
       '<td class="col-pad-sm">' + D.situacaoBadge(e.dadosGerais) + "</td>" +
       '<td class="col-pad-end">' + Icon("arrow-right", "size-4") + "</td>" +

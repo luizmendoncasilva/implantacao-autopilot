@@ -5,7 +5,7 @@
   (socios.html, contadores.html) só implementa o conteúdo da própria aba,
   dentro do mesmo <template id="page-content">.
 
-  Só existe UM título + subtítulo na página: o da aba ativa (ex.: "Sócios" +
+  Só existe UM título + subtítulo na página: o da aba ativa (ex.: "Sócios e responsáveis legais" +
   descrição, já presente no template de cada tela — não duplicado aqui).
   "Cadastros Auxiliares" aparece só como rótulo pequeno acima das abas
   (o breadcrumb no topo da página já reforça esse contexto), para não
@@ -13,7 +13,7 @@
 */
 (function (global) {
   const TABS = [
-    { key: "socios", label: "Sócios", href: "socios.html" },
+    { key: "socios", label: "Sócios/Resp. legal", href: "socios.html" },
     { key: "contadores", label: "Registro de Contadores", href: "contadores.html" },
   ];
 
@@ -26,13 +26,15 @@
     return `
     <div class="flex flex-col gap-2" style="margin-bottom:20px;">
       <span class="text-xs font-semibold uppercase tracking-wide text-muted">Cadastros Auxiliares</span>
-      <div class="tabs-list" style="overflow-x:auto; max-width:100%;">${tabsHtml}</div>
+      <div class="tabs-list tabs-list-underline" style="overflow-x:auto; max-width:100%;">${tabsHtml}</div>
     </div>
     `;
   }
 
   function mount(rootMountId, activeTab) {
-    document.getElementById(rootMountId).innerHTML = renderHeaderAndTabs(activeTab);
+    const mountEl = document.getElementById(rootMountId);
+    mountEl.innerHTML = renderHeaderAndTabs(activeTab);
+    if (global.UI) global.UI.showTabSkeleton(mountEl.nextElementSibling, { variant: "list" });
   }
 
   function tabLabel(key) {

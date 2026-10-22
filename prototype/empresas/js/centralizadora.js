@@ -29,12 +29,12 @@
         const destacada = e.codigo === empresaAtual.codigo;
         return (
           "<tr" + (destacada ? ' style="background:var(--accent);"' : "") + ">" +
-          "<td>" + e.codigo + "</td>" +
+          '<td class="cell-mono">' + e.codigo + "</td>" +
           "<td><div class=\"flex items-center gap-2 min-w-0\">" +
           '<span class="truncate" style="max-width:240px;" title="' + e.dadosGerais.razaoSocial + '">' + e.dadosGerais.razaoSocial + "</span>" +
           (destacada ? '<span class="badge badge-outline shrink-0">Empresa atual</span>' : "") +
           "</div></td>" +
-          "<td>" + e.dadosGerais.tipoInscricao + " " + e.dadosGerais.cnpj + "</td>" +
+          '<td class="cell-mono">' + e.dadosGerais.tipoInscricao + " " + e.dadosGerais.cnpj + "</td>" +
           "<td>" + D.situacaoBadge(e.dadosGerais) + "</td>" +
           "<td>" + classificacaoBadge(info.tipo) + "</td>" +
           "</tr>"

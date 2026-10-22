@@ -7,7 +7,7 @@
   (implantacao-console.html) — resolver uma divergência é a MESMA ação não
   importa de onde for aberta (feedback da Andressa/Agrocontar). A antiga
   fila global (implantacao.html, todas as empresas juntas) foi removida —
-  implantacao-empresas.html é a única porta de entrada agora.
+  implantacao-geral.html é a única porta de entrada agora.
 
   Cada página que usa este módulo:
   - inclui a marcação dos drawers/dialogs (#concil-*, #dialog-rejeitado-*,

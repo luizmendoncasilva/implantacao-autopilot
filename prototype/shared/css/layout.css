@@ -1,309 +1,191 @@
-/* Esqueleto de página do AutoPilot — portado de RegrasGeraisPage.jsx (sidebar +
-   header + área de conteúdo). Usado por toda trilha de protótipo, não só Empresas. */
+/* Page skeleton: fixed Cockpit sidebar (.cx-nav, core/cockpit-09-cx-sidebar.js) + content
+   frame inset over the sidebar color (BSystem AppSidebar + SidebarInset) with the PageHeader
+   (topbar) on top. Used by every prototype track. */
+
+/* Page-to-page navigation (tabs are separate pages): keep the chrome still, cross-fade the rest. */
+@view-transition { navigation: auto; }
+.cx-nav { view-transition-name: cx-nav; }
+.app-topbar { view-transition-name: app-topbar; }
+::view-transition-old(root),
+::view-transition-new(root) { animation-duration: 0.15s; }
 
 .app-shell {
   display: flex;
   height: 100vh;
   width: 100%;
   overflow: hidden;
+  padding: 8px 8px 8px 236px;
+  background: var(--sidebar);
   font-size: 13px;
   color: var(--foreground);
   font-family: var(--font-sans);
+  transition: padding-left 0.2s ease-out;
 }
+.app-shell.is-sidebar-collapsed { padding-left: 64px; }
 
-/* ===== Sidebar ===== */
-.app-sidebar {
-  width: 256px;
-  flex-shrink: 0;
+.app-main {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 12px;
-  overflow-y: auto;
-  background: var(--sidebar);
-  border-right: 1px solid var(--sidebar-border);
-  /* Scrollbar padrão do SO é grossa e "come" a largura fixa da sidebar,
-     cortando badge/texto quando o menu cresce mais que a viewport (ex.:
-     submenu de Implantação aberto num zoom de 100%+). Uma trilha fina
-     evita isso sem precisar esconder a barra por completo. */
-  scrollbar-width: thin;
-  scrollbar-color: var(--sidebar-border) transparent;
-}
-.app-sidebar::-webkit-scrollbar { width: 6px; }
-.app-sidebar::-webkit-scrollbar-track { background: transparent; }
-.app-sidebar::-webkit-scrollbar-thumb { background: var(--sidebar-border); border-radius: var(--radius-full); }
-.sidebar-brand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 8px 12px;
-}
-.sidebar-brand-mark {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: var(--radius-md);
-  font-size: 11px;
-  font-weight: 700;
-  background: var(--sidebar-primary);
-  color: var(--background);
-}
-.sidebar-brand-title { font-size: 13px; font-weight: 600; }
-.sidebar-brand-sub { font-size: 11px; color: var(--sidebar-muted); }
-
-.sidebar-group-label {
-  display: flex;
-  align-items: center;
-  height: 32px;
-  padding: 0 8px;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--sidebar-muted);
-}
-.sidebar-separator { margin: 8px 8px; height: 1px; background: var(--sidebar-border); }
-.sidebar-menu { display: flex; flex-direction: column; gap: 4px; width: 100%; }
-.sidebar-menu-item { position: relative; }
-
-.sidebar-btn {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  height: 32px;
-  padding: 0 8px;
-  border-radius: var(--radius-lg);
-  border: none;
-  background: transparent;
-  color: var(--sidebar-foreground);
-  font-size: 13px;
-  text-align: left;
-  cursor: pointer;
+  min-width: 0;
   overflow: hidden;
-  white-space: nowrap;
-}
-/* Sem isso, o ícone encolhe até width:0 (e "desaparece") em itens cujo texto +
-   badge some a largura disponível — ex.: "Cadastros Auxiliares" + badge
-   "em refinamento", mais largo que "Empresas" + o mesmo badge. Todo item da
-   sidebar precisa deste `flex-shrink: 0` no ícone, não só os mais longos. */
-.sidebar-btn svg { flex-shrink: 0; }
-.sidebar-btn:hover:not(.is-active):not([aria-disabled="true"]) { background: var(--outline-hover); }
-.sidebar-btn.is-active {
-  background: var(--sidebar-accent);
-  color: var(--sidebar-accent-foreground);
-  font-weight: 500;
-}
-/* Faixa de "ativo" na borda esquerda — era `box-shadow: inset 2px 0 0`, mas
-   em alguns navegadores/zooms essa sombra inset rendeirizava como um
-   parêntese preto enorme cobrindo várias linhas da sidebar (bug reportado
-   14/09/2026), em vez do traço fino de 2px pretendido. Pseudo-elemento
-   posicionado é equivalente visualmente e não tem esse problema. */
-.sidebar-btn.is-active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--sidebar-primary);
-}
-.sidebar-btn[aria-disabled="true"] { color: var(--sidebar-muted); cursor: default; pointer-events: none; }
-.sidebar-btn .chev {
-  margin-left: auto;
-  transition: transform 0.15s;
-}
-.sidebar-btn[aria-expanded="true"] .chev { transform: rotate(90deg); }
-
-.sidebar-badge {
-  pointer-events: none;
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  height: 20px;
-  min-width: 20px;
-  padding: 0 6px;
-  border-radius: var(--radius-lg);
-  font-size: 10px;
-  font-weight: 500;
-  background: var(--secondary);
-  color: var(--muted-foreground);
-  border: 1px solid var(--sidebar-border);
-}
-.sidebar-btn[aria-disabled="true"] .sidebar-badge { margin-left: 8px; }
-
-.sidebar-badge-construction {
-  background: var(--warning-subtle);
-  color: var(--warning-text);
-  border-color: var(--warning-border);
+  border-radius: var(--radius-xl);
+  background: var(--background);
 }
 
-.sidebar-badge-success {
-  background: var(--success-subtle);
-  color: var(--success-text);
-  border-color: var(--success-border);
-}
-
-.sidebar-badge-info {
-  background: var(--info-subtle);
-  color: var(--info-text);
-  border-color: var(--info-border);
-}
-
-.sidebar-btn-trailing {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.sidebar-btn-trailing .sidebar-badge { margin-left: 0; }
-.sidebar-btn-trailing .chev { margin-left: 0; }
-
-.sidebar-submenu {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin: 4px 0 0 14px;
-  padding: 2px 0 2px 10px;
-  border-left: 1px solid var(--sidebar-border);
-}
-.sidebar-sub-btn {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 28px;
-  padding: 5px 8px;
-  border-radius: var(--radius-lg);
-  border: none;
-  background: transparent;
-  color: var(--sidebar-foreground);
-  font-size: 13px;
-  text-align: left;
-  cursor: pointer;
-  width: 100%;
-}
-/* Mesma razão do .sidebar-btn svg acima: sem flex-shrink:0 o ícone encolhe
-   para abrir espaço quando o label + badge não cabem — o que passou a
-   acontecer com labels mais longos (ex.: "Folha de Pagamento") num terceiro
-   nível de indentação (menos largura disponível que a prevista quando este
-   componente só tinha um nível de aninhamento, ex.: "Fiscal"/"Contábil").
-   .sidebar-sub-btn trocou height fixo por min-height + padding vertical, e o
-   label (.sidebar-sub-btn-label) pode quebrar em 2 linhas em vez de truncar
-   com "…" — testado com "Folha de Pagamento" e "Sindicato / Convenção", os
-   dois labels mais longos da hierarquia hoje, sem sobrepor o item seguinte. */
-.sidebar-sub-btn svg { flex-shrink: 0; }
-.sidebar-sub-btn-label { flex: 1 1 auto; min-width: 0; line-height: 1.3; }
-.sidebar-sub-btn:hover:not(.is-active):not([aria-disabled="true"]) { background: var(--outline-hover); }
-.sidebar-sub-btn.is-active {
-  background: var(--sidebar-accent);
-  color: var(--sidebar-accent-foreground);
-  font-weight: 500;
-}
-.sidebar-sub-btn.is-active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--sidebar-primary);
-}
-.sidebar-sub-btn[aria-disabled="true"] { color: var(--sidebar-muted); cursor: default; pointer-events: none; }
-
-/* Modificador exclusivo do submenu de DP (Folha de Pagamento, Sindicato /
-   Convenção) — nada aqui se aplica ao submenu de "Parâmetros" (Fiscal,
-   Contábil), que continua com a aparência original de item único de
-   linha. Foi necessário porque DP vive um nível mais indentado que
-   qualquer outro submenu hoje, e seus dois filhos têm os labels mais
-   longos já usados neste componente — sem este recuo/composição próprios,
-   o label quebrava em 3 linhas e o badge competia por espaço com o texto. */
-.sidebar-submenu[data-submenu="dp"] {
-  margin-left: 6px;
-  padding-left: 8px;
-}
-.sidebar-submenu[data-submenu="dp"] .sidebar-sub-btn {
-  flex-wrap: wrap;
-  align-items: flex-start;
-  align-content: center;
-  min-height: 30px;
-  padding: 6px 8px;
-}
-.sidebar-submenu[data-submenu="dp"] .sidebar-sub-btn svg { margin-top: 2px; }
-/* Sem isso o badge herda `margin-left: auto` (regra geral de .sidebar-badge)
-   e reserva uma coluna com a altura inteira da linha, tirando espaço do
-   label em TODAS as linhas do texto quebrado, não só na primeira — por
-   isso o label quebrava em 3 linhas mesmo depois de o item já poder
-   crescer em altura. Com `flex-wrap` + margin-left:0, o badge passa a fluir
-   como o "último item" da linha de texto: fica ao lado do label quando
-   cabe, e desce como parte do bloco (não como coluna à parte) quando não
-   cabe — dando ao label a largura inteira da linha para quebrar melhor
-   (ex.: "Folha de" / "Pagamento" em vez de "Folha" / "de" / "Pagamento"). */
-.sidebar-submenu[data-submenu="dp"] .sidebar-badge { margin-left: 0; }
-
-.sidebar-footer { margin-top: auto; padding: 8px 0; }
-.sidebar-user {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 48px;
-  width: 100%;
-  padding: 8px;
-  border-radius: var(--radius-lg);
-  border: none;
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
-}
-.sidebar-user:hover { background: var(--sidebar-accent); }
-
-/* Foco acessível (offset negativo — ver nota equivalente em components.css
-   para .row-clickable) compartilhado pelos três controles de linha inteira
-   da sidebar. */
-.sidebar-btn:focus-visible,
-.sidebar-sub-btn:focus-visible,
-.sidebar-user:focus-visible {
-  outline: 2px solid var(--info-text);
-  outline-offset: -2px;
-}
-.sidebar-user-avatar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--muted);
-  color: var(--foreground);
-  font-size: 11.5px;
-  font-weight: 500;
-  flex-shrink: 0;
-}
-.sidebar-user-name { font-size: 13px; font-weight: 600; }
-.sidebar-user-email { font-size: 11.5px; color: var(--muted-foreground); }
-
-/* ===== Main / header ===== */
-.app-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-.app-header {
+/* ===== Topbar (PageHeader) ===== */
+.app-topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  flex-wrap: wrap;
-  padding: 12px 24px;
-  background: var(--card);
+  flex-shrink: 0;
+  height: 56px;
+  padding: 0 28px;
+  background: var(--background);
   border-bottom: 1px solid var(--border);
 }
-.app-breadcrumb { font-size: 11.5px; font-family: "SFMono-Regular", Consolas, monospace; color: var(--muted-foreground); }
-.app-breadcrumb b { color: var(--foreground); font-weight: 500; }
-.app-breadcrumb a.breadcrumb-link { color: var(--muted-foreground); cursor: pointer; }
-.app-breadcrumb a.breadcrumb-link:hover { color: var(--foreground); text-decoration: underline; }
-.app-breadcrumb a.breadcrumb-link:focus-visible { outline: 2px solid var(--info-text); outline-offset: 2px; }
-.app-header-actions { display: flex; align-items: center; gap: 8px; }
-.app-header-actions .label { font-size: 11px; color: var(--muted-foreground); }
+.app-breadcrumb { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; font-size: 13px; color: var(--muted-foreground); }
+.app-breadcrumb > * { flex-shrink: 0; white-space: nowrap; }
+.app-breadcrumb > .app-breadcrumb-current { flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--foreground); font-weight: 500; }
+.app-breadcrumb-root { color: var(--muted-foreground); }
+.app-breadcrumb-sep { display: inline-flex; color: var(--muted-foreground); }
+.app-breadcrumb a.breadcrumb-link { color: var(--muted-foreground); cursor: pointer; border-radius: var(--radius-sm); }
+.app-breadcrumb a.breadcrumb-link:hover { color: var(--foreground); }
+.app-breadcrumb a.breadcrumb-link:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
 
-.app-content { flex: 1; overflow-y: auto; padding: 24px; }
-.app-content-inner { max-width: 1200px; }
+/* ===== Content ===== */
+.app-content { flex: 1; overflow-y: auto; padding: 24px 28px 48px; scrollbar-gutter: stable; }
+.app-content-inner { max-width: 1200px; width: 100%; margin: 0 auto; }
+.app-content h1, .app-content h2 { font-weight: 600; color: var(--foreground); letter-spacing: -0.01em; }
+.app-content h1.text-xl { font-size: 24px; line-height: 32px; }
+
+/* ===== Chassi do Cockpit (shared/js/chassi.js) — topbar com lupa e usuário, gaveta da direita
+   que empurra o conteúdo, sino de atividades. ===== */
+.chassi-topbar-acoes { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.chassi-filete { width: 1px; height: 24px; margin: 0 4px; background: var(--border); }
+.chassi-icon-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; flex-shrink: 0;
+  border: none; border-radius: var(--radius-full); background: none;
+  color: var(--foreground); cursor: pointer; transition: background-color 0.15s;
+}
+.chassi-icon-btn:hover, .chassi-busca.is-open .chassi-icon-btn { background: var(--muted); }
+.chassi-icon-btn:focus-visible, .chassi-avatar:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+
+.chassi-popover {
+  border: 1px solid var(--border); border-radius: var(--radius-xl);
+  background: var(--popover); color: var(--popover-foreground); box-shadow: var(--shadow-md);
+}
+.chassi-busca, .chassi-usuario { position: relative; }
+.chassi-busca-panel, .chassi-usuario-menu { position: absolute; right: 0; top: 40px; z-index: 50; display: none; overflow: hidden; }
+.chassi-busca.is-open .chassi-busca-panel, .chassi-usuario.is-open .chassi-usuario-menu { display: block; }
+.chassi-busca-panel { width: 440px; }
+.chassi-busca-campo { display: flex; align-items: center; gap: 8px; padding: 0 12px; border-bottom: 1px solid var(--border); color: var(--muted-foreground); }
+.chassi-busca-campo input { flex: 1; min-width: 0; height: 44px; border: none; outline: none; background: transparent; font: inherit; font-size: 14px; color: var(--foreground); }
+.chassi-busca-campo input::placeholder { color: var(--muted-foreground); }
+.chassi-busca-resultados { max-height: 400px; overflow-y: auto; padding: 4px 0; }
+.chassi-busca-rotulo { padding: 6px 12px; font-size: 12px; color: var(--muted-foreground); }
+.chassi-busca-modulo { padding-bottom: 4px; }
+.chassi-busca-item, .chassi-busca-recente, .chassi-busca-rodape {
+  display: flex; width: 100%; border: none; background: none; text-align: left; font: inherit; cursor: pointer; color: var(--foreground);
+}
+.chassi-busca-item { flex-direction: column; padding: 8px 12px; }
+.chassi-busca-item-titulo { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chassi-busca-item-detalhe { font-size: 12px; color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chassi-busca-recente { align-items: center; gap: 8px; padding: 8px 12px; font-size: 14px; }
+.chassi-busca-recente svg { color: var(--muted-foreground); }
+.chassi-busca-rodape { padding: 8px 12px; font-size: 12px; font-weight: 500; color: var(--link); }
+.chassi-busca-item:hover, .chassi-busca-recente:hover, .chassi-busca-rodape:hover,
+.chassi-busca-item:focus-visible, .chassi-busca-recente:focus-visible, .chassi-busca-rodape:focus-visible { background: var(--muted); outline: none; }
+.chassi-busca-vazio { padding: 24px 12px; text-align: center; font-size: 14px; color: var(--muted-foreground); }
+
+.chassi-avatar {
+  display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;
+  border: none; border-radius: 50%; background: var(--sidebar); color: var(--sidebar-accent-foreground);
+  font: inherit; font-size: 11px; font-weight: 600; cursor: pointer; transition: opacity 0.15s;
+}
+.chassi-avatar:hover { opacity: 0.9; }
+.chassi-usuario.is-open .chassi-avatar { box-shadow: 0 0 0 2px var(--border); }
+.chassi-usuario-menu { width: 240px; padding: 6px; }
+.chassi-usuario-quem { padding: 8px; }
+.chassi-separador { height: 1px; margin: 4px 0; background: var(--border); }
+.chassi-menu-item {
+  display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px; border: none; border-radius: var(--radius-md);
+  background: none; font: inherit; font-size: 14px; color: var(--foreground); text-align: left; cursor: pointer;
+}
+.chassi-menu-item svg { color: var(--muted-foreground); }
+.chassi-menu-item:hover, .chassi-menu-item:focus-visible { background: var(--muted); outline: none; }
+
+/* A gaveta é irmã do conteúdo no mesmo flex: abrir anima a largura de 0 a 380px e empurra o meio. */
+.chassi-gaveta {
+  flex-shrink: 0; width: 0; margin-left: 0; overflow: hidden;
+  border-radius: var(--radius-xl); background: var(--surface-subtle);
+  transition: width 0.2s ease-out, margin-left 0.2s ease-out;
+}
+.chassi-gaveta.is-open { width: 380px; margin-left: 8px; }
+.chassi-gaveta-inner { display: flex; flex-direction: column; width: 380px; height: 100%; }
+.chassi-gaveta-cabecalho { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 16px 20px 8px; }
+.chassi-gaveta-titulo { display: flex; align-items: flex-start; gap: 6px; font-size: 14px; font-weight: 600; line-height: 20px; }
+.chassi-gaveta-titulo svg { margin-top: 3px; flex-shrink: 0; color: var(--muted-foreground); }
+.chassi-gaveta-fechar { margin-left: auto; margin-right: -4px; width: 28px; height: 28px; border-radius: var(--radius-md); color: var(--muted-foreground); }
+.chassi-gaveta-fechar:hover { background: var(--background); color: var(--foreground); }
+.chassi-gaveta-corpo { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding: 0 20px 20px; }
+.chassi-abrir-pagina { display: inline-flex; align-items: center; gap: 6px; width: fit-content; padding: 0; border: none; background: none; font: inherit; font-size: 13px; font-weight: 500; color: var(--link); cursor: pointer; }
+.chassi-abrir-pagina:hover { color: var(--link-hover); text-decoration: underline; text-underline-offset: 2px; }
+.chassi-ficha-nome { font-size: 18px; line-height: 26px; font-weight: 600; }
+.chassi-ficha-nome .badge { vertical-align: 3px; }
+.chassi-ficha-busca {
+  display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px;
+  border: 1px solid var(--input); border-radius: var(--radius-lg); background: var(--background); color: var(--muted-foreground);
+}
+.chassi-ficha-busca:focus-within { border-color: var(--ring); box-shadow: 0 0 0 3px var(--ring-soft); }
+.chassi-ficha-busca input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; font: inherit; font-size: 14px; color: var(--foreground); }
+.chassi-ficha-busca input::placeholder { color: var(--muted-foreground); }
+.chassi-ficha-atalhos { display: none; flex-wrap: wrap; gap: 6px; margin-top: -6px; }
+.chassi-ficha-atalhos.is-visible { display: flex; }
+.chassi-atalho { padding: 2px 10px; border: 1px solid var(--border); border-radius: var(--radius-full); background: var(--background); font: inherit; font-size: 12px; color: var(--foreground); cursor: pointer; }
+.chassi-atalho:hover { background: var(--muted); }
+.chassi-bloco { display: flex; flex-direction: column; gap: 8px; padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--background); }
+.chassi-bloco-titulo { font-size: 13px; font-weight: 600; }
+.chassi-link-linha {
+  display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-lg);
+  background: var(--background); font: inherit; font-size: 13px; font-weight: 500; color: var(--foreground); cursor: pointer; text-align: left;
+}
+.chassi-link-linha svg:last-child { margin-left: auto; color: var(--muted-foreground); }
+.chassi-link-linha:hover { background: var(--muted); }
+.chassi-campo { display: flex; flex-direction: column; gap: 4px; }
+.chassi-campo-aba { font-size: 12px; color: var(--muted-foreground); }
+.chassi-campo-bloco { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--background); }
+.chassi-campo-status { display: inline-flex; }
+.chassi-campo-status.is-success { color: var(--success-text); }
+.chassi-campo-status.is-warning { color: var(--warning-text); }
+.chassi-campo-status.is-destructive { color: var(--destructive-text); }
+.chassi-campo-status.is-muted { color: var(--muted-foreground); }
+.chassi-nao-achou { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding-top: 12px; border-top: 1px solid var(--border); }
+.chassi-tarefa {
+  display: flex; flex-direction: column; gap: 6px; width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-lg);
+  background: var(--background); font: inherit; text-align: left; cursor: pointer;
+}
+.chassi-tarefa:hover { box-shadow: var(--shadow-sm); }
+
+/* Painel de atividades, ancorado no sino da sidebar e aberto à direita dela. */
+.chassi-atividades { position: fixed; z-index: 55; display: flex; flex-direction: column; width: 360px; max-height: calc(100vh - 32px); overflow: hidden; }
+.chassi-atividades-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 14px 16px 8px; }
+.chassi-atividades-abas { padding: 0 16px 8px; border-bottom: 1px solid var(--border); }
+.chassi-atividades-lista { flex: 1; min-height: 0; overflow-y: auto; }
+.chassi-atividades-rodape { display: block; padding: 10px 16px; border-top: 1px solid var(--border); font-size: 13px; font-weight: 500; text-align: center; color: var(--link); }
+.chassi-atividades-rodape:hover { background: var(--muted); }
+.chassi-atividade {
+  position: relative; display: flex; flex-direction: column; gap: 2px; width: 100%; padding: 12px 16px 12px 28px;
+  border: none; border-bottom: 1px solid var(--border); background: none; font: inherit; text-align: left; cursor: pointer;
+}
+.chassi-atividade.is-nao-lida { background: color-mix(in oklab, var(--muted) 60%, transparent); }
+.chassi-atividade:hover { background: var(--muted); }
+.chassi-atividade-titulo { font-size: 13px; font-weight: 500; color: var(--foreground); }
+.chassi-atividade.is-nao-lida .chassi-atividade-titulo { font-weight: 600; }
+.chassi-atividade-desc { font-size: 13px; color: var(--muted-foreground); }
+.chassi-atividade-quando { font-size: 12px; color: var(--muted-foreground); }
+.chassi-dot { position: absolute; left: 12px; top: 18px; width: 7px; height: 7px; border-radius: 50%; background: var(--info); }
+.chassi-atividades-pagina { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.chassi-atividades-pagina .chassi-atividade:last-child { border-bottom: none; }

@@ -25,11 +25,64 @@
   Manual/configurável, com exatamente as 2 opções do dicionário D01... D06
   (docs/02-parametros-fiscais.md, seção 14 — Competência/Caixa), em vez de
   Motor de cálculo/somente leitura. Nenhuma opção nova foi criada.
+
+  `perfilParametrizacaoAtividade` (D35, rodada de 2026-09-08 — "Tornar D35
+  e D08 funcionais"): passou a ser um select funcional (10 opções, incluindo
+  o placeholder "Selecione..."), persistido por empresa × vigência no mesmo
+  mecanismo dos demais campos Manuais desta aba — apesar de a origem
+  documentada continuar "Sistema" (docs/02-parametros-fiscais.md, seção 4).
+  Guarda só a ESCOLHA do perfil; nenhuma lógica aplica os parâmetros que o
+  perfil "deveria" pré-configurar (mecânica ainda não definida — ver
+  docs/parametros-fiscais-as-built.md, seção 13). `null`/`""` = nenhum
+  perfil selecionado (estado inicial de todo mock, nenhuma empresa tinha
+  perfil algum antes desta rodada).
+
+  `segmentoAtividadeEspecial` (D08, mesma rodada): passou a ser uma lista de
+  seleção múltipla funcional (13 opções, dicionário seção 14), editável no
+  mesmo drawer dos demais campos Manuais — a prioridade documentada
+  continua Fase 2 (o badge "Fase 2" é preservado na tela; só a
+  interatividade do campo mudou, não sua prioridade). Array vazio = nenhuma
+  opção marcada (estado inicial de todo mock). "Nenhuma" é mutuamente
+  exclusiva das demais opções (regra aplicada em gerais.js, não aqui).
 */
 (function (global) {
   // Opções de D06 (docs/02-parametros-fiscais.md, seção 14) reproduzidas
   // literalmente — nenhuma opção inventada.
   const OPCOES_REGIME_RECONHECIMENTO_RECEITA = ["Competência", "Caixa"];
+
+  // Opções de D35 (docs/02-parametros-fiscais.md, seção 14) reproduzidas
+  // literalmente — nenhuma opção inventada. "Selecione..." é o placeholder
+  // inicial (value=""), não uma opção do dicionário.
+  const OPCOES_PERFIL_PARAMETRIZACAO_ATIVIDADE = [
+    "Selecione...",
+    "Comércio — Anexo I",
+    "Indústria — Anexo II",
+    "Serviços — Anexo III",
+    "Serviços — Anexo IV",
+    "Serviços — Anexo V",
+    "Escritório de serviços contábeis",
+    "Transporte de cargas",
+    "MEI",
+    "Sem perfil — parametrização manual",
+  ];
+
+  // Opções de D08 (docs/02-parametros-fiscais.md, seção 14) reproduzidas
+  // literalmente — nenhuma opção inventada, nenhuma opção nova criada.
+  const OPCOES_SEGMENTO_ATIVIDADE_ESPECIAL = [
+    "Revenda de veículos usados",
+    "Entidade financeira ou equiparada",
+    "Propaganda e publicidade",
+    "Posto de combustível (varejista)",
+    "Salão-parceiro",
+    "Empresa Simples de Crédito (ESC)",
+    "Atividade sujeita ao Fator R",
+    "Transporte de cargas",
+    "Transporte de passageiros (modalidade permitida)",
+    "Escritório de serviços contábeis",
+    "Locação de bens móveis",
+    "Farmácia de manipulação",
+    "Nenhum",
+  ];
 
   const PADRAO = {
     dataOpcaoSN: "01/01/2015",
@@ -48,6 +101,8 @@
     regimeReconhecimentoReceita: "Competência",
     codigoAcessoPgdasD: "••••••••••••",
     indicadoresIndisponiveis: [],
+    perfilParametrizacaoAtividade: null,
+    segmentoAtividadeEspecial: [],
   };
 
   const POR_EMPRESA = {
@@ -69,6 +124,8 @@
       regimeReconhecimentoReceita: "Competência",
       codigoAcessoPgdasD: "••••••••••••",
       indicadoresIndisponiveis: [],
+      perfilParametrizacaoAtividade: null,
+      segmentoAtividadeEspecial: [],
     },
     // Comércio Horizonte — Simples Nacional, mais próxima do sublimite;
     // Fator R marcado como indisponível só para demonstrar o estado (mock
@@ -103,6 +160,8 @@
       regimeReconhecimentoReceita: "Caixa",
       codigoAcessoPgdasD: "••••••••••••",
       indicadoresIndisponiveis: ["fatorR"],
+      perfilParametrizacaoAtividade: null,
+      segmentoAtividadeEspecial: [],
     },
   };
 
@@ -154,5 +213,7 @@
     getDadosGerais: getDadosGerais,
     setDadosManuais: setDadosManuais,
     OPCOES_REGIME_RECONHECIMENTO_RECEITA: OPCOES_REGIME_RECONHECIMENTO_RECEITA,
+    OPCOES_PERFIL_PARAMETRIZACAO_ATIVIDADE: OPCOES_PERFIL_PARAMETRIZACAO_ATIVIDADE,
+    OPCOES_SEGMENTO_ATIVIDADE_ESPECIAL: OPCOES_SEGMENTO_ATIVIDADE_ESPECIAL,
   };
 })(window);

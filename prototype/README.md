@@ -6,24 +6,50 @@ Estes protótipos servem para Product Managers validarem arquitetura da informa�
 
 `prototype/shared/` é a **única fonte oficial de componentes** do projeto — todo protótipo, de qualquer trilha, consome exclusivamente esses arquivos. Nenhuma trilha deve ter sua própria cópia de sidebar, header, botão, tabela, card, badge etc.
 
+## Adaptação ao padrão Cockpit
+
+Este protótipo foi adaptado ao design system do Cockpit (skill `cockpit-prototype-maker`). Só o layout mudou: telas, dados, JS das trilhas, `localStorage` e navegação por link são os mesmos de antes. O visual anterior (shadcn neutro, sidebar clara própria) está preservado na tag git `prototype-visual-legado`.
+
+- `core/` é a cópia do shell do Cockpit. `core/cockpit-01-shell.js` e `core/cockpit-09-cx-sidebar.js` são carregados no `<head>`, antes do CSS do protótipo, para o CSS de `shared/` prevalecer nos nomes de classe em comum, como `.btn`, `.badge` e `.field-label`.
+- `core/cockpit-09-cx-sidebar.js` é a sidebar larga do Cockpit (236px, recolhível para um rail de 64px) com a árvore do Autopilot dentro de "Autopilot" (Parâmetros Gerais > Empresas, Cadastros Auxiliares, Tabela de Feriados; Fiscal; DP > Folha de Pagamento, Sindicato / Convenção, Rubricas; Contábil; mais Documentação). A árvore do Autopilot começa toda expandida; os grupos abertos, o recolhimento e o scroll ficam em `sessionStorage` (chaves `autopilot_prototype_cx_*`). Só o Autopilot e a Documentação navegam: o restante do menu do Cockpit (Clientes, Tarefas, Solicitações, GDocs, Ferramentas, Faturamento interno, Relatórios) aparece opaco e sem ação, e Contábil aparece desabilitado ("Em breve").
+- Entrada: a raiz do site (`/`) redireciona para o Cadastro de Empresas (`server/index.ts`, só em produção) e `prototype/index.html` faz o mesmo para quem abre `/prototype/`.
+- `shared/css/tokens.css` mantém os nomes dos tokens e passa a usar a paleta do Cockpit (primário rosa `#f25461`, superfícies e bordas do Cockpit). `components.css` e `layout.css` foram reestilizados em cima desses tokens: botões em pílula (41px; `btn-sm` é igual ao padrão, como na referência), campos no padrão `ef-input`, toggles e abas segmentadas, tabelas no padrão `dt-table` (cabeçalho em caixa alta, células que quebram linha), cards com faixas de cabeçalho/rodapé, alerts, toast, stepper, sheet no padrão do drawer lateral e dialog no padrão do modal. `.cell-mono` aplica a fonte mono do Cockpit em células de CNPJ, CPF, CRC e códigos. Abas de página (Cadastros Auxiliares, Folha e Fiscal) usam a variante sublinhada `.tabs-list-underline`; as demais abas são segmentadas.
+- `shared/js/shell.js` mantém a API `Shell.mount()` e monta a sidebar acima, o topbar (crumb "Autopilot › ..." e a tag "Protótipo · dados fictícios") e o container de conteúdo de 1200px. O `active` de cada página destaca a folha correspondente na árvore.
+- Abas que são páginas separadas (Empresas e Cadastros Auxiliares): `UI.showTabSkeleton()` mantém o conteúdo da aba atrás de um skeleton por 450ms (simulação, como no Fiscal). Cada página tem `<link rel="expect" href="#page-ready" blocking="render">` e o `<span id="page-ready">` no fim do `<body>`, para a primeira renderização esperar a sidebar montada; `layout.css` ativa View Transitions entre páginas (sidebar e topbar ficam parados) e a sidebar pinta um placeholder escuro no primeiro frame. Navegadores sem esses recursos ignoram e navegam normalmente.
+- O Tailwind CDN da skill não é carregado: `shared/css/base.css` já tem os utilitários e o preflight do Tailwind alteraria o visual das telas.
+- Fontes (Inter, Lato) e ícones Lucide vêm de CDN; sem internet, só os ícones da sidebar do Cockpit deixam de aparecer.
+
+## Chassi do Cockpit
+
+O shell segue o `novo-chassi-v1` (prototype-cockpit-evolucoes), sem o BSamurai. As peças moram em `shared/js/chassi.js` (mock em `shared/js/chassi-dados.js`) e são ligadas por `Shell.mount()` e pela sidebar:
+
+- **Topbar:** à esquerda, onde você está (breadcrumb); à direita, a lupa da busca global (sugestões por módulo: clientes, tarefas, solicitações, documentos) e o menu do usuário. Não há mais a etiqueta "Protótipo · dados fictícios" nem usuário no rodapé da sidebar.
+- **Gaveta da direita (380px):** irmã do conteúdo no mesmo flex, empurra em vez de cobrir. Caras: ficha do cliente (com busca dentro da ficha) e tarefas do cliente. Abra com `Chassi.abrirCliente(codigo)` ou `Chassi.abrirTarefas(codigo)`.
+- **Sino de atividades** na sidebar, com o painel ancorado nele e a página `notificacoes/index.html` ("Ver todas").
+- **Modal "Pra onde você iria":** `Chassi.abrirDestino(texto)` para qualquer ação que levaria a uma tela que não existe no protótipo.
+
+Os sheets das trilhas (drawers de edição) continuam por cima do conteúdo, com overlay.
+
 ## Estrutura
 
 ```
 prototype/
+  core/               shell do Cockpit (cópia da skill) + cockpit-09-cx-sidebar.js (sidebar com a árvore do Autopilot)
   shared/             design system único, reaproveitado por toda trilha
     css/
-      tokens.css        variáveis de cor/sombra/espaçamento/raio (única fonte de cor)
+      tokens.css        variáveis de cor/sombra/espaçamento/raio na paleta do Cockpit (única fonte de cor)
       base.css          reset + utilitários mínimos de layout (subconjunto Tailwind)
-      components.css     botão, badge, card, tabela, tabs, alert, sheet, dialog, combobox, toast...
-      layout.css         sidebar + header + breadcrumb + área de conteúdo (esqueleto de página)
+      components.css     botão, badge, card, tabela, tabs, alert, sheet, dialog, combobox, toast, skeleton...
+      layout.css         topbar + breadcrumb + área de conteúdo + view transitions (esqueleto de página)
     js/
       icons.js           ícones inline (sem dependência externa)
-      shell.js           monta sidebar/header/breadcrumb e injeta o conteúdo de cada página
+      shell.js           monta a sidebar do Cockpit, o topbar e injeta o conteúdo de cada página
       ui.js              toggle group, combobox, sheet/dialog, toast, helpers de tabela
       coming-soon.js     placeholder para trilha ainda não desenhada
       fab-tools.js       FAB de ferramentas de prototipação (restaurar dados, ver "Convenções")
   empresas/            trilha Cadastro de Empresas (referência de padrão visual)
   cadastros-auxiliares/ cadastros mestres reutilizados por Empresas (Sócios, Registro de Contadores) — abas internas, sem tela de listagem própria
+  feriados/            Tabela de Feriados (Parâmetros Gerais) — fonte única de feriados Federal/Estadual/Municipal; spec em docs/07-tabela-feriados.md
   parametros-fiscais/  próxima trilha — discovery e arquitetura já documentados em docs/
   regras-gerais/
   parametros/
@@ -35,21 +61,35 @@ prototype/
 Toda página HTML segue o mesmo esqueleto:
 
 ```html
-<div id="shell-root"></div>
-<template id="page-content">
-  <!-- conteúdo específico da página -->
-</template>
-<script src="../shared/js/icons.js"></script>
-<script src="../shared/js/shell.js"></script>
-<script src="../shared/js/ui.js"></script>
-<script>
-  Shell.mount(document.getElementById("shell-root"), { base: "../", active: "empresas", crumb: "empresas" });
-</script>
+<head>
+  <!-- fontes (Inter, Lato, JetBrains Mono) e Lucide por CDN; depois o core, ANTES do CSS de shared/ -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="../core/cockpit-01-shell.js"></script>
+  <script src="../core/cockpit-09-cx-sidebar.js"></script>
+  <link rel="expect" href="#page-ready" blocking="render" />
+  <link rel="stylesheet" href="../shared/css/tokens.css" />
+  <link rel="stylesheet" href="../shared/css/base.css" />
+  <link rel="stylesheet" href="../shared/css/components.css" />
+  <link rel="stylesheet" href="../shared/css/layout.css" />
+</head>
+<body>
+  <div id="shell-root"></div>
+  <template id="page-content">
+    <!-- conteúdo específico da página -->
+  </template>
+  <script src="../shared/js/icons.js"></script>
+  <script src="../shared/js/shell.js"></script>
+  <script src="../shared/js/ui.js"></script>
+  <script>
+    Shell.mount(document.getElementById("shell-root"), { base: "../", active: "empresas", crumb: "empresas" });
+  </script>
+  <span id="page-ready" hidden></span>
+</body>
 ```
 
-`Shell.mount(root, opts)` constrói a sidebar e o cabeçalho (com o breadcrumb `autopilot.bhub.ai / ...`) e move o conteúdo do `<template>` para dentro da área de conteúdo.
+`Shell.mount(root, opts)` constrói a sidebar e o topbar (com o breadcrumb `Autopilot › ...`) e move o conteúdo do `<template>` para dentro da área de conteúdo.
 
-- `active` controla qual item do menu aparece destacado.
+- `active` é a chave da folha destacada na árvore da sidebar: `empresas`, `cadastros-auxiliares`, `feriados`, `fiscal`, `folha`, `sindicato`, `rubricas`, `contabil` ou `docs`. Para criar uma tela nova na árvore, inclua o item em `core/cockpit-09-cx-sidebar.js` (`AUTOPILOT`).
 - `base` é o caminho relativo até `prototype/` (ex.: `"../"` a partir de `empresas/index.html`).
 - `crumb` (string) é o texto do breadcrumb quando não há nível a linkar (ex.: página de topo de uma trilha placeholder: `"regras gerais"`).
 - `crumbs` (array `[{label, href?}]`) é a forma navegável do breadcrumb, usada quando a página está a mais de um nível de profundidade (ex.: dentro do cadastro de uma empresa). O último item é sempre a página atual, sem link; os anteriores só viram `<a>` quando `href` aponta para uma página que de fato existe — nunca gere link morto. Ver `empresas/js/boot-detail.js` para o exemplo com 3 níveis (`empresas / Nome da empresa / Aba atual`).
@@ -70,31 +110,37 @@ Formatadores/helpers de exibição usados em mais de uma tela da mesma trilha (e
 
 ## Tokens (`shared/css/tokens.css`)
 
-Única fonte de cor, sombra, raio e espaçamento — portados verbatim do objeto `T` de `src/components/ui/index.jsx`. **Nunca escreva um hex direto num CSS ou num `style=""`; sempre use a variável.** Uma checagem rápida (`grep -rE "#[0-9a-fA-F]{3,6}" prototype/`, ignorando `tokens.css`) deve sempre voltar vazia.
+Única fonte de cor, sombra, raio e espaçamento, na paleta do Cockpit (espelha o `:root` de `core/cockpit-01-shell.js`). **Nunca escreva um hex direto num CSS ou num `style=""`; sempre use a variável.** Uma checagem rápida (`grep -rE "#[0-9a-fA-F]{3,6}" prototype/`, ignorando `tokens.css`) deve sempre voltar vazia.
 
 | Grupo | Variáveis |
 |---|---|
 | Superfícies | `--background`, `--foreground`, `--card`, `--card-foreground`, `--muted`, `--muted-foreground`, `--accent`, `--accent-foreground` |
 | Ação | `--primary(-foreground/-hover)`, `--secondary(-foreground/-hover)`, `--ghost-foreground`, `--ghost-hover`, `--outline-hover` |
-| Estado semântico | `--destructive`, `--success`, `--warning`, `--info` — cada um com `-foreground`, `-text`, `-border`, `-subtle` (usados em badge/alert) |
+| Estado semântico | `--destructive`, `--success`, `--warning`, `--info` — cada um com `-foreground`, `-text`, `-border`, `-subtle` (badge/alert) e, em warning/info/destructive, `-strong` (texto de alert) |
 | Bordas e foco | `--border`, `--input`, `--ring` |
-| Sidebar | `--sidebar`, `--sidebar-foreground`, `--sidebar-primary`, `--sidebar-accent(-foreground)`, `--sidebar-border`, `--sidebar-muted` |
-| Sombra | `--shadow-xs`, `--shadow-sm`, `--shadow-md` |
-| Raio | `--radius-sm/md/lg/full` |
+| Paleta do Cockpit | `--brand-pink(-hover/-soft)`, `--brand-blue`, `--surface(-muted/-subtle)`, `--text-primary/secondary/tertiary`, `--border-strong`, `--skeleton` |
+| Sombra e overlays | `--shadow-xs`, `--shadow-sm`, `--shadow-md`, `--shadow-modal`, `--overlay-modal`, `--overlay-drawer` |
+| Raio | `--radius-sm/md/field/lg/xl/2xl/full` |
 | Espaçamento | `--space-1` a `--space-6` (4 a 24px) |
 | Tipografia | `--font-sans` |
 
 ## Estados interativos (hover / active-selected / focus / disabled)
 
-Escala de intensidade que todo componente com mais de um estado precisa seguir — existe porque, antes desta seção, mais de um componente (sidebar, lista de Documentação) usava o **mesmo token** no hover e no active/selected, deixando os dois indistinguíveis numa leitura rápida da tela.
+Escala de intensidade que todo componente com mais de um estado precisa seguir — existe porque, antes desta seção, mais de um componente (menu, lista de Documentação) usava o **mesmo token** no hover e no active/selected, deixando os dois indistinguíveis numa leitura rápida da tela.
 
 - **Default**: token de superfície neutro do componente (`--card`, `--background`, `--muted`, conforme o caso) — não compete visualmente com o que está em interação.
 - **Hover**: overlay leve e reaproveitável, sempre mais sutil que o active/selected do mesmo componente — `--outline-hover` (`rgba(0,0,0,0.031)`) é o padrão para superfícies claras; use `--ghost-hover` (`rgba(0,0,0,0.047)`) só onde ele já é o hover histórico do componente (`.btn-ghost`, `.date-picker-day`, `.date-picker-nav-btn`). **Nunca reutilize no hover o mesmo token usado no active/selected do mesmo componente.**
-- **Active/Selected**: fundo sólido mais forte que o hover **e**, sempre que o componente tiver espaço, um segundo sinal que não depende só de cor — barra lateral (`box-shadow: inset 2-3px 0 0 var(--primary)` ou `var(--sidebar-primary)`), troca de cor num ícone, ou sombra (`.tabs-trigger.is-active`, `.toggle-item.is-on`). Profundidade de cor sozinha tende a ficar parecida com o hover — evite depender só dela.
+- **Active/Selected**: fundo sólido mais forte que o hover **e**, sempre que o componente tiver espaço, um segundo sinal que não depende só de cor — barra lateral (`box-shadow: inset 2-3px 0 0 var(--primary)`), troca de cor num ícone, ou sombra (`.tabs-trigger.is-active`, `.toggle-item.is-on`). Profundidade de cor sozinha tende a ficar parecida com o hover — evite depender só dela.
 - **Focus**: o anel compartilhado já documentado em "Foco acessível compartilhado" (Convenções) — não varia por componente.
 - **Disabled**: opacidade reduzida (`.btn:disabled` = 0.55) ou cor `-muted`/`-foreground`; nunca `visibility:hidden`/`display:none` — o elemento continua no fluxo visual, só claramente inerte.
 
-Componentes que já seguem o padrão "hover sutil + active/selected com reforço extra" — use-os de referência ao criar um componente novo com os dois estados: `.sidebar-btn` / `.sidebar-sub-btn` (barra lateral em `--sidebar-primary`), `.docs-list-row` (barra lateral em `--primary`), `.condrule.is-active` (barra lateral em `--primary`), `.toggle-item` (hover em `--outline-hover` antes de virar `.is-on`), `.stepper-step` (hover no círculo/rótulo antes de virar `.is-active`).
+Componentes que já seguem o padrão "hover sutil + active/selected com reforço extra" — use-os de referência ao criar um componente novo com os dois estados: `.docs-list-row` (barra lateral em `--primary`), `.condrule.is-active` (barra lateral em `--primary`), `.toggle-item` (hover em `--outline-hover` antes de virar `.is-on`), `.stepper-step` (hover no círculo/rótulo antes de virar `.is-active`).
+
+### Estado ativo — sidebar e abas
+
+- **Sidebar** (`core/cockpit-09-cx-sidebar.js`): só a folha da página atual fica destacada (`.cx-item.active`, fundo translúcido e rótulo em negrito); os grupos pai não ganham destaque.
+- **Abas segmentadas** (`.tabs-trigger.is-active`): pílula branca com sombra sobre o fundo cinza, como o `form-tab` do Cockpit.
+- **Abas de página** (`.tabs-list-underline`): texto e sublinhado de 2px em `--brand-pink`.
 
 ## Componentes disponíveis (`shared/css/components.css`)
 
@@ -102,7 +148,7 @@ Componentes que já seguem o padrão "hover sutil + active/selected com reforço
 |---|---|---|
 | `.btn` (+ `-sm`/`-lg`, `-secondary`/`-outline`/`-ghost`/`-destructive`) | Botão. Padrão (sem modificador) = primary; não existe `.btn-primary` | toda trilha |
 | `.btn-link` | Ação de texto tipo link (editar/excluir, Limpar filtros) | `empresas/js/socios.js`, `list.js` |
-| `.link-info` | Link de destaque em `--info-text` (ex.: "voltar para a lista") — combine com `.btn-link` quando for um `<button>`, ou sozinho num `<a>` | `empresas/js/detail-common.js` |
+| `.link-info` | Link de destaque em `--brand-blue` (ex.: "voltar para a lista") — combine com `.btn-link` quando for um `<button>`, ou sozinho num `<a>` | `empresas/js/detail-common.js` |
 | `.btn-icon-chev` | Botão de ícone isolado (expandir/recolher linha) | `empresas/js/list.js` |
 | `.badge` (+ `-success`/`-warning`/`-info`/`-outline`/`-secondary`) | Etiqueta de status | toda trilha |
 | `.card` / `.card-header` / `.card-title` / `.card-description` / `.card-content` / `.card-footer` | Cartão de conteúdo | toda trilha |
@@ -110,11 +156,13 @@ Componentes que já seguem o padrão "hover sutil + active/selected com reforço
 | `.field-input` / `.field-select` (+ `.field-select-wrap`, `.field-label`) | Campo de formulário | toda trilha |
 | `.table-wrap` / `table.dtable` (+ `thead`/`th`/`td`, `.row-clickable`, `.row-empty-state`) | Tabela de dados | toda trilha |
 | `.dtable-fixed` | Modificador: `table-layout:fixed` — use com `<colgroup>` quando a largura das colunas precisa ser previsível | `empresas/index.html`, `list.js` |
-| `.dtable-compact` | Modificador: variante mais baixa (thead em `--card`, `th` de 30px) para tabela aninhada dentro de outra | `empresas/js/list.js` (subtabela de filiais) |
-| `.col-pad-sm` / `.col-pad-md` / `.col-pad-end` | Padding horizontal de coluna — aplique no `<th>` e no `<td>` da mesma coluna quando ela não deve usar o padding padrão de 24px | `empresas/index.html`, `list.js` |
-| `.tabs-list` / `.tabs-trigger` | Abas | `empresas/js/detail-common.js` |
-| `.toggle-group` / `.toggle-item` | Grupo de opções exclusivas (não é abas) | filtros de lista, "Visualizar como" |
-| `.alert` (+ `-info`/`-warning`) | Aviso de página | banner "Protótipo" |
+| `.dtable-compact` | Modificador: variante mais baixa (`th` de 30px) para tabela aninhada dentro de outra | `empresas/js/list.js` (subtabela de filiais) |
+| `.col-pad-sm` / `.col-pad-md` / `.col-pad-end` | Padding horizontal de coluna — aplique no `<th>` e no `<td>` da mesma coluna quando ela não deve usar o padding padrão de 12px | `empresas/index.html`, `list.js` |
+| `.cell-mono` | Fonte mono do Cockpit em célula de CNPJ, CPF, CRC ou código | `empresas/js/list.js`, `cadastros-auxiliares/js/socios/list.js` |
+| `.tabs-list` / `.tabs-trigger` (+ `.tabs-list-underline`) | Abas segmentadas; a variante sublinhada é para abas de página | `empresas/js/detail-common.js`, `folha-pagamento/js/folha-page.js` |
+| `.toggle-group` / `.toggle-item` | Grupo de opções exclusivas (não é abas) | filtros de lista |
+| `.alert` (+ `-info`/`-warning`/`-destructive`) | Aviso de página | `empresas/importar.html`, `empresas/js/socios.js` |
+| `.skeleton` / `UI.showTabSkeleton()` | Estado de carregamento; `showTabSkeleton` segura o conteúdo de uma aba que é página separada atrás de um skeleton por 450ms | `parametros-fiscais/js/fiscal-page.js`, `empresas/js/boot-detail.js` |
 | `.uswitch` | Switch on/off | disponível, ainda sem uso em nenhuma trilha |
 | `.dialog-*` | Modal centralizado | `empresas/socios.html`, `empresas/contadores.html` (confirmação de desvínculo) |
 | `.sheet-*` | Painel lateral (drawer) | `empresas/socios.html`, `empresas/contadores.html`, `cadastros-auxiliares/socios.html`, `cadastros-auxiliares/contadores.html` |
@@ -138,7 +186,7 @@ Precisa de um valor que não existe (ex.: `py-4`, `max-w-3xl`, `w-64`)? **Adicio
 - **Estado visual em classe, não em atributo solto**: `.is-active`, `.is-open`, `.is-on`, `.is-checked`, `.is-selected` — todo componente com estado liga/desliga usa esse prefixo `is-*`. Não invente `.active`, `.opened`, `.selected` soltos.
 - **Interação em `data-*`**: ações wireadas por JS usam atributos `data-acao="valor"` (ex.: `data-toggle-matriz`, `data-abrir`, `data-editar`), nunca `id` gerado dinamicamente por linha nem `onclick` inline.
 - **`dtable` é o nome da tabela de dados** (mnemônico curto, não "table" nem "data-table") — mantenha esse nome em trilhas novas; não introduza um segundo nome para o mesmo componente.
-- **Foco acessível compartilhado**: todo elemento interativo custom (não nativo) usa o mesmo anel — `outline: 2px solid var(--info-text); outline-offset: 2px` (ou `-2px` para controles que ocupam a linha toda, como `.row-clickable` e os botões da sidebar). As regras ficam agrupadas no topo de `components.css`/`layout.css`: **adicione o seletor do componente novo a um desses grupos**, não copie a declaração de novo. Para um elemento avulso que não justifica nomear um seletor, aplique a classe utilitária `.focus-ring` direto nele.
+- **Foco acessível compartilhado**: todo elemento interativo custom (não nativo) usa o mesmo anel — `outline: 2px solid var(--info-text); outline-offset: 2px` (ou `-2px` para controles que ocupam a linha toda, como `.row-clickable`). As regras ficam agrupadas no topo de `components.css`/`layout.css`: **adicione o seletor do componente novo a um desses grupos**, não copie a declaração de novo. Para um elemento avulso que não justifica nomear um seletor, aplique a classe utilitária `.focus-ring` direto nele.
 - **Truncamento de célula de tabela**: para um rótulo que é o único conteúdo de uma `<td>`, use `UI.truncatedCell(texto, maxWidthPx?, extraClass?)` (`shared/js/ui.js`) em vez de escrever `<span class="truncate" style="...">` à mão — `maxWidthPx` é opcional (omita numa tabela com `.dtable-fixed` + `<colgroup>`, onde a coluna já tem largura definida). Quando o truncamento é de um item dentro de uma linha flex com outros elementos ao lado (nome + badge, por exemplo), use a classe `.truncate` direto num item flex com `.min-w-0` — não use `UI.truncatedCell` nesse caso.
 - **Toast**: `EmpresaDetailShell.mount()` (ou o equivalente de cada trilha) garante o markup do toast no `<body>` uma vez por página (`ensureToast()`); não declare `<div class="toast" id="toast">` manualmente em nenhum HTML. Para disparar, chame `UI.showToast(titulo, descricao?, iconName?)` — `iconName` aceita `"circle-check"` (padrão, confirmação de sucesso) ou `"info"` (aviso neutro); o ícone e a cor são resolvidos pelo próprio `showToast`.
 - **Helpers de exibição por trilha**: uma função de formatação/lookup usada por mais de uma tela da mesma trilha (ex.: `situacaoBadge`, `formatarEndereco`, `findContadorDaEmpresa`) mora em `<trilha>/js/data.js`, exportada no objeto global da trilha (`EmpresasData`, etc.) — nunca copiada de arquivo em arquivo. Se, ao criar uma tela nova, você perceber que está reescrevendo uma função que já existe em outra tela da mesma trilha, é sinal de que ela deveria estar em `data.js`.

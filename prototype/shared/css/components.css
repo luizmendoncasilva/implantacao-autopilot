@@ -22,14 +22,15 @@
 .fab-tools-item:focus-visible,
 .date-picker-trigger:focus-visible,
 .date-picker-nav-btn:focus-visible,
-.date-picker-day:focus-visible {
-  outline: 2px solid var(--info-text);
+.date-picker-day:focus-visible,
+.field-origin-clickable:focus-visible {
+  outline: 3px solid var(--focus-ring);
   outline-offset: 2px;
 }
 .row-clickable:focus-visible,
 .docs-list-row:focus-visible {
-  outline: 2px solid var(--info-text);
-  outline-offset: -2px;
+  outline: 3px solid var(--focus-ring);
+  outline-offset: -3px;
 }
 
 /* ===== Button (ui/button) ===== */
@@ -40,36 +41,51 @@
   gap: 8px;
   white-space: nowrap;
   border-radius: var(--radius-lg);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
+  font-family: inherit;
   cursor: pointer;
-  border: none;
+  border: 1px solid transparent;
   transition: background-color 0.15s, color 0.15s, border-color 0.15s;
   height: 36px;
   padding: 0 16px;
   background: var(--primary);
   color: var(--primary-foreground);
-  box-shadow: var(--shadow-xs);
 }
+.btn:hover:not(:disabled) { background: var(--primary-hover); }
 .btn:disabled {
   cursor: not-allowed;
   opacity: 0.55;
 }
-.btn-sm { height: 32px; padding: 0 12px; gap: 6px; }
+.btn-xs { height: 24px; padding: 0 8px; font-size: 12px; gap: 4px; border-radius: var(--radius-md); }
+.btn-sm { height: 32px; padding: 0 12px; font-size: 13px; gap: 6px; }
 .btn-lg { height: 40px; padding: 0 24px; }
 .btn-secondary { background: var(--secondary); color: var(--secondary-foreground); }
-.btn-outline { background: transparent; color: var(--foreground); border: 1px solid var(--border); }
+.btn-secondary:hover:not(:disabled) { background: var(--secondary-hover); }
+.btn-outline { background: var(--background); color: var(--foreground); border-color: var(--border); box-shadow: var(--shadow-xs); }
 .btn-outline:hover:not(:disabled) { background: var(--muted); }
 .btn-ghost { background: transparent; color: var(--ghost-foreground); box-shadow: none; }
-.btn-ghost:hover:not(:disabled) { background: var(--ghost-hover); }
+.btn-ghost:hover:not(:disabled) { background: var(--muted); color: var(--foreground); }
 .btn-destructive { background: var(--destructive); color: var(--destructive-foreground); }
+.btn-destructive:hover:not(:disabled) { background: var(--destructive-hover); }
+/* Tonal state variants (BSystem D22/D24): status is tonal, action is solid. */
+.btn-info { background: var(--info-subtle); color: var(--info-text); border-color: var(--info-border); }
+.btn-info:hover:not(:disabled) { background: var(--info-muted); color: var(--info-strong); }
+.btn-success { background: var(--success-subtle); color: var(--success-text); border-color: var(--success-border); }
+.btn-success:hover:not(:disabled) { background: var(--success-muted); color: var(--success-strong); }
+.btn-warning { background: var(--warning-subtle); color: var(--warning-text); border-color: var(--warning-border); }
+.btn-warning:hover:not(:disabled) { background: var(--warning-muted); color: var(--warning-strong); }
+.btn-info:focus-visible { outline-color: var(--info-text); }
+.btn-success:focus-visible { outline-color: var(--success-text); }
+.btn-warning:focus-visible { outline-color: var(--warning-text); }
+.btn-destructive:focus-visible { outline-color: var(--destructive-text); }
 
 /* ===== Link-as-button (ações de linha "editar"/"excluir") ===== */
 .btn-link {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 500;
   padding: 0;
   font-family: inherit;
@@ -77,8 +93,8 @@
 .btn-link:hover { text-decoration: underline; }
 
 /* ===== Link de destaque (ex.: "voltar para a lista", "Ver em Contadores") ===== */
-.link-info { color: var(--info-text); }
-.link-info:hover { text-decoration: underline; }
+.link-info { color: var(--link); font-weight: 500; border-radius: var(--radius-sm); }
+.link-info:hover { color: var(--link-hover); text-decoration: underline; text-underline-offset: 2px; }
 
 /* ===== Botão de ícone isolado (ex.: expandir/recolher matriz na tabela) ===== */
 .btn-icon-chev {
@@ -89,10 +105,10 @@
   border: none;
   cursor: pointer;
   padding: 4px;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-md);
   color: var(--muted-foreground);
 }
-.btn-icon-chev:hover { background: var(--outline-hover); }
+.btn-icon-chev:hover { background: var(--muted); color: var(--foreground); }
 
 /* ===== Badge (ui/badge) ===== */
 .badge {
@@ -104,35 +120,35 @@
   border-radius: var(--radius-full);
   border: 1px solid transparent;
   padding: 2px 10px;
-  font-size: 11.5px;
+  font-size: 12px;
+  line-height: 16px;
   font-weight: 500;
   background: var(--primary);
   color: var(--primary-foreground);
 }
+.badge svg { width: 12px; height: 12px; flex-shrink: 0; }
 .badge-success { background: var(--success-subtle); color: var(--success-text); border-color: var(--success-border); }
 .badge-warning { background: var(--warning-subtle); color: var(--warning-text); border-color: var(--warning-border); }
 .badge-info { background: var(--info-subtle); color: var(--info-text); border-color: var(--info-border); }
 .badge-outline { background: transparent; color: var(--foreground); border-color: var(--border); }
 .badge-secondary { background: var(--secondary); color: var(--secondary-foreground); }
-.badge-destructive { background: var(--destructive-subtle); color: var(--destructive-text); border-color: var(--destructive-border); }
+.badge-destructive { background: var(--destructive); color: var(--destructive-foreground); }
+.badge-magic { background: var(--magic-subtle); color: var(--magic-strong); border-color: var(--magic-bold); }
 
 /* ===== Card (ui/card) ===== */
 .card {
   display: flex;
   flex-direction: column;
-  gap: 24px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   background: var(--card);
   color: var(--card-foreground);
-  box-shadow: var(--shadow-sm);
-  padding: 24px 0;
 }
-.card-header { display: flex; flex-direction: column; gap: 6px; padding: 0 24px; }
-.card-title { font-size: 15px; font-weight: 600; line-height: 1; }
-.card-description { font-size: 13px; color: var(--muted-foreground); }
-.card-content { padding: 0 24px; }
-.card-footer { display: flex; align-items: center; gap: 8px; padding: 24px 24px 0; border-top: 1px solid var(--border); margin-top: 24px; }
+.card-header { display: flex; flex-direction: column; gap: 4px; padding: 20px 24px; border-bottom: 1px solid var(--border); }
+.card-title { font-size: 14px; font-weight: 600; line-height: 20px; color: var(--card-foreground); }
+.card-description { font-size: 13px; line-height: 18px; color: var(--muted-foreground); }
+.card-content { padding: 20px 24px; }
+.card-footer { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 14px 24px; border-top: 1px solid var(--border); border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
 
 /* ===== Detail info grid — bloco seção + grade de campos rótulo/valor usado
    em telas de detalhe (ex.: aba "Dados gerais" de Empresa). O número de
@@ -142,20 +158,28 @@
 .detail-section-title {
   padding-bottom: 10px;
   border-bottom: 1px solid var(--border);
-  font-size: 11.5px;
+  font-size: 14px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--muted-foreground);
+  color: var(--foreground);
 }
+/* Ação opcional à direita do título da seção (ex.: "Editar", "Adicionar
+   sócio" na aba Sócios/Resp. legal) — não herda o uppercase do título. */
+.detail-section-title:has(.detail-section-action) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+}
+.detail-section-action { text-transform: none; letter-spacing: normal; }
 .detail-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 18px 32px;
 }
 .detail-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.detail-field-label { font-size: 11.5px; color: var(--muted-foreground); }
-.detail-field-value { font-size: 13.5px; font-weight: 500; color: var(--foreground); line-height: 1.4; }
+.detail-field-label { font-size: 12px; line-height: 16px; font-weight: 500; color: var(--muted-foreground); }
+.detail-field-value { font-size: 14px; font-weight: 500; color: var(--foreground); line-height: 20px; }
 .detail-field-wide { grid-column: span 2; }
 @media (max-width: 640px) {
   .detail-field-wide { grid-column: span 1; }
@@ -163,12 +187,60 @@
 
 /* Campo com Origem (docs/parametros-fiscais-arquitetura.md, seção 14) —
    evolução ADITIVA do .detail-field acima: a origem é só mais um filho
-   dentro do mesmo .detail-field (o badge de origem usa .badge/.badge-outline
-   já existentes, sem classe nova), então nenhum uso atual de .detail-field
+   dentro do mesmo .detail-field, então nenhum uso atual de .detail-field
    sem origem muda de aparência. Ver shared/js/origem.js. A única regra nova
    é o texto do estado "sem valor disponível" do Indicador Calculado (ver
    shared/js/indicador-calculado.js), que não tinha equivalente antes. */
 .detail-field-unavailable { font-style: italic; font-weight: 400; color: var(--muted-foreground); }
+
+/* Indicador de origem/proveniência do dado (shared/js/origem.js) — rodada
+   "Refinação visual — Origem dos dados". Antes reaproveitava .badge/
+   .badge-outline; passou a ter esta classe própria porque o badge genérico
+   é usado no resto do produto para status/contagem/tags de ação (ex.:
+   "Fase 2", o usuário no cabeçalho do Histórico de Alterações) — a mesma
+   aparência de pílula não deixava claro que a origem é um metadado, não um
+   controle. `.field-origin` é deliberadamente mais discreto que `.badge`:
+   sem preenchimento, sem borda, ícone + texto pequenos, cor
+   `--muted-foreground` — nunca cor de status (success/warning/destructive/
+   info), para não ser confundido com um badge de estado. Vem sempre depois
+   do valor do campo (.detail-field-value), reforçando a hierarquia
+   campo > valor > origem. */
+.field-origin {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--muted-foreground);
+}
+.field-origin svg { flex-shrink: 0; }
+
+/* Atalho de edição a partir do indicador de origem (rodada "Informado
+   manualmente como atalho para edição") — só usado quando a origem é
+   "Informado manualmente" E a vigência ativa está selecionada (ver
+   shared/js/origem.js, opts.editavel, e fiscal-page.js,
+   wireOrigemEditavel). É o mesmo `.field-origin` visualmente — reset só o
+   necessário para que o <button> nativo não pareça um botão (sem fundo,
+   sem borda, sem padding, fonte herdada) — e adiciona cursor pointer e uma
+   pista discreta de interação no hover/foco (sublinhado + cor um pouco
+   mais escura), nunca uma pílula nem um botão visível. Foco visível vem do
+   grupo compartilhado no topo deste arquivo (".btn:focus-visible, ...").
+*/
+.field-origin-clickable {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  cursor: pointer;
+}
+.field-origin-clickable:hover,
+.field-origin-clickable:focus-visible {
+  color: var(--foreground);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 /* Estado "não aplicável" do Indicador Calculado — deliberadamente SEM
    itálico (que já significa "unavailable"/falha de origem no restante do
    app). "Não aplicável" é um resultado esperado do enquadramento da
@@ -194,24 +266,27 @@
   height: 36px;
   width: 100%;
   min-width: 0;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-field);
   border: 1px solid var(--input);
   padding: 0 12px;
-  font-size: 13px;
+  font-size: 14px;
   outline: none;
-  background: transparent;
+  background: var(--background);
   color: var(--foreground);
-  box-shadow: var(--shadow-xs);
   font-family: inherit;
+  box-shadow: var(--shadow-xs);
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
+.field-input::placeholder,
+.field-textarea::placeholder { color: var(--muted-foreground); }
 .field-input:focus,
-.field-select:focus { border-color: var(--ring); }
+.field-select:focus { border-color: var(--ring); box-shadow: 0 0 0 3px var(--ring-soft); }
 /* Estado inválido — mesma convenção de docs/design-system/components/ui/input.tsx
    ("aria-invalid:border-destructive"), portada para o CSS do protótipo. Usado
    pela validação de obrigatoriedade da Folha de Pagamento; disponível para
    qualquer outro campo que precise indicar erro sem inventar uma classe nova. */
 .field-input[aria-invalid="true"],
-.field-select[aria-invalid="true"] { border-color: var(--destructive); }
+.field-select[aria-invalid="true"] { border-color: var(--destructive); box-shadow: 0 0 0 3px color-mix(in oklab, var(--destructive) 20%, transparent); }
 /* Estado disabled — mesma convenção já usada em .btn:disabled/.ucheckbox.is-disabled
    (opacity 0.55 + cursor not-allowed), estendida a input/select. Lacuna
    identificada pela Fase 3 da Folha de Pagamento (Arredondamento): até então
@@ -238,9 +313,13 @@
   color: var(--muted-foreground);
 }
 .field-label {
-  font-size: 11px;
+  font-size: 13px;
+  line-height: 18px;
   font-weight: 500;
-  color: var(--muted-foreground);
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--foreground);
+  margin-bottom: 0;
 }
 
 /* ===== Table (ui/table) ===== */
@@ -248,35 +327,62 @@
   position: relative;
   width: 100%;
   overflow-x: auto;
-  border-radius: 12px;
+  border-radius: var(--radius-xl);
   border: 1px solid var(--border);
   background: var(--card);
 }
 table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
 .dtable thead { background: var(--muted); }
+.dtable thead tr { border-bottom: 1px solid var(--border); }
 .dtable th {
-  height: 44px;
-  padding: 0 24px;
+  height: 40px;
+  padding: 0 12px;
   text-align: left;
   vertical-align: middle;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
   white-space: nowrap;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   color: var(--muted-foreground);
 }
 .dtable td {
-  padding: 14px 24px;
+  padding: 12px;
   vertical-align: middle;
-  white-space: nowrap;
 }
+.dtable td:has(.badge, .btn, .btn-link, .btn-icon-chev) { white-space: nowrap; }
 .dtable tbody tr { border-bottom: 1px solid var(--border); transition: background-color 0.15s; }
 .dtable tbody tr:last-child { border-bottom: none; }
 .row-clickable { cursor: pointer; }
 .row-clickable:hover,
-.row-clickable:focus-visible { background: var(--muted); }
-.row-empty-state { padding: 32px 24px; text-align: center; font-size: 11.5px; color: var(--muted-foreground); }
+.row-clickable:focus-visible { background: color-mix(in oklab, var(--muted) 60%, transparent); }
+.row-empty-state { padding: 32px 24px; text-align: center; font-size: 13px; color: var(--muted-foreground); }
+.row-muted td { color: var(--muted-foreground); background: color-mix(in oklab, var(--muted) 45%, transparent); }
+.dtable tfoot tr { border-top: 1px solid var(--border); background: var(--muted); }
+.dtable tfoot td { padding: 10px 12px; font-weight: 600; }
+
+/* ===== Empty (BSystem Empty) — ícone, uma frase calma e, se fizer sentido, uma ação. ===== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 24px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+.empty-state-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-lg);
+  background: var(--muted);
+  color: var(--muted-foreground);
+  margin-bottom: 4px;
+}
+.empty-state-title { font-size: 14px; font-weight: 600; color: var(--foreground); }
+.empty-state-desc { max-width: 480px; font-size: 13px; line-height: 18px; color: var(--muted-foreground); }
 
 /* Modificadores de tabela — combine com .dtable quando a densidade padrão
    (colunas soltas, table-layout automático) não servir:
@@ -284,8 +390,9 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
    .dtable-compact variante mais baixa para tabela aninhada (ex.: filiais
    dentro de uma matriz), sem precisar sobrescrever altura/fonte por célula. */
 .dtable-fixed { table-layout: fixed; }
-.dtable-compact thead { background: var(--card); }
-.dtable-compact th { height: 30px; }
+.dtable-compact thead { background: var(--muted); }
+.cell-mono { font-family: var(--font-mono); font-size: 12px; }
+.dtable-compact th { height: 32px; }
 
 /* Padding horizontal por coluna — cobre os 3 paddings realmente usados nas
    tabelas do protótipo (coluna estreita tipo "código", coluna média tipo
@@ -295,61 +402,6 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
 .dtable th.col-pad-sm, .dtable td.col-pad-sm { padding-left: 8px; padding-right: 8px; }
 .dtable th.col-pad-md, .dtable td.col-pad-md { padding-left: 12px; padding-right: 12px; }
 .dtable th.col-pad-end, .dtable td.col-pad-end { padding-left: 8px; padding-right: 16px; }
-
-/* Linha de cabeçalho de grupo dentro de uma dtable (ex.: colaboradores da
-   Implantação agrupados por empresa) — separa visualmente sem virar
-   accordion: sempre expandida, só uma <tr> com <td colspan> em destaque
-   entre um grupo e outro. Diferente de .dtable-compact (variante de row
-   normal): aqui a linha inteira é só rótulo, sem células de dado. */
-.dtable-group-row td {
-  background: var(--muted);
-  padding: 10px 24px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--foreground);
-  border-bottom: 1px solid var(--border);
-}
-.dtable-group-row:first-child td { border-top: none; }
-.dtable-group-row-count { font-weight: 500; color: var(--muted-foreground); margin-left: 6px; }
-
-/* ===== Barra de progresso segmentada (Implantação DP por empresa) — cada
-   segmento é uma frente (colaboradores, financeiro, rubricas, cálculo em
-   paralelo), colorida pela completude daquela frente; a separação entre
-   segmentos é o próprio gap. Tooltip customizado ao passar o mouse (o
-   protótipo não tem um componente de tooltip genérico ainda) — content vem
-   de data-tooltip para não duplicar texto em title + elemento. Sem
-   componente React de origem, exclusivo deste resumo. ===== */
-.segbar { display: flex; gap: 3px; width: 100%; height: 8px; }
-.segbar-segment {
-  flex: 1;
-  height: 100%;
-  border-radius: var(--radius-full);
-  background: var(--border);
-  position: relative;
-  cursor: default;
-}
-.segbar-segment.is-success { background: var(--success-border); }
-.segbar-segment.is-warning { background: var(--warning-border); }
-/* Tooltip do segbar é montado por JS direto em <body> (UI.initSegbarTooltips,
-   shared/js/ui.js), não um ::after posicionado sobre o próprio segmento —
-   um ::after fica preso ao contexto de recorte do ancestral, e .table-wrap
-   tem overflow-x:auto, que por especificação também recorta o eixo Y (não
-   dá pra deixar só um eixo "visible" quando o outro não é). Um elemento
-   solto em body, position:fixed, escapa desse recorte. */
-.segbar-tooltip {
-  position: fixed;
-  background: var(--foreground);
-  color: var(--background);
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 1.4;
-  white-space: nowrap;
-  padding: 6px 10px;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
-  z-index: 9999;
-  pointer-events: none;
-}
 
 /* ===== Evento de histórico (ex.: Histórico de Alterações em Empresas) —
    agrupa todos os campos alterados numa mesma ação de salvar sob um único
@@ -368,7 +420,9 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
 .tabs-list {
   display: inline-flex;
   align-items: center;
-  gap: 0;
+  gap: 2px;
+  flex-wrap: wrap;
+  max-width: 100%;
   width: fit-content;
   border-radius: var(--radius-lg);
   padding: 3px;
@@ -384,14 +438,55 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
   padding: 6px 12px;
   font-size: 13px;
   font-weight: 500;
+  font-family: inherit;
   cursor: pointer;
   border: none;
   background: transparent;
   color: var(--muted-foreground);
   transition: background-color 0.15s, color 0.15s;
 }
-.tabs-trigger:hover:not(.is-active) { background: rgba(255, 255, 255, 0.7); }
-.tabs-trigger.is-active { background: var(--card); color: var(--foreground); box-shadow: var(--shadow-xs); }
+.tabs-trigger:hover:not(.is-active) { color: var(--foreground); }
+.tabs-trigger.is-active {
+  background: var(--background);
+  color: var(--foreground);
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Underline variant (Cockpit page-level tabs): same markup, add .tabs-list-underline to .tabs-list. */
+.tabs-list-underline {
+  gap: 4px;
+  flex-wrap: nowrap;
+  width: 100%;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  border-bottom: 1px solid var(--border);
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+.tabs-list-underline .tabs-trigger {
+  flex-shrink: 0;
+  white-space: nowrap;
+  border-radius: 0;
+  padding: 10px 12px;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  color: var(--muted-foreground);
+  font-size: 14px;
+}
+.tabs-list-underline .tabs-trigger:hover:not(.is-active) { background: none; color: var(--foreground); }
+.tabs-list-underline .tabs-trigger.is-active {
+  background: none;
+  box-shadow: none;
+  color: var(--foreground);
+  border-bottom-color: var(--tabs-indicator);
+  font-weight: 600;
+}
+.tabs-trigger:disabled,
+.tabs-trigger.is-disabled { cursor: not-allowed; opacity: 0.55; }
+.tabs-list-underline .tabs-trigger:disabled:hover,
+.tabs-list-underline .tabs-trigger.is-disabled:hover { color: var(--muted-foreground); }
 
 /* ===== ToggleGroup (ui/toggle-group) ===== */
 .toggle-group {
@@ -399,9 +494,10 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
   align-items: center;
   width: fit-content;
   border-radius: var(--radius-lg);
+  gap: 2px;
   padding: 3px;
-  background: var(--secondary);
-  border: 1px solid var(--border);
+  background: var(--muted);
+  border: none;
 }
 .toggle-item {
   display: inline-flex;
@@ -409,15 +505,16 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
   justify-content: center;
   border-radius: var(--radius-md);
   padding: 6px 12px;
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 500;
+  font-family: inherit;
   cursor: pointer;
   border: none;
   background: transparent;
   color: var(--muted-foreground);
 }
-.toggle-item:hover:not(.is-on) { background: var(--outline-hover); }
-.toggle-item.is-on { background: var(--card); color: var(--foreground); box-shadow: var(--shadow-xs); }
+.toggle-item:hover:not(.is-on) { color: var(--foreground); }
+.toggle-item.is-on { background: var(--background); color: var(--foreground); box-shadow: var(--shadow-sm); }
 
 /* ===== Alert (ui/alert) ===== */
 .alert {
@@ -427,6 +524,7 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
   border: 1px solid var(--border);
   padding: 12px 16px;
   font-size: 13px;
+  line-height: 18px;
   display: grid;
   grid-template-columns: 16px 1fr;
   gap: 2px 12px;
@@ -435,12 +533,14 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
   color: var(--card-foreground);
 }
 .alert-info { background: var(--info-subtle); border-color: var(--info-border); color: var(--info-text); }
+.alert-success { background: var(--success-subtle); border-color: var(--success-border); color: var(--success-text); }
 .alert-warning { background: var(--warning-subtle); border-color: var(--warning-border); color: var(--warning-text); }
 /* Nível crítico — evolução do componente (só existiam info/warning; ver
    Auditoria da Trilha Fiscal). Reservado para bloqueios equivalentes ao de
    apuração fiscal em qualquer trilha, não específico da Fiscal. */
 .alert-destructive { background: var(--destructive-subtle); border-color: var(--destructive-border); color: var(--destructive-text); }
-.alert-desc { grid-column: 2; font-size: 13px; line-height: 1.5; }
+.alert-title { grid-column: 2; font-weight: 600; }
+.alert-desc { grid-column: 2; font-size: 13px; line-height: 18px; }
 
 /* ===== Switch (ui/switch) ===== */
 .uswitch {
@@ -477,7 +577,8 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--overlay-modal);
+  backdrop-filter: blur(2px);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s;
@@ -495,10 +596,10 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
   gap: 16px;
   width: 100%;
   max-width: 480px;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   border: 1px solid var(--border);
   background: var(--background);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-modal);
   padding: 24px;
   margin: 16px;
   transform: scale(0.96) translateY(8px);
@@ -517,7 +618,7 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
 }
 .dialog-close:hover,
 .dialog-close:focus-visible { opacity: 1; }
-.dialog-title { font-size: 17px; font-weight: 600; }
+.dialog-title { font-size: 18px; line-height: 28px; font-weight: 600; }
 .dialog-description { font-size: 13px; color: var(--muted-foreground); }
 .dialog-footer { display: flex; justify-content: flex-end; gap: 8px; }
 
@@ -526,7 +627,7 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--overlay-drawer);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s;
@@ -538,16 +639,14 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
   bottom: 0;
   right: 0;
   z-index: 61;
-  width: 420px;
+  width: 480px;
   max-width: 92vw;
   display: flex;
   flex-direction: column;
-  gap: 16px;
   background: var(--background);
   border-left: 1px solid var(--border);
-  box-shadow: var(--shadow-md);
   transform: translateX(100%);
-  transition: transform 0.3s ease-in-out;
+  transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 .sheet-panel.is-open { transform: translateX(0); }
 /* Modificador opcional de largura — mesma mecânica do .sheet-panel padrão
@@ -555,7 +654,7 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
    formulários com mais campos relacionados (ex.: cadastro de Sindicato),
    onde 420px força tudo para uma única coluna. Não altera .sheet-panel
    em si, então nenhum Sheet existente muda de largura. */
-.sheet-panel-wide { width: 520px; }
+.sheet-panel-wide { width: 560px; }
 /* Linha de campos lado a lado dentro do Sheet (ex.: Número + Complemento,
    Cidade + UF) — mesma ideia de composição horizontal já usada em
    detail-grid, só que dentro do Sheet, onde os campos ficam em coluna única
@@ -566,7 +665,7 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
 .sheet-close {
   position: absolute;
   top: 16px;
-  right: 16px;
+  right: 20px;
   background: none;
   border: none;
   cursor: pointer;
@@ -575,12 +674,12 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
 }
 .sheet-close:hover,
 .sheet-close:focus-visible { opacity: 1; }
-.sheet-header { display: flex; flex-direction: column; gap: 6px; padding: 16px; border-bottom: 1px solid var(--border); }
-.sheet-title { font-size: 17px; font-weight: 600; padding-right: 24px; }
+.sheet-header { display: flex; flex-direction: column; gap: 6px; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.sheet-title { font-size: 16px; font-weight: 600; line-height: 1.3; padding-right: 24px; }
 .sheet-description { font-size: 13px; color: var(--muted-foreground); }
-.sheet-body { display: flex; flex-direction: column; gap: 16px; padding: 0 16px; overflow-y: auto; flex: 1; }
+.sheet-body { display: flex; flex-direction: column; gap: 16px; padding: 16px 20px; overflow-y: auto; flex: 1; }
 .sheet-field { display: flex; flex-direction: column; gap: 6px; }
-.sheet-footer { margin-top: auto; display: flex; justify-content: flex-end; gap: 8px; padding: 16px; border-top: 1px solid var(--border); }
+.sheet-footer { margin-top: auto; display: flex; justify-content: flex-end; gap: 8px; padding: 14px 20px; border-top: 1px solid var(--border); background: var(--background); }
 
 /* ===== Campo/seção bloqueada dentro de um sheet (ex.: CNPJ, Certificado
    digital, Contador responsável e Contrato no drawer de edição de empresa) —
@@ -610,19 +709,20 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-field);
   border: 1px solid var(--input);
   padding: 0 12px;
-  font-size: 13px;
-  background: transparent;
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--background);
   color: var(--muted-foreground);
   box-shadow: var(--shadow-xs);
   cursor: pointer;
 }
 .combobox-trigger.has-value { color: var(--foreground); }
-.combobox-trigger:hover { background: var(--outline-hover); }
+.combobox-trigger:hover { background: var(--muted); }
 .combobox-trigger:disabled { opacity: 0.55; cursor: not-allowed; }
-.combobox-trigger:disabled:hover { background: transparent; }
+.combobox-trigger:disabled:hover { background: var(--surface); }
 .combobox-panel {
   position: absolute;
   z-index: 20;
@@ -683,18 +783,17 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
   display: flex;
   align-items: center;
   gap: 8px;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-field);
   border: 1px solid var(--input);
   padding: 0 12px;
   font-size: 13px;
   font-weight: 400;
   font-family: inherit;
-  background: transparent;
+  background: var(--surface);
   color: var(--foreground);
-  box-shadow: var(--shadow-xs);
   cursor: pointer;
 }
-.date-picker-trigger:hover { background: var(--outline-hover); }
+.date-picker-trigger:hover { background: var(--muted); }
 .date-picker-trigger.is-empty { color: var(--muted-foreground); }
 .date-picker-trigger[aria-invalid="true"] { border-color: var(--destructive); }
 .date-picker-panel {
@@ -770,18 +869,21 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
   display: none;
   align-items: flex-start;
   gap: 10px;
-  width: 340px;
-  border-radius: var(--radius-lg);
+  width: 360px;
+  max-width: calc(100vw - 40px);
+  border-radius: var(--radius-xl);
   border: 1px solid var(--border);
   background: var(--card);
   color: var(--card-foreground);
-  box-shadow: var(--shadow-md);
-  padding: 14px;
+  box-shadow: var(--shadow-modal);
+  padding: 14px 16px;
 }
 .toast.is-open { display: flex; }
-.toast-icon { color: var(--success-text); flex-shrink: 0; margin-top: 2px; }
-.toast-title { font-size: 13px; font-weight: 500; }
-.toast-desc { font-size: 11.5px; color: var(--muted-foreground); }
+.toast-icon { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--success-subtle); color: var(--success-text); flex-shrink: 0; }
+.toast-icon[style*="info"] { background: var(--info-subtle); }
+.toast-icon svg { width: 12px; height: 12px; }
+.toast-title { font-size: 13px; font-weight: 600; }
+.toast-desc { font-size: 13px; color: var(--muted-foreground); margin-top: 2px; }
 
 /* ===== FAB de ferramentas de prototipação (sem componente React de origem —
    exclusivo do protótipo estático, ver shared/js/fab-tools.js) =====
@@ -874,7 +976,6 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   background: var(--card);
-  box-shadow: var(--shadow-xs);
   /* Propositalmente SEM `overflow` aqui. Uma correção anterior tentou
      resolver o scroll horizontal da Convenção neste elemento (overflow-x
      via inline style + overflow-y:hidden aqui), mas misturar dois valores
@@ -885,7 +986,7 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
      cantos daquele eixo retos em vez de curvos (reportado nos cantos
      esquerdos). Um `.stepper` sem overflow nunca sofre esse bug, em
      nenhum navegador — por isso o scroll horizontal da Convenção agora
-     vive em `.convencao-stepper-sticky` (abaixo), que não tem
+     vive em `.stepper-sticky` (abaixo), que não tem
      border-radius e não corre esse risco. */
 }
 .stepper-step { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; min-width: 0; }
@@ -893,11 +994,11 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: var(--radius-full);
-  border: 1px solid var(--border);
-  background: var(--card);
+  border: 1px solid transparent;
+  background: var(--muted);
   color: var(--muted-foreground);
   font-size: 12px;
   font-weight: 600;
@@ -908,26 +1009,18 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
 .stepper-step:hover:not(.is-active) .stepper-step-circle { border-color: var(--ring); }
 .stepper-step:hover:not(.is-active) .stepper-step-label { color: var(--foreground); }
 .stepper-step.is-active .stepper-step-circle { border-color: var(--primary); background: var(--primary); color: var(--primary-foreground); }
-.stepper-step.is-active .stepper-step-label { color: var(--foreground); }
-.stepper-step.is-done .stepper-step-circle { border-color: var(--success-border); background: var(--success-subtle); color: var(--success-text); }
+.stepper-step.is-active .stepper-step-label { color: var(--foreground); font-weight: 600; }
+.stepper-step.is-done .stepper-step-circle { border-color: var(--success); background: var(--success); color: var(--success-foreground); }
 .stepper-connector { flex: 1; height: 2px; border-radius: var(--radius-full); background: var(--border); margin-top: 13px; transition: background-color 0.2s ease; }
-.stepper-connector.is-done { background: var(--success-border); }
+.stepper-connector.is-done { background: var(--success); }
 
-/* Refinamento pontual — Convenção, item 1 (stepper sticky): wrapper só de
-   posicionamento em volta do .stepper já existente (nenhuma alteração nele).
-   .app-content é o único ancestral com scroll (ver layout.css). Fica como um
-   filho comum do flex column do #convencao-root (mesmo gap-4 dos demais
-   irmãos) — sem margin/padding negativos: uma correção anterior usava
-   margin-top:-24px para "colar" o stepper ao topo do scroll, mas isso
-   excedia em 8px o gap-4 (16px) do container, sobrepondo o próprio wrapper
-   (com fundo opaco e a stacking context do position:sticky) sobre os
-   últimos 8px do cabeçalho anterior — visível quando esse cabeçalho não
-   tinha "almofada" própria embaixo (Convenção existente em modo de
-   visualização, sem a caixa de Descrição). `top: 0` já basta: o padding-top
-   do próprio .app-content rola junto com o conteúdo (comportamento padrão
-   de overflow:auto), então o stepper já gruda rente ao topo do scroll sem
-   nenhum salto, dispensando qualquer compensação. */
-.convencao-stepper-sticky {
+/* Stepper fixo no topo da área de conteúdo (Convenção e Importação de empresas): wrapper só de
+   posicionamento em volta do .stepper (nenhuma alteração nele). .app-content é o único ancestral
+   com scroll (ver layout.css), então `top: 0` gruda o stepper rente ao topo do scroll. Fica como um
+   filho comum do flex column da página (mesmo gap dos irmãos), sem margin/padding negativos — o
+   padding-top do .app-content rola junto com o conteúdo, sem nenhum salto. O fundo é o da própria
+   página (--muted) para esconder o conteúdo que rola por baixo sem desenhar uma faixa. */
+.stepper-sticky {
   position: sticky;
   top: 0;
   z-index: 5;
@@ -944,16 +1037,16 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
   align-items: center;
   gap: 8px;
   width: 100%;
-  border: 1px dashed var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--muted);
+  border: 1px dashed var(--muted-foreground);
+  border-radius: var(--radius-xl);
+  background: var(--background);
   padding: 40px 24px;
   text-align: center;
   cursor: pointer;
   transition: border-color 0.15s, background-color 0.15s;
 }
 .upload-dropzone:hover,
-.upload-dropzone.is-dragover { border-color: var(--info-text); background: var(--info-subtle); }
+.upload-dropzone.is-dragover { border-color: var(--ring); background: var(--accent); }
 .upload-dropzone-icon {
   display: flex;
   align-items: center;
@@ -961,9 +1054,8 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
   width: 44px;
   height: 44px;
   border-radius: var(--radius-full);
-  background: var(--card);
+  background: var(--muted);
   color: var(--muted-foreground);
-  box-shadow: var(--shadow-xs);
 }
 .upload-file-row {
   display: flex;
@@ -990,7 +1082,7 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
 .skeleton {
   display: block;
   border-radius: var(--radius-lg);
-  background: var(--muted);
+  background: var(--skeleton);
   animation: skeleton-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 @keyframes skeleton-pulse {
@@ -1026,15 +1118,6 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
   background: var(--primary);
   transition: width 0.3s ease-out;
 }
-.progress-bar-fill.is-success { background: var(--success-border); }
-.progress-bar-fill.is-warning { background: var(--warning-border); }
-
-/* Wrapper com tooltip de percentual (dash geral de Implantação — DP/Fiscal/
-   Contábil por empresa). Mesmo tooltip flutuante do segbar
-   (UI.initSegbarTooltips), só que aplicado a uma barra contínua em vez de
-   segmentos discretos — a% exata só aparece no hover, não fica sempre
-   visível ao lado da barra. */
-.progress-bar-wrap { cursor: default; }
 
 .stat-card {
   display: flex;
@@ -1045,10 +1128,10 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--card);
-  padding: 14px 16px;
+  padding: 16px 20px;
 }
-.stat-card-value { font-size: 24px; font-weight: 600; line-height: 1; }
-.stat-card-label { font-size: 11.5px; color: var(--muted-foreground); }
+.stat-card-value { font-size: 22px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.stat-card-label { font-size: 13px; line-height: 18px; color: var(--muted-foreground); }
 .stat-card-success .stat-card-value { color: var(--success-text); }
 .stat-card-warning .stat-card-value { color: var(--warning-text); }
 
@@ -1060,9 +1143,9 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
   gap: 8px;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  background: var(--card);
+  background: var(--surface-subtle);
   padding: 10px 14px;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 500;
 }
 .flow-diagram-node-icon {
@@ -1166,18 +1249,17 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
 .field-textarea {
   width: 100%;
   min-height: 96px;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-field);
   border: 1px solid var(--input);
   padding: 10px 12px;
   font-size: 13px;
   font-family: inherit;
   line-height: 1.5;
   resize: vertical;
-  background: transparent;
+  background: var(--surface);
   color: var(--foreground);
-  box-shadow: var(--shadow-xs);
 }
-.field-textarea:focus { border-color: var(--ring); outline: none; }
+.field-textarea:focus { border-color: var(--ring); outline: none; box-shadow: 0 0 0 3px var(--ring-soft); }
 
 /* ===== Accordion (ui/accordion) =====
    Usado para organizar a aba "Parâmetros Condicionais" da Convenção (7 grupos
@@ -1196,18 +1278,18 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 14px 18px;
+  padding: 14px 20px;
   border: none;
   background: none;
   cursor: pointer;
   text-align: left;
   font-family: inherit;
 }
-.accordion-trigger:hover { background: var(--muted); }
+.accordion-trigger:hover { background: var(--surface-subtle); }
 .accordion-trigger-title { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; color: var(--foreground); }
 .accordion-trigger-chev { display: inline-flex; color: var(--muted-foreground); transition: transform 0.2s; }
 .accordion-item.is-open > .accordion-trigger .accordion-trigger-chev { transform: rotate(180deg); }
-.accordion-content { display: none; padding: 6px 18px 20px; border-top: 1px solid var(--border); }
+.accordion-content { display: none; padding: 6px 20px 22px; border-top: 1px solid var(--border); }
 .accordion-item.is-open > .accordion-content { display: flex; flex-direction: column; gap: 22px; }
 
 /* Accordion aninhado (nível 2 dentro de outro Accordion — ex.: os
@@ -1236,11 +1318,9 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
 .subcard { display: flex; flex-direction: column; gap: 12px; padding-top: 18px; border-top: 1px solid var(--border); }
 .subcard:first-child { padding-top: 2px; border-top: none; }
 .subcard-title {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--muted-foreground);
+  color: var(--foreground);
 }
 
 /* ===== Bloco de regra condicional (checkbox-mãe + dependente) =====
@@ -1361,117 +1441,3 @@ body:has(.convencao-etapa-footer) .fab-tools {
 .vigencia-timeline-header { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .vigencia-timeline-period { font-size: 13px; font-weight: 500; color: var(--foreground); }
 .vigencia-timeline-meta { font-size: 11.5px; color: var(--muted-foreground); }
-
-/* ===== Implantação de Empresas (cadastros auxiliares > implantação) —
-   conciliação de colaboradores entre o Lake (Domínio) e a Ficha Financeira.
-   Sem componente React de origem — exclusivo deste fluxo (mesma situação do
-   Import Wizard acima); badge/dialog/sheet/stat-card/alert já existentes
-   cobrem o resto da tela, só os itens abaixo não tinham equivalente. */
-
-/* Iniciais de colaborador no cabeçalho do drawer de conferência — primitivo
-   genérico (sem relação com a sidebar), reaproveitável por qualquer tela
-   que precise de um "avatar" textual sem foto. */
-.avatar-circle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: var(--muted);
-  color: var(--muted-foreground);
-  font-size: 13px;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
-/* Contador de campos divergentes sob o badge de status, na listagem
-   (ex.: "3 campos divergentes") — mesma cor de --warning-text do badge que
-   ele complementa. */
-.status-cell-hint { font-size: 11px; font-weight: 500; color: var(--warning-text); margin-top: 2px; }
-
-/* Etapas sequenciais de processamento assíncrono (tela de Processamento da
-   importação de Ficha Financeira) — diferente do .stepper acima (navegação
-   horizontal de wizard): aqui cada etapa é uma linha vertical com estado
-   independente (pending/active/done) e um sub-texto de progresso opcional,
-   sem navegação entre elas. */
-.proc-steps { display: flex; flex-direction: column; }
-.proc-step { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border); }
-.proc-step:last-child { border-bottom: none; }
-.proc-step-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  background: var(--muted);
-  color: var(--muted-foreground);
-}
-.proc-step.is-active .proc-step-icon { background: var(--info-subtle); color: var(--info-text); }
-.proc-step.is-done .proc-step-icon { background: var(--success-subtle); color: var(--success-text); }
-.proc-step-label { font-size: 13.5px; font-weight: 600; }
-.proc-step:not(.is-active):not(.is-done) .proc-step-label { color: var(--muted-foreground); font-weight: 500; }
-.proc-step-sub { font-size: 12px; color: var(--muted-foreground); margin-top: 1px; }
-
-/* Card de estatística "crítico" (ex.: arquivos não importados) — evolução
-   aditiva de .stat-card (só existiam -success/-warning), mesmo nível de
-   --destructive-text já usado em .alert-destructive/.badge-destructive. */
-.stat-card-danger .stat-card-value { color: var(--destructive-text); }
-
-/* Comparação de campo divergente (Drawer de Conferência) — duas opções lado
-   a lado (Lake × Ficha Financeira), seleção por clique com indicador de
-   check. Sem equivalente no restante do protótipo (nenhuma outra tela pede
-   "escolher entre dois valores concorrentes para o mesmo campo"). */
-.field-compare { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
-.field-compare-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  background: var(--muted);
-  border-bottom: 1px solid var(--border);
-  font-size: 12.5px;
-  font-weight: 600;
-}
-.field-compare.is-resolved .field-compare-head { background: var(--success-subtle); color: var(--success-text); }
-.field-compare-options { display: grid; grid-template-columns: 1fr 1fr; }
-.field-compare-option {
-  position: relative;
-  padding: 12px 14px;
-  border-right: 1px solid var(--border);
-  cursor: pointer;
-}
-.field-compare-option:last-child { border-right: none; }
-.field-compare-option:hover { background: var(--outline-hover); }
-.field-compare-option.is-selected { background: var(--info-subtle); }
-.field-compare-option-src { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted-foreground); margin-bottom: 4px; }
-.field-compare-option-val { font-size: 13.5px; font-weight: 600; }
-.field-compare-option-val.is-missing { font-style: italic; font-weight: 500; color: var(--muted-foreground); }
-.field-compare-check {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 2px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.field-compare-check svg { width: 10px; height: 10px; visibility: hidden; color: var(--primary-foreground); }
-.field-compare-option.is-selected .field-compare-check { background: var(--primary); border-color: var(--primary); }
-.field-compare-option.is-selected .field-compare-check svg { visibility: visible; }
-
-/* Terceiro caminho do field-compare: nem o Lake nem a Ficha Financeira têm o
-   valor correto (ex.: os dois estão desatualizados) — a pessoa digita o
-   valor manualmente. A opção escolhida reaproveita o mesmo cartão
-   "selecionado" acima, só ocupando a largura inteira (abaixo das duas
-   colunas Lake/Ficha, não uma terceira coluna). */
-.field-compare-option-wide { grid-column: 1 / -1; cursor: default; }
-.field-compare-option-wide:hover { background: var(--info-subtle); }
-.field-compare-manual-toggle { padding: 10px 14px; border-top: 1px solid var(--border); }
-.field-compare-manual-edit { display: flex; gap: 8px; align-items: center; padding: 10px 14px; border-top: 1px solid var(--border); }
-.field-compare-manual-edit .field-input { flex: 1; }

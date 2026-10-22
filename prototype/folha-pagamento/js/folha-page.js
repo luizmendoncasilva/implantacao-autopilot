@@ -2354,7 +2354,7 @@
     // "preservar" além desta própria renderização.
     function renderTabsBar() {
       return (
-        '<div class="tabs-list" style="overflow-x:auto; max-width:100%;">' +
+        '<div class="tabs-list tabs-list-underline" style="overflow-x:auto; max-width:100%;">' +
         D.AREAS.map(
           (a) => '<button type="button" class="tabs-trigger' + (a.key === activeArea ? " is-active" : "") + '" data-area-key="' + a.key + '">' + a.label + "</button>"
         ).join("") +

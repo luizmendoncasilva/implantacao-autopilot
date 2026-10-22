@@ -143,7 +143,7 @@
   }
 
   function renderUpload() {
-    Shell.updateBreadcrumb({ crumbs: [{ label: "implantação de empresas", href: "implantacao-geral.html" }, { label: "DP", href: "implantacao-empresas.html" }, { label: "nova implantação" }] });
+    Shell.updateBreadcrumb({ crumbs: [{ label: "implantação", href: "implantacao-geral.html" }, { label: "nova implantação DP" }] });
 
     const temArquivos = state.arquivos.length > 0;
     const bloqueados = arquivosBloqueadosPorOperacao();
@@ -179,7 +179,7 @@
           ? '<div class="flex items-center justify-between gap-3 flex-wrap" style="padding-top:4px;">' +
             '<div class="text-sm text-muted">' + state.arquivos.length + (state.arquivos.length === 1 ? " arquivo selecionado" : " arquivos selecionados") + " · " + colaboradoresEstimados() + " colaboradores estimados</div>" +
             '<div class="flex gap-2">' +
-            '<a href="implantacao-empresas.html" class="btn btn-outline">Cancelar</a>' +
+            '<a href="implantacao-geral.html" class="btn btn-outline">Cancelar</a>' +
             '<button type="button" class="btn" id="btn-importar-lote"' + (arquivosProntosParaProcessar().length === 0 ? " disabled" : "") + ">Importar lote</button>" +
             "</div></div>"
           : "")
@@ -346,7 +346,7 @@
 
   // ===== Etapa — Resultado (Tela 5) =====
   function renderResult() {
-    Shell.updateBreadcrumb({ crumbs: [{ label: "implantação de empresas", href: "implantacao-geral.html" }, { label: "DP", href: "implantacao-empresas.html" }, { label: "resultado da importação" }] });
+    Shell.updateBreadcrumb({ crumbs: [{ label: "implantação", href: "implantacao-geral.html" }, { label: "resultado da importação DP" }] });
 
     const naoIdentificados = arquivosNaoIdentificados();
     const semCockpit = arquivosSemCockpit();
@@ -393,9 +393,9 @@
             '<div class="alert-desc">Relatório personalizado sinalizado. Importe o(s) layout(s) usados (admissão, férias, rescisão) na aba <b>Relatórios</b> de cada empresa antes de considerar a implantação concluída.</div></div>'
           : "") +
         '<div class="flex gap-2 flex-wrap">' +
-        '<a href="implantacao-empresas.html" class="btn">' + Icon("list", "size-3-5") + " Ver os " + r.comDivergencia + " com divergência</a>" +
+        '<a href="implantacao-geral.html" class="btn">' + Icon("list", "size-3-5") + " Ver os " + r.comDivergencia + " com divergência</a>" +
         (state.relatorioPersonalizado && prontos.length
-          ? '<a href="implantacao-console.html?empresa=' + encodeURIComponent(prontos[0].empresaCodigo) + '&tab=relatorios" class="btn btn-outline">' + Icon("upload", "size-3-5") + " Importar layouts de relatório</a>"
+          ? '<a href="implantacao-console.html?empresa=' + encodeURIComponent(prontos[0].empresaCodigo) + '&frente=dp&tab=relatorios" class="btn btn-outline">' + Icon("upload", "size-3-5") + " Importar layouts de relatório</a>"
           : "") +
         (naoIdentificados.length
           ? '<button type="button" class="btn btn-outline" id="btn-associar-manualmente" data-arquivo="' + naoIdentificados[0].nomeArquivo + '">Associar ' + naoIdentificados[0].nomeArquivo + " manualmente</button>"

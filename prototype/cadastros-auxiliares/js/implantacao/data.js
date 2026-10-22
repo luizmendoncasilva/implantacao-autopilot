@@ -435,6 +435,29 @@
       motivoEsocial: "Empresa ainda não coberta pela base Domínio — consultando o eSocial como caminho de exceção.",
       categoriaEsocial: "Empregado — CLT",
     },
+    // ===== Clínica Vitalis (CV-0058) — implantação DP quase no fim (histórico
+    // completo, cálculo em paralelo rodando): a maioria pronta, com um caso
+    // de cada pendência que ainda aparece nessa fase. IDs a partir de 101
+    // para não colidir com colaboradores importados no navegador. =====
+    { id: 101, nome: "Beatriz Lemos Carvalho", cargo: "Médica Clínica Geral", cpf: "312.554.778-02", empresaCodigo: "CV-0058", status: "pronto", situacao: "ativo", camposDivergentes: [] },
+    { id: 102, nome: "Rafael Augusto Pinheiro", cargo: "Médico Cardiologista", cpf: "198.663.421-55", empresaCodigo: "CV-0058", status: "pronto", situacao: "ativo", camposDivergentes: [] },
+    { id: 103, nome: "Luana Ferreira Matos", cargo: "Enfermeira", cpf: "401.887.236-19", empresaCodigo: "CV-0058", status: "pronto", situacao: "ativo", camposDivergentes: [], pendenciasCadastrais: ["Título de eleitor"] },
+    { id: 104, nome: "Carlos Eduardo Brandão", cargo: "Técnico de Enfermagem", cpf: "275.119.840-63", empresaCodigo: "CV-0058", status: "pronto", situacao: "ativo", camposDivergentes: [] },
+    { id: 105, nome: "Daniela Rocha Siqueira", cargo: "Recepcionista", cpf: "533.204.917-28", empresaCodigo: "CV-0058", status: "pronto", situacao: "ativo", camposDivergentes: [] },
+    {
+      id: 106, nome: "Thiago Martins Queiroz", cargo: "Auxiliar Administrativo", cpf: "622.781.305-47",
+      empresaCodigo: "CV-0058", status: "divergencia", situacao: "ativo",
+      camposDivergentes: [
+        { campo: "Salário", valorLake: "R$ 2.350,00", valorFicha: "R$ 2.480,00", valorEscolhido: null, resolvido: false },
+      ],
+    },
+    {
+      id: 107, nome: "Priscila Andrade Moura", cargo: "Fisioterapeuta", cpf: "347.902.618-74",
+      empresaCodigo: "CV-0058", status: "aguardando_esocial", situacao: "ativo", camposDivergentes: [],
+      motivoEsocial: "Categoria do trabalhador não informada pela base Domínio para esta empresa.",
+      categoriaEsocial: "Empregado — CLT",
+    },
+    { id: 108, nome: "Márcio Vinícius Teles", cargo: "Auxiliar de Limpeza", cpf: "184.336.592-80", empresaCodigo: "CV-0058", status: "pronto", situacao: "ativo", camposDivergentes: [] },
     // Desligados — fora da fila de implantação por padrão (getColaboradores()
     // já filtra por situacao:"ativo"; ver comentário do bloco acima).
     { id: 17, nome: "Vitor Hugo Campos", cargo: "Auxiliar de Produção", cpf: "556.771.883-40", empresaCodigo: "MS-0027", status: "pronto", situacao: "desligado", camposDivergentes: [] },
@@ -558,9 +581,9 @@
   // Todo colaborador que chega a "pronto" precisa da ficha completa (RF-DP-417),
   // não só os que já nasceram prontos no mock — usada quando um colaborador
   // "divergencia"/"pendente_conciliacao"/"nao_encontrado_lake" é conciliado
-  // (ver salvarConciliacaoConcil/simularConciliacaoFichaConcil/
-  // criarColaboradorSemLakeConcil em implantacao-console.html) e ainda não
-  // tem fichaCompleta gerada. Seed pelo id do colaborador — determinístico.
+  // (ver salvarConciliacao/simularConciliacaoFicha/criarColaboradorSemLake em
+  // fila-colaborador.js) e ainda não tem fichaCompleta gerada. Seed pelo id
+  // do colaborador — determinístico.
   function gerarFichaCompletaParaColaborador(colaborador) {
     return gerarFichaCompletaMock(colaborador.id, colaborador.cargo, CARGOS_CBO_POOL[colaborador.id % CARGOS_CBO_POOL.length], colaborador.id);
   }
@@ -618,8 +641,13 @@
   // Acesso "cru" (todas as situações) — usado para persistência
   // (leitura-modificação-escrita por id) em list.js/importar.js, nunca para
   // montar a listagem em tela. Para isso, use getColaboradoresAtivos().
+  // Colaboradores adicionados ao seed depois que o navegador já gravou a
+  // lista entram na leitura sem apagar o que foi conciliado até aqui.
   function getColaboradores() {
-    return loadStore(COLABORADORES_KEY, COLABORADORES_INICIAL);
+    const salvos = loadStore(COLABORADORES_KEY, COLABORADORES_INICIAL);
+    const ids = new Set(salvos.map((c) => c.id));
+    const faltantes = COLABORADORES_INICIAL.filter((c) => c.id >= 101 && !ids.has(c.id));
+    return faltantes.length ? salvos.concat(JSON.parse(JSON.stringify(faltantes))) : salvos;
   }
   function setColaboradores(colaboradores) {
     saveStore(COLABORADORES_KEY, colaboradores);

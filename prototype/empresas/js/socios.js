@@ -1,6 +1,8 @@
 /*
-  Aba "Quadro societário" — portado de QuadroSocietarioCard.jsx + QuadroSocietarioDrawer.jsx
-  + trecho de useEmpresas.js relativo a sócios (abrir/editar/desvincular participação).
+  Aba "Sócios/Resp. legal" — seção "Quadro societário", portada de
+  QuadroSocietarioCard.jsx + QuadroSocietarioDrawer.jsx + trecho de
+  useEmpresas.js relativo a sócios (abrir/editar/desvincular participação). A
+  seção "Responsável legal" vive em responsavel-legal.js.
 */
 (function () {
   // Registro mestre de sócios (pessoa + participações) mora em
@@ -125,16 +127,13 @@
           Icon("alert-triangle", "size-4") +
           '<div class="alert-desc">A soma das participações ativas é <b>' + total + "%</b> — revise os percentuais para totalizar 100%.</div></div>";
 
-    document.getElementById("tab-content").innerHTML =
-      '<div class="card gap-4">' +
-      '<div class="card-header"><div class="flex items-center justify-between">' +
-      '<div><div class="card-title">Quadro societário</div><div class="card-description">Participações vinculadas a esta empresa — referencia o registro unificado de sócios.</div></div>' +
-      '<button type="button" class="btn btn-outline btn-sm" id="btn-add-socio">' + Icon("plus", "size-3-5") + " Adicionar sócio</button>" +
-      "</div></div>" +
-      '<div class="card-content flex flex-col gap-3"><div class="table-wrap"><table class="dtable">' +
+    document.getElementById("secao-quadro-societario").innerHTML =
+      '<h3 class="detail-section-title"><span>Quadro societário</span>' +
+      '<button type="button" class="btn btn-outline btn-sm detail-section-action" id="btn-add-socio">' + Icon("plus", "size-3-5") + " Adicionar sócio</button>" +
+      "</h3>" +
+      '<div class="flex flex-col gap-3"><div class="table-wrap"><table class="dtable">' +
       "<thead><tr><th>Sócio</th><th>Contato</th><th>Tipo de sócio</th><th>Participação</th><th>Capital</th><th>Quotas</th><th>Vínculo</th><th></th></tr></thead>" +
-      "<tbody>" + rows + "</tbody></table></div>" + totalHtml + "</div>" +
-      "</div>";
+      "<tbody>" + rows + "</tbody></table></div>" + totalHtml + "</div>";
 
     document.getElementById("btn-add-socio").addEventListener("click", abrirAdicionar);
     document.querySelectorAll("[data-editar]").forEach((btn) =>
@@ -179,7 +178,9 @@
   function socioOptions() {
     const socios = D.getSocios();
     const disponiveis = socios.filter(
-      (s) => !s.participacoes.some((p) => p.empresaCodigo === empresaAtual.codigo) || s.id === editandoSocioId
+      (s) =>
+        s.id === editandoSocioId ||
+        (D.temTipo(s, D.TIPOS.SOCIO) && !s.participacoes.some((p) => p.empresaCodigo === empresaAtual.codigo))
     );
     return disponiveis.map((s) => ({ value: String(s.id), label: s.nome + " — " + s.cpf }));
   }
@@ -224,6 +225,7 @@
     const socioBloqueado = editandoSocioId !== null;
     document.querySelector("#qs-combobox .combobox-trigger").disabled = socioBloqueado;
     document.getElementById("qs-socio-lock-hint").style.display = socioBloqueado ? "" : "none";
+    document.getElementById("qs-socio-hint").style.display = socioBloqueado ? "none" : "";
 
     UI.initCombobox(document.getElementById("qs-combobox"), socioOptions(), currentSocioId, (value) => {
       currentSocioId = value;
@@ -314,6 +316,17 @@
 
   window.renderTabContent = function (empresa) {
     empresaAtual = empresa;
+    // Card único com seções, mesmo padrão de Dados gerais — com mais respiro
+    // entre as seções (gap-10), porque aqui cada uma tem ação própria no título.
+    document.getElementById("tab-content").innerHTML =
+      '<div class="card">' +
+      '<div class="card-header"><div class="card-title">Sócios e responsável legal</div></div>' +
+      '<div class="card-content flex flex-col gap-10">' +
+      '<div class="detail-section" id="secao-quadro-societario"></div>' +
+      '<div class="detail-section" id="secao-responsavel-legal"></div>' +
+      "</div>" +
+      "</div>";
+    window.ResponsavelLegalSecao.render(empresa, document.getElementById("secao-responsavel-legal"));
     renderTabela();
 
     document.getElementById("qs-close").innerHTML = Icon("x", "size-4");

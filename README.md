@@ -1,8 +1,12 @@
 # Implantação Autopilot — Protótipo
 
-Protótipo navegável (HTML/CSS/JS estático, sem build) da trilha de **Implantação de Empresas** do Cockpit AutoPilot — telas de DP (colaboradores, histórico de folha, rubricas, cálculo em paralelo, parâmetros), Cadastro de Empresas, Cadastros Auxiliares e o dash geral com as três frentes (DP/Fiscal/Contábil).
+Protótipo navegável (HTML/CSS/JS estático, sem build) da **Implantação** do Cockpit AutoPilot:
 
-Versão adaptada ao design system do Cockpit (sidebar, topbar e componentes de `prototype/assets/core/`), em vez do visual original do protótipo.
+- **Console geral:** uma linha por empresa, com as frentes DP, Fiscal e Contábil inline.
+- **Console da empresa:** abas por frente no topo. DP (colaboradores, histórico de folha, rubricas, cálculo em paralelo, parâmetros, relatórios, histórico) e Fiscal (saldos de CPP para o Fator R, CTB-534). Contábil em breve.
+- **Chassi do Cockpit** (novo-chassi-v1, sem o BSamurai): topbar com busca global e menu do usuário, gaveta da direita que empurra o conteúdo, sino de atividades e modal "Pra onde você iria".
+
+Visual no design system BSystem 2.0, tema Cockpit (`prototype/shared/css/tokens.css`). Detalhes em `prototype/README.md`.
 
 Todos os dados são fictícios; servem só para validação de experiência.
 
@@ -12,4 +16,4 @@ Todos os dados são fictícios; servem só para validação de experiência.
 python .claude/serve-prototype.py
 ```
 
-Abre em `http://localhost:8000`. Ponto de entrada: `prototype/index.html` (hub com links para todas as telas).
+Abre em `http://localhost:8000`. Ponto de entrada: `prototype/index.html`, que abre a Implantação.

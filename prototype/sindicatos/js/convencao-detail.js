@@ -448,7 +448,7 @@
               ? '<td style="width:36px;"><label class="ucheckbox" data-empresa-check="' + e.codigo + '"><span class="ucheckbox-box' + (marcada ? " is-checked" : "") + '">' + Icon("check", "size-4") + "</span></label></td>"
               : "") +
             "<td>" + e.nome + "</td>" +
-            '<td class="col-pad-md">' + e.dadosGerais.cnpj + "</td>" +
+            '<td class="col-pad-md cell-mono">' + e.dadosGerais.cnpj + "</td>" +
             "</tr>"
           );
         })
@@ -1100,7 +1100,7 @@
       "</div>" + acoesHtml + "</div>" +
       campoDescricaoHtml +
       "</div>" +
-      '<div class="convencao-stepper-sticky">' + stepperHtml + "</div>" +
+      '<div class="stepper-sticky">' + stepperHtml + "</div>" +
       etapaHeadingHtml +
       '<div id="tab-panel" class="flex flex-col gap-3">' + etapaAtual.render() + "</div>" +
       rodapeEtapaHtml;

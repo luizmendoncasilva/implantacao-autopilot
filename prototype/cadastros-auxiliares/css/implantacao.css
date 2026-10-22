@@ -1,0 +1,194 @@
+/* Estilos exclusivos das telas de Implantação (cadastros-auxiliares/implantacao-*.html).
+   Complementam components.css sem alterá-lo: só classes que o design system compartilhado
+   não tem. Usam apenas tokens de ../shared/css/tokens.css. */
+
+/* ===== Barra de progresso segmentada (Implantação DP por empresa) — cada
+   segmento é uma frente (colaboradores, financeiro, rubricas, cálculo em
+   paralelo), colorida pela completude daquela frente; a separação entre
+   segmentos é o próprio gap. Tooltip customizado ao passar o mouse (o
+   protótipo não tem um componente de tooltip genérico ainda) — content vem
+   de data-tooltip para não duplicar texto em title + elemento. Sem
+   componente React de origem, exclusivo deste resumo. ===== */
+.segbar { display: flex; gap: 3px; width: 100%; height: 8px; }
+.segbar-segment {
+  flex: 1;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--border);
+  position: relative;
+  cursor: default;
+}
+.segbar-segment.is-success { background: var(--success); }
+.segbar-segment.is-warning { background: var(--warning); }
+/* Competência que não compõe a janela (antes do início de atividade). */
+.segbar-segment.is-muted { background: transparent; box-shadow: inset 0 0 0 1px var(--border); }
+.segbar-thin { gap: 2px; height: 6px; }
+/* Tooltip do segbar é montado por JS direto em <body> (UI.initSegbarTooltips,
+   shared/js/ui.js), não um ::after posicionado sobre o próprio segmento —
+   um ::after fica preso ao contexto de recorte do ancestral, e .table-wrap
+   tem overflow-x:auto, que por especificação também recorta o eixo Y (não
+   dá pra deixar só um eixo "visible" quando o outro não é). Um elemento
+   solto em body, position:fixed, escapa desse recorte. */
+.segbar-tooltip {
+  position: fixed;
+  background: var(--popover);
+  color: var(--popover-foreground);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  white-space: nowrap;
+  padding: 4px 12px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  z-index: 9999;
+  pointer-events: none;
+}
+/* Wrapper com tooltip de percentual (dash geral de Implantação — DP/Fiscal/
+   Contábil por empresa). Mesmo tooltip flutuante do segbar
+   (UI.initSegbarTooltips), só que aplicado a uma barra contínua em vez de
+   segmentos discretos — a% exata só aparece no hover, não fica sempre
+   visível ao lado da barra. */
+.progress-bar-wrap { cursor: default; }
+/* ===== Implantação de Empresas (cadastros auxiliares > implantação) —
+   conciliação de colaboradores entre o Lake (Domínio) e a Ficha Financeira.
+   Sem componente React de origem — exclusivo deste fluxo (mesma situação do
+   Import Wizard acima); badge/dialog/sheet/stat-card/alert já existentes
+   cobrem o resto da tela, só os itens abaixo não tinham equivalente. */
+
+/* Iniciais de colaborador no cabeçalho do drawer de conferência — primitivo
+   genérico (sem relação com a sidebar), reaproveitável por qualquer tela
+   que precise de um "avatar" textual sem foto. */
+.avatar-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--muted);
+  color: var(--muted-foreground);
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+/* Contador de campos divergentes sob o badge de status, na listagem
+   (ex.: "3 campos divergentes") — mesma cor de --warning-text do badge que
+   ele complementa. */
+.status-cell-hint { font-size: 11px; font-weight: 500; color: var(--warning-text); margin-top: 2px; }
+/* Etapas sequenciais de processamento assíncrono (tela de Processamento da
+   importação de Ficha Financeira) — diferente do .stepper acima (navegação
+   horizontal de wizard): aqui cada etapa é uma linha vertical com estado
+   independente (pending/active/done) e um sub-texto de progresso opcional,
+   sem navegação entre elas. */
+.proc-steps { display: flex; flex-direction: column; }
+.proc-step { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.proc-step:last-child { border-bottom: none; }
+.proc-step-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+.proc-step.is-active .proc-step-icon { background: var(--info-subtle); color: var(--info-text); }
+.proc-step.is-done .proc-step-icon { background: var(--success-subtle); color: var(--success-text); }
+.proc-step-label { font-size: 13.5px; font-weight: 600; }
+.proc-step:not(.is-active):not(.is-done) .proc-step-label { color: var(--muted-foreground); font-weight: 500; }
+.proc-step-sub { font-size: 12px; color: var(--muted-foreground); margin-top: 1px; }
+/* Card de estatística "crítico" (ex.: arquivos não importados) — evolução
+   aditiva de .stat-card (só existiam -success/-warning), mesmo nível de
+   --destructive-text já usado em .alert-destructive/.badge-destructive. */
+.stat-card-danger .stat-card-value { color: var(--destructive-text); }
+/* Comparação de campo divergente (Drawer de Conferência) — duas opções lado
+   a lado (Lake × Ficha Financeira), seleção por clique com indicador de
+   check. Sem equivalente no restante do protótipo (nenhuma outra tela pede
+   "escolher entre dois valores concorrentes para o mesmo campo"). */
+.field-compare { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.field-compare-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--muted);
+  border-bottom: 1px solid var(--border);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.field-compare.is-resolved .field-compare-head { background: var(--success-subtle); color: var(--success-text); }
+.field-compare-options { display: grid; grid-template-columns: 1fr 1fr; }
+.field-compare-option {
+  position: relative;
+  padding: 12px 14px;
+  border-right: 1px solid var(--border);
+  cursor: pointer;
+}
+.field-compare-option:last-child { border-right: none; }
+.field-compare-option:hover { background: var(--outline-hover); }
+.field-compare-option.is-selected { background: var(--info-subtle); }
+.field-compare-option-src { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted-foreground); margin-bottom: 4px; }
+.field-compare-option-val { font-size: 13.5px; font-weight: 600; }
+.field-compare-option-val.is-missing { font-style: italic; font-weight: 500; color: var(--muted-foreground); }
+.field-compare-check {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.field-compare-check svg { width: 10px; height: 10px; visibility: hidden; color: var(--primary-foreground); }
+.field-compare-option.is-selected .field-compare-check { background: var(--primary); border-color: var(--primary); }
+.field-compare-option.is-selected .field-compare-check svg { visibility: visible; }
+/* Terceiro caminho do field-compare: nem o Lake nem a Ficha Financeira têm o
+   valor correto (ex.: os dois estão desatualizados) — a pessoa digita o
+   valor manualmente. A opção escolhida reaproveita o mesmo cartão
+   "selecionado" acima, só ocupando a largura inteira (abaixo das duas
+   colunas Lake/Ficha, não uma terceira coluna). */
+.field-compare-option-wide { grid-column: 1 / -1; cursor: default; }
+.field-compare-option-wide:hover { background: var(--info-subtle); }
+.field-compare-manual-toggle { padding: 10px 14px; border-top: 1px solid var(--border); }
+.field-compare-manual-edit { display: flex; gap: 8px; align-items: center; padding: 10px 14px; border-top: 1px solid var(--border); }
+.field-compare-manual-edit .field-input { flex: 1; }
+.progress-bar-fill.is-success { background: var(--success); }
+.progress-bar-fill.is-warning { background: var(--warning); }
+
+/* ===== Console geral — célula de frente clicável (abre a empresa já na aba da frente). ===== */
+.frente-cell-link { display: flex; width: 100%; padding: 4px 6px; margin: -4px -6px; border-radius: var(--radius-md); color: inherit; }
+.frente-cell-link:hover { background: var(--muted); }
+.frente-cell-link:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 0; }
+
+/* ===== Console da empresa — abas de frente (DP, Fiscal, Contábil) fixas no topo da área de
+   conteúdo, com o status da frente ao lado do nome. ===== */
+.frente-tabs-sticky { position: sticky; top: -24px; z-index: 6; background: var(--background); }
+.frente-tab { gap: 8px; }
+.frente-tab-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  background: var(--background);
+}
+.frente-tab-status.is-success { color: var(--success-text); background: var(--success-subtle); border-color: var(--success-border); }
+.frente-tab-status.is-warning { color: var(--warning-text); background: var(--warning-subtle); border-color: var(--warning-border); }
+
+/* ===== Saldos de CPP — campo monetário na célula, com prefixo R$. ===== */
+.money-input { position: relative; display: flex; align-items: center; max-width: 150px; }
+.money-input-prefix { position: absolute; left: 10px; font-size: 13px; color: var(--muted-foreground); pointer-events: none; }
+.money-input .field-input { height: 32px; padding-left: 32px; font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; }
+.money-input.is-pendente .field-input { border-color: var(--warning-border); background: var(--warning-subtle); }
+.money-input.is-pendente .field-input:focus { background: var(--background); border-color: var(--ring); }
+.cpp-table td { padding-top: 8px; padding-bottom: 8px; }

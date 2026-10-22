@@ -5,14 +5,18 @@
 */
 (function () {
   const D = window.EmpresasData;
+  const ORIGENS = window.CampoOrigem.ORIGENS;
 
+  // Todo campo espelhado do Cockpit mostra origem "Cockpit", mesmo editável
+  // pelo drawer — a alteração é refletida no Cockpit, que segue dono do dado.
   function campo(label, value, wide) {
-    return (
-      '<div class="detail-field' + (wide ? " detail-field-wide" : "") + '">' +
-      '<span class="detail-field-label">' + label + "</span>" +
-      '<div class="detail-field-value">' + value + "</div>" +
-      "</div>"
-    );
+    return window.CampoOrigem.campo({ label: label, value: value, wide: wide, origem: ORIGENS.COCKPIT });
+  }
+
+  // Origem "Informado manualmente" clicável — mesmo atalho de edição de
+  // Parâmetros Fiscais, aqui ligado à edição própria do campo (wireOrigemEditavel).
+  function origemManual(campoKey, label) {
+    return window.OrigemBadge.render(ORIGENS.MANUAL, { editavel: true, campoKey: campoKey, tituloAcessivel: "Editar " + label });
   }
   function secao(titulo, camposHtml) {
     return (
@@ -46,6 +50,7 @@
       '<button type="button" class="btn-link" id="btn-salvar-grupo-empresas" style="color:var(--info-text);">salvar</button>' +
       '<button type="button" class="btn-link" id="btn-cancelar-grupo-empresas">cancelar</button>' +
       "</div>" +
+      origemManual("grupo-empresas", "Grupo de empresas") +
       "</div>"
     );
   }
@@ -65,12 +70,23 @@
         '<button type="button" class="btn-link" id="btn-alterar-contador-responsavel" style="color:var(--info-text);">Alterar</button>'
       : '<span class="italic text-muted">Nenhum contador responsável definido</span>' +
         '<button type="button" class="btn-link" id="btn-alterar-contador-responsavel" style="color:var(--info-text);">Selecionar contador</button>';
+    // Sem seleção explícita, o valor é herdado do vínculo da aba Contadores.
+    const origem =
+      contador && !D.hasContadorResponsavelExplicito(empresa.codigo)
+        ? window.OrigemBadge.render(ORIGENS.AUTOPILOT)
+        : origemManual("contador-responsavel", "Contador responsável");
     return (
       '<div class="detail-field detail-field-wide" id="campo-contador-responsavel">' +
       '<span class="detail-field-label">Contador responsável</span>' +
       '<div class="detail-field-value flex items-center gap-2 flex-wrap">' + conteudo + "</div>" +
+      origem +
       "</div>"
     );
+  }
+
+  function wireOrigemEditavel(campoKey, abrir) {
+    const btn = document.querySelector('#tab-content [data-origem-editar-campo="' + campoKey + '"]');
+    if (btn) btn.addEventListener("click", abrir);
   }
 
   let contadorResponsavelSelecionadoId = "";
@@ -123,6 +139,7 @@
     empresaContadorResponsavel = empresa;
     const btn = document.getElementById("btn-alterar-contador-responsavel");
     if (btn) btn.addEventListener("click", () => abrirSelecaoContadorResponsavel(empresa));
+    wireOrigemEditavel("contador-responsavel", () => abrirSelecaoContadorResponsavel(empresa));
 
     if (contadorResponsavelSheetWired) return;
     contadorResponsavelSheetWired = true;
@@ -140,11 +157,13 @@
     const edit = document.getElementById("grupo-empresas-edit");
     const input = document.getElementById("input-grupo-empresas");
 
-    document.getElementById("btn-editar-grupo-empresas").addEventListener("click", () => {
+    function abrirEdicaoGrupo() {
       view.style.display = "none";
       edit.style.display = "";
       input.focus();
-    });
+    }
+    document.getElementById("btn-editar-grupo-empresas").addEventListener("click", abrirEdicaoGrupo);
+    wireOrigemEditavel("grupo-empresas", abrirEdicaoGrupo);
     document.getElementById("btn-cancelar-grupo-empresas").addEventListener("click", () => {
       input.value = empresa.dadosGerais.grupoEmpresas || "";
       edit.style.display = "none";
@@ -167,6 +186,7 @@
   // acima), por ser um dado nativo do Autopilot, não um espelho do Cockpit.
   let empresaAtual = null;
   let drawerWired = false;
+  let endereco = null;
 
   // Catálogo do Select de Regime tributário federal — montado uma única vez
   // a partir de EmpresasData.REGIME_TRIBUTARIO_FEDERAL_OPCOES (fonte única do
@@ -202,9 +222,8 @@
     document.getElementById("edit-numero").value = dg.numero || "";
     document.getElementById("edit-complemento").value = dg.complemento || "";
     document.getElementById("edit-bairro").value = dg.bairro || "";
-    document.getElementById("edit-municipio").value = dg.municipio || "";
-    document.getElementById("edit-uf").value = dg.uf || "";
-    document.getElementById("edit-cep").value = dg.cep || "";
+    endereco.setValores({ cep: dg.cep, municipio: dg.municipio, uf: dg.uf });
+    document.getElementById("edit-empresa-salvar").disabled = false;
     document.getElementById("edit-contador-locked").innerHTML =
       Icon("lock", "size-3-5") + "<span>" + (contador ? contador.nome + " — " + contador.crc : "Nenhum contador responsável definido") + "</span>";
     document.getElementById("edit-contrato-locked").innerHTML =
@@ -238,9 +257,9 @@
       numero: document.getElementById("edit-numero").value.trim(),
       complemento: document.getElementById("edit-complemento").value.trim(),
       bairro: document.getElementById("edit-bairro").value.trim(),
-      municipio: document.getElementById("edit-municipio").value.trim(),
-      uf: document.getElementById("edit-uf").value.trim(),
-      cep: document.getElementById("edit-cep").value.trim(),
+      municipio: endereco.getValores().municipio,
+      uf: endereco.getValores().uf,
+      cep: endereco.getValores().cep,
       observacoesGerais: document.getElementById("edit-observacoes").value.trim(),
     };
   }
@@ -265,7 +284,17 @@
     if (drawerWired) return;
     drawerWired = true;
     document.getElementById("edit-empresa-close").innerHTML = Icon("x", "size-4");
-    document.querySelector("#edit-empresa-panel .field-select-wrap .chev").innerHTML = Icon("chevron-down", "size-4");
+    document.querySelectorAll("#edit-empresa-panel .chev").forEach((el) => (el.innerHTML = Icon("chevron-down", "size-4")));
+    document.querySelector("#edit-municipio .search-icon").innerHTML = Icon("search", "size-4");
+    endereco = EnderecoCep.init({
+      cep: document.getElementById("edit-cep"),
+      uf: document.getElementById("edit-uf"),
+      municipio: document.getElementById("edit-municipio"),
+      logradouro: document.getElementById("edit-logradouro"),
+      bairro: document.getElementById("edit-bairro"),
+      status: document.getElementById("edit-cep-status"),
+      onChange: () => (document.getElementById("edit-empresa-salvar").disabled = endereco.estaBuscando()),
+    });
     document.getElementById("edit-empresa-overlay").addEventListener("click", fecharDrawerEdicao);
     document.getElementById("edit-empresa-close").addEventListener("click", fecharDrawerEdicao);
     document.getElementById("edit-empresa-cancelar").addEventListener("click", fecharDrawerEdicao);

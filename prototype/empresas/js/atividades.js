@@ -54,6 +54,7 @@
   window.renderTabContent = function (empresa) {
     wireDrawerEdicao();
     const a = empresa.atividades;
+    const origemCockpit = window.OrigemBadge.render(window.OrigemBadge.ORIGENS.COCKPIT);
     document.getElementById("tab-content").innerHTML =
       '<div class="card gap-4">' +
       '<div class="card-header"><div class="card-title">Atividades</div></div>' +
@@ -62,11 +63,13 @@
       (a.cnaePrincipal
         ? '<span class="detail-field-value">' + a.cnaePrincipal + "</span>"
         : '<span class="detail-field-value italic text-muted">Nenhum CNAE principal informado.</span>') +
+      origemCockpit +
       "</div>" +
       '<div class="detail-field detail-field-wide"><span class="detail-field-label">CNAEs secundários</span>' +
       (a.cnaeSecundarios.length > 0
         ? '<span class="detail-field-value">' + a.cnaeSecundarios.join(", ") + "</span>"
         : '<span class="detail-field-value italic text-muted">Nenhum CNAE secundário cadastrado.</span>') +
+      origemCockpit +
       "</div>" +
       "</div>" +
       "</div>";

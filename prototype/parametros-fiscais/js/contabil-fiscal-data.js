@@ -12,6 +12,24 @@
 
   Opções de D27 (docs/02-parametros-fiscais.md, seção 14) reproduzidas
   literalmente — nenhuma opção inventada.
+
+  Rodada de complementação de conteúdo (docs/02-parametros-fiscais.md,
+  seção 10, campos Desejável) adiciona: "Cupom fiscal pelo valor total",
+  "Separar frete, pedágio, seguro, despesas e desconto" e "Separar IPI e
+  ICMS ST das entradas" (Checkbox, Manual) + "Controle de estoque" (D29,
+  Lista suspensa, Manual, opções reproduzidas literalmente da seção 14).
+
+  "Ajuste a Valor Presente (AVP)", "Mostrar rateio de centro de custos" e
+  "Gerar lançamentos em outra empresa" (rodada "Ajuste funcional —
+  Contábil × Fiscal", 2026-09-09): documentados como Fase 2
+  (docs/02-parametros-fiscais.md, seção 10), mas tornados funcionais por
+  decisão explícita de produto desta rodada — mesmo critério já aplicado
+  aos 3 campos de Estaduais e Municipais e ao SINTEGRA em Obrigações e
+  Documentos Fiscais: Checkbox, Manual, mock booleano (`false`/Inativo —
+  nenhuma empresa tinha estado algum antes desta rodada), persistido na
+  mesma chave já existente (MANUAL_OVERRIDES_KEY, abaixo). Nenhuma lógica
+  de negócio (cálculo de AVP, rateio, geração de lançamentos em outra
+  empresa) foi implementada — apenas o booleano de habilitação.
 */
 (function (global) {
   const OPCOES_CLASSIFICACAO_CONTA = [
@@ -20,23 +38,46 @@
     "Uma conta por cadastro, código igual ao da conta",
   ];
 
+  const OPCOES_CONTROLE_ESTOQUE = ["Não controla", "Controla por quantidade", "Controla por quantidade e valor"];
+
   const PADRAO = {
     classificacaoContaFornecedores: "Conta única para todos",
     classificacaoContaClientes: "Conta única para todos",
+    cupomFiscalValorTotal: false,
+    separarFretePedagioSeguroDespesaDesconto: false,
+    separarIpiIcmsStEntradas: false,
+    controleEstoque: "Não controla",
+    ajusteValorPresente: false,
+    mostrarRateioCentroCustos: false,
+    gerarLancamentosOutraEmpresa: false,
   };
 
   const POR_EMPRESA = {
     "PA-0011": {
       classificacaoContaFornecedores: "Uma conta por cadastro",
       classificacaoContaClientes: "Uma conta por cadastro",
+      cupomFiscalValorTotal: true,
+      separarFretePedagioSeguroDespesaDesconto: true,
+      separarIpiIcmsStEntradas: false,
+      controleEstoque: "Controla por quantidade",
+      ajusteValorPresente: false,
+      mostrarRateioCentroCustos: false,
+      gerarLancamentosOutraEmpresa: false,
     },
-    // CH-0042: valores diferentes de PA-0011 só para exercitar as 3 opções
-    // do dicionário visualmente — os dois campos permanecem independentes
-    // um do outro no código (mesmo espírito das demais abas: variedade de
-    // demonstração, não uma regra de correlação entre os dois campos).
+    // CH-0042: valores diferentes de PA-0011 só para exercitar as opções
+    // do dicionário visualmente — os campos permanecem independentes uns
+    // dos outros no código (mesmo espírito das demais abas: variedade de
+    // demonstração, não uma regra de correlação entre eles).
     "CH-0042": {
       classificacaoContaFornecedores: "Conta única para todos",
       classificacaoContaClientes: "Uma conta por cadastro, código igual ao da conta",
+      cupomFiscalValorTotal: false,
+      separarFretePedagioSeguroDespesaDesconto: false,
+      separarIpiIcmsStEntradas: true,
+      controleEstoque: "Controla por quantidade e valor",
+      ajusteValorPresente: false,
+      mostrarRateioCentroCustos: false,
+      gerarLancamentosOutraEmpresa: false,
     },
   };
 
@@ -49,8 +90,7 @@
     return overrideVigencia ? Object.assign({}, base, overrideVigencia) : base;
   }
 
-  // Persistência dos 2 campos Manual desta aba (rodada de refinamento
-  // funcional — jornada de edição), por empresa × vigência, em
+  // Persistência dos campos Manual desta aba, por empresa × vigência, em
   // localStorage — mesmo padrão técnico já usado em `gerais-data.js`. Não
   // altera os 3 campos Regra fixa/Sistema.
   const MANUAL_OVERRIDES_KEY = "autopilot_prototype_fiscal_contabil_fiscal_manual_v1";
@@ -77,5 +117,6 @@
     getDados: getDados,
     setDadosManuais: setDadosManuais,
     OPCOES_CLASSIFICACAO_CONTA: OPCOES_CLASSIFICACAO_CONTA,
+    OPCOES_CONTROLE_ESTOQUE: OPCOES_CONTROLE_ESTOQUE,
   };
 })(window);

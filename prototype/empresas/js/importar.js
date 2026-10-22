@@ -110,7 +110,7 @@
             "<tr>" +
             '<td class="col-pad-sm">' + l.linha + "</td>" +
             "<td>" + UI.truncatedCell(l.campos.razaoSocial || "(sem razão social)", null, "text-sm font-medium") + "</td>" +
-            '<td class="col-pad-md">' + (l.campos.cnpj || "—") + "</td>" +
+            '<td class="col-pad-md cell-mono">' + (l.campos.cnpj || "—") + "</td>" +
             '<td class="col-pad-sm">' + statusBadge(l) + "</td>" +
             '<td class="col-pad-end">' +
             (l.status === "invalida" ? '<button type="button" class="btn-link link-info" data-ver-detalhe="' + l.linha + '">Ver detalhe</button>' : "") +

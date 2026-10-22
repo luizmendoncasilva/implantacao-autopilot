@@ -13,9 +13,6 @@
     --brand-pink-soft: #fde7ea;
     --brand-blue: #0171e4;
     --brand-blue-soft: rgba(1, 113, 228, 0.10);
-    --sidebar-bg: #141414;
-    --sidebar-item: #2a2a2a;
-    --sidebar-item-hover: #3a3a3a;
     --surface: #ffffff;
     --surface-muted: #f7f7f8;
     --surface-subtle: #fafafa;
@@ -35,17 +32,44 @@
   }
   html, body { font-family: 'Inter', system-ui, sans-serif; background: var(--surface-muted); color: var(--text-primary); font-size: 14px; }
   .font-mono { font-family: 'JetBrains Mono', monospace; }
-  .sidebar { width: 98px; background: var(--sidebar-bg); color: #fff; display: flex; flex-direction: column; align-items: center; padding: 18px 0 20px; position: fixed; left: 0; top: 0; bottom: 0; z-index: 40; }
-  .sidebar .brand { font-weight: 700; font-size: 15px; margin-bottom: 32px; position: relative; }
-  .sidebar .brand::after { content: ''; position: absolute; right: -6px; bottom: 5px; width: 4px; height: 4px; background: var(--brand-pink); border-radius: 50%; }
-  .sidebar-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px; width: 76px; border-radius: 14px; cursor: pointer; margin-bottom: 6px; transition: background .15s; }
-  .sidebar-item:hover { background: var(--sidebar-item-hover); }
-  .sidebar-item.active { background: var(--brand-pink); }
-  .sidebar-item .icon-wrap { width: 42px; height: 32px; background: var(--sidebar-item); border-radius: 999px; display: flex; align-items: center; justify-content: center; }
-  .sidebar-item.active .icon-wrap { background: transparent; }
-  .sidebar-item .label { font-size: 11px; text-align: center; line-height: 1.2; color: #fff; }
-  .sidebar .avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #f25461, #f97316); margin-top: auto; border: 2px solid #2a2a2a; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; font-size: 13px; }
-  .main { margin-left: 98px; min-height: 100vh; display: flex; flex-direction: column; }
+  /* Sidebar unificada do Cockpit (.cx-nav) — 260px, fixa à esquerda. Variáveis escopadas no próprio .cx-nav. */
+  .cx-nav { --cx-bg: #0F1727; --cx-txt-inactive: #A6A6A6; --cx-txt-active: #F9F9F9; font-family: Lato, 'Inter', sans-serif; background: var(--cx-bg); width: 260px; position: fixed; left: 0; top: 0; bottom: 0; z-index: 40; box-shadow: inset -1px 0 0 rgba(255,255,255,.08); display: flex; flex-direction: column; overflow: hidden; }
+  .cx-nav-inner { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+  .cx-nav ul { margin: 0; list-style: none; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+  .cx-nav-top { display: flex; gap: 12px; padding: 22px 16px 20px; flex-direction: row; align-items: center; }
+  .cx-brand-label { font-size: 1.15rem; font-weight: 700; color: #fff; white-space: nowrap; }
+  .cx-brand-label .dot { color: var(--brand-pink); }
+  .cx-scroll { min-height: 0; flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 8px; }
+  .cx-scroll::-webkit-scrollbar { width: 6px; }
+  .cx-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,.16); border-radius: 999px; }
+  .cx-nav .cx-ul-section { padding: 4px 14px 10px; }
+  .cx-item, .cx-group-trigger { position: relative; display: flex; width: 100%; align-items: flex-start; gap: 9px; border-radius: 8px; padding: 7px 9px; min-height: 32px; color: var(--cx-txt-inactive); background: none; border: none; cursor: pointer; font-family: inherit; text-align: left; text-decoration: none; transition: background .15s, color .15s; font-size: 13.5px; }
+  .cx-item:hover, .cx-group-trigger:hover { background: rgba(255,255,255,.07); color: var(--cx-txt-active); }
+  .cx-item.active, .cx-group-trigger.active { background: rgba(255,255,255,.07); color: var(--cx-txt-active); }
+  .cx-item.active .cx-item-label, .cx-group-trigger.active .cx-item-label { font-weight: 700; }
+  .cx-item-icon { margin-top: 1px; display: inline-flex; flex-shrink: 0; }
+  .cx-item-icon svg, .cx-item-icon i { width: 15px; height: 15px; }
+  .cx-item-body { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; flex: 1 1 auto; min-width: 0; }
+  .cx-item-label { flex: none; width: 100%; line-height: 18px; }
+  .cx-chev { margin-top: 1px; flex-shrink: 0; color: #69727D; transition: transform .2s ease-out; }
+  .cx-chev svg, .cx-chev i { width: 14px; height: 14px; }
+  .cx-group.open > .cx-group-trigger .cx-chev { transform: rotate(90deg); }
+  .cx-group-sub-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .18s ease-out; }
+  .cx-group.open > .cx-group-sub-wrap { grid-template-rows: 1fr; }
+  .cx-nav .cx-group-sub { margin-left: 15px; margin-top: 4px; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 4px; border-left: 1px solid rgba(255,255,255,.14); padding-left: 12px; }
+  .cx-group-sub .cx-item, .cx-group-sub .cx-group-trigger { min-height: 28px; }
+  .cx-item.disabled { color: #69727D; cursor: default; pointer-events: none; }
+  .cx-trailing { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .cx-badge { display: flex; align-items: center; height: 18px; padding: 0 6px; border-radius: 9px; font-size: 10px; font-weight: 500; white-space: nowrap; flex-shrink: 0; margin-top: 1px; background: rgba(255,255,255,.06); color: var(--cx-txt-inactive); border: 1px solid rgba(255,255,255,.14); }
+  .cx-badge.success { background: rgba(34,197,94,.12); color: #4ade80; border-color: rgba(34,197,94,.45); }
+  .cx-badge.info { background: rgba(59,130,246,.14); color: #7db1ff; border-color: rgba(59,130,246,.5); }
+  .cx-badge.construction { background: rgba(245,158,11,.12); color: #fbbf24; border-color: rgba(245,158,11,.45); }
+  .cx-sep { height: 1px; background: rgba(255,255,255,.08); margin: 6px 18px 10px; }
+  .cx-footer { display: flex; align-items: center; border-top: 1px solid rgba(255,255,255,.08); padding: 8px 14px; flex-shrink: 0; }
+  .cx-footer-inner { display: flex; min-height: 52px; width: 100%; align-items: center; gap: 8px; }
+  .cx-avatar { display: flex; width: 30px; height: 30px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 50%; background: #1C2739; font-size: 10.5px; font-weight: 700; color: var(--cx-txt-active); }
+  .cx-footer-name { flex: 1; font-size: 13px; font-weight: 700; color: var(--cx-txt-inactive); white-space: nowrap; }
+  .main { margin-left: 260px; min-height: 100vh; display: flex; flex-direction: column; }
   .topbar { background: transparent; display: flex; align-items: center; height: 44px; padding-right: 18px; position: sticky; top: 0; z-index: 30; }
   .topbar .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
   .notif-btn { position: relative; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 8px; }
@@ -428,107 +452,101 @@
 })();
 
 /* ============================================================
-   CATÁLOGO DE MÓDULOS — cada protótipo roda em nome de um módulo do
-   Cockpit (não é sempre DP). Define marca da sidebar + itens de navegação
-   padrão daquele módulo. FLOW_CONFIG.module escolhe o preset; FLOW_CONFIG
-   pode sobrescrever brand/navItems manualmente se precisar de algo custom.
+   SIDEBAR UNIFICADA — a mesma para todos os protótipos e módulos.
+   (FLOW_CONFIG.module NÃO muda mais a sidebar; ele só serve pra classificar
+   o protótipo no hub e escolher a terminologia dos dados mock.)
+   FLOW_CONFIG.activeNav escolhe qual item aparece destacado (ids abaixo).
+   Itens são só visuais no protótipo — não navegam.
    ============================================================ */
-const COCKPIT_MODULES = {
-  dp: {
-    brand: 'Cockpit',
-    activeLabel: 'Tarefas de DP',
-    activeIcon: 'list-todo',
-    activeHref: 'lista-operador.html',
-    extraItems: [
-      { nav: 'clientes', icon: 'users', label: 'Clientes' },
-      { nav: 'tarefas', icon: 'check-circle', label: 'Tarefas' },
-      { nav: 'solicitacoes', icon: 'megaphone', label: 'Solicitações' },
-      { nav: 'pagamentos', icon: 'clock', label: 'Agendar pagamentos' },
-      { nav: 'docs', icon: 'folder', label: 'Gerenciador de docs' },
-    ],
-  },
-  fiscal: {
-    brand: 'Cockpit',
-    activeLabel: 'Tarefas Fiscais',
-    activeIcon: 'landmark',
-    activeHref: 'lista-operador.html',
-    extraItems: [
-      { nav: 'clientes', icon: 'users', label: 'Clientes' },
-      { nav: 'obrigacoes', icon: 'calendar-clock', label: 'Obrigações' },
-      { nav: 'guias', icon: 'receipt', label: 'Guias e impostos' },
-      { nav: 'docs', icon: 'folder', label: 'Gerenciador de docs' },
-    ],
-  },
-  contabil: {
-    brand: 'Cockpit',
-    activeLabel: 'Tarefas Contábeis',
-    activeIcon: 'book-open-check',
-    activeHref: 'lista-operador.html',
-    extraItems: [
-      { nav: 'clientes', icon: 'users', label: 'Clientes' },
-      { nav: 'conciliacao', icon: 'scale', label: 'Conciliação' },
-      { nav: 'balancetes', icon: 'bar-chart-3', label: 'Balancetes' },
-      { nav: 'docs', icon: 'folder', label: 'Gerenciador de docs' },
-    ],
-  },
-  bpo: {
-    brand: 'Cockpit',
-    activeLabel: 'Tarefas de BPO',
-    activeIcon: 'briefcase',
-    activeHref: 'lista-operador.html',
-    extraItems: [
-      { nav: 'clientes', icon: 'users', label: 'Clientes' },
-      { nav: 'processos', icon: 'workflow', label: 'Processos' },
-      { nav: 'docs', icon: 'folder', label: 'Gerenciador de docs' },
-    ],
-  },
-  autopilot_configs: {
-    brand: 'Autopilot',
-    activeLabel: 'Configurações',
-    activeIcon: 'settings-2',
-    activeHref: 'lista-operador.html',
-    extraItems: [
-      { nav: 'motores', icon: 'cpu', label: 'Motores' },
-      { nav: 'regras', icon: 'list-checks', label: 'Regras' },
-      { nav: 'clientes', icon: 'users', label: 'Clientes' },
-    ],
-  },
-};
+const CX_LOGO_SVG = `<svg width="18" height="18" viewBox="0 0 32 31" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M27.7557 0H3.26521C2.36377 0 1.54818.366052.955809.955166.366298 1.54714 0 2.36218 0 3.26301V27.737C0 28.6378.366298 29.4529.955809 30.0448 1.54532 30.6368 2.36377 31 3.26521 31H27.7557C28.6571 31 29.4727 30.6339 30.0651 30.0448 30.6574 29.4557 31.0209 28.6378 31.0209 27.737V3.26301C31.0209 2.36218 30.6546 1.54714 30.0651.955166 29.4756.366052 28.6571 0 27.7557 0ZM9.04871 23.3787C8.7282 23.699 8.30753 23.8591 7.88686 23.8591 7.46619 23.8591 7.04552 23.699 6.72501 23.3787L4.80194 21.4569 2.87888 19.5351C2.55836 19.2149 2.39811 18.7945 2.39811 18.3712 2.39811 17.948 2.55836 17.5304 2.87888 17.2101L5.38287 14.7078 7.88686 12.2055 10.9718 15.2884 14.0567 18.3712 11.5527 20.8735 9.04871 23.3758V23.3787ZM9.30626 10.8185L11.7902 8.33625 14.2742 5.85397C14.6061 5.52223 15.0411 5.35637 15.479 5.35637 15.9168 5.35637 16.3489 5.52223 16.6837 5.85397L19.1677 8.33625 21.6517 10.8185 18.5667 13.9014 15.4818 16.9842 12.3969 13.9014 9.31199 10.8185H9.30626ZM28.0819 19.4722L26.093 21.4598 24.1041 23.4473C23.8008 23.7505 23.403 23.902 23.0052 23.902 22.6075 23.902 22.2097 23.7505 21.9064 23.4473L19.368 20.9107 16.8297 18.3741 19.9146 15.2912 22.9995 12.2084 25.5379 14.745 28.0762 17.2816C28.3795 17.5848 28.5312 17.9823 28.5312 18.3798 28.5312 18.7773 28.3795 19.1748 28.0762 19.478L28.0819 19.4722Z" fill="currentColor"></path></svg>`;
 
-function _resolveModuleMeta(cfg) {
-  const preset = COCKPIT_MODULES[(cfg && cfg.module) || 'dp'] || COCKPIT_MODULES.dp;
-  // FLOW_CONFIG pode sobrescrever qualquer campo do preset do módulo (brand, activeLabel, navItems etc.)
-  return Object.assign({}, preset, cfg && cfg.moduleOverrides ? cfg.moduleOverrides : {});
+const COCKPIT_NAV = [
+  // Trabalho
+  [
+    { id: 'clientes', icon: 'users', label: 'Clientes' },
+    { id: 'tarefas-gto', icon: 'circle-check-big', label: 'Tarefas (GTO)' },
+    { id: 'tarefas-novo', icon: 'list-checks', label: 'Tarefas (novo)' },
+    { id: 'solicitacoes', icon: 'send', label: 'Solicitações' },
+    { id: 'gdocs', icon: 'folder', label: 'GDocs' },
+  ],
+  // Ferramentas (Autopilot é item simples, sem subpáginas)
+  [
+    { id: 'ferramentas', icon: 'wrench', label: 'Ferramentas', children: [
+      { id: 'autopilot', icon: 'bot', label: 'Autopilot' },
+      { id: 'agendar-pagamentos', icon: 'clock', label: 'Agendar pagamentos' },
+      { id: 'buscador-extratos', icon: 'file-search', label: 'Buscador de Extratos' },
+      { id: 'conciliador', icon: 'arrow-right-left', label: 'Conciliador' },
+      { id: 'integrador-nf', icon: 'receipt', label: 'Integrador de notas fiscais' },
+    ]},
+  ],
+  // Fechamento
+  [
+    { id: 'faturamento', icon: 'dollar-sign', label: 'Faturamento interno' },
+    { id: 'relatorios', icon: 'chart-column', label: 'Relatórios' },
+  ],
+];
+
+function _cxIcon(name) { return '<i data-lucide="' + name + '"></i>'; }
+
+function _cxBadgeHtml(b) {
+  return b ? '<span class="cx-badge ' + (b.variant || '') + '">' + b.label + '</span>' : '';
 }
 
-function _moduleNavItemsHtml(moduleMeta) {
-  const itemHtml = (it) => `
-  <div class="sidebar-item" data-nav="${it.nav}">
-    <div class="icon-wrap"><i data-lucide="${it.icon}" class="w-5 h-5"></i></div>
-    <div class="label">${it.label}</div>
-  </div>`;
-  const activeHtml = `
-  <a href="${moduleMeta.activeHref}" class="sidebar-item active" title="${moduleMeta.activeLabel}" style="text-decoration:none;">
-    <div class="icon-wrap"><i data-lucide="${moduleMeta.activeIcon}" class="w-5 h-5"></i></div>
-    <div class="label">${moduleMeta.activeLabel}</div>
-  </a>`;
-  const extras = moduleMeta.extraItems || [];
-  // Item ativo (fila/tarefas deste módulo) fica na 3ª posição, espelhando o layout original.
-  const before = extras.slice(0, 2).map(itemHtml).join('');
-  const after = extras.slice(2).map(itemHtml).join('');
-  return before + activeHtml + after;
+function _cxNodeHtml(node, activeId) {
+  if (node.children) {
+    const open = node.open !== false || node.children.some(c => c.id === activeId);
+    const kids = node.children.map(c => _cxNodeHtml(c, activeId)).join('');
+    return '<li class="cx-group' + (open ? ' open' : '') + '">' +
+      '<button type="button" class="cx-group-trigger" onclick="cxToggleGroup(this)">' +
+      '<span class="cx-item-icon">' + _cxIcon(node.icon) + '</span>' +
+      '<span class="cx-item-body"><span class="cx-item-label">' + node.label + '</span></span>' +
+      '<span class="cx-trailing">' + _cxBadgeHtml(node.badge) + '<span class="cx-chev">' + _cxIcon('chevron-right') + '</span></span>' +
+      '</button>' +
+      '<div class="cx-group-sub-wrap"><ul class="cx-group-sub">' + kids + '</ul></div>' +
+      '</li>';
+  }
+  const cls = 'cx-item' + (node.id === activeId ? ' active' : '') + (node.disabled ? ' disabled' : '');
+  return '<li><button type="button" class="' + cls + '" data-nav="' + node.id + '">' +
+    '<span class="cx-item-icon">' + _cxIcon(node.icon) + '</span>' +
+    '<span class="cx-item-body"><span class="cx-item-label">' + node.label + '</span></span>' +
+    _cxBadgeHtml(node.badge) +
+    '</button></li>';
+}
+
+window.cxToggleGroup = function (btn) {
+  btn.closest('.cx-group').classList.toggle('open');
+};
+
+function _cockpitNavHtml(cfg) {
+  const activeId = cfg.activeNav || 'tarefas-novo';
+  const sections = COCKPIT_NAV.map(items =>
+    '<ul class="cx-ul-section">' + items.map(it => _cxNodeHtml(it, activeId)).join('') + '</ul>'
+  ).join('<div class="cx-sep"></div>');
+  const name = cfg.operatorName || 'Daniele Ribeiro';
+  const initials = cfg.operatorInitials || 'DR';
+  return `
+<nav class="cx-nav">
+  <div class="cx-nav-inner">
+    <div class="cx-nav-top">
+      <span style="color:#F9F9F9;display:flex;">${CX_LOGO_SVG}</span>
+      <span class="cx-brand-label">Cockpit<span class="dot">.</span></span>
+    </div>
+    <div class="cx-scroll">${sections}</div>
+  </div>
+  <div class="cx-footer">
+    <div class="cx-footer-inner">
+      <span class="cx-avatar">${initials}</span>
+      <span class="cx-footer-name">${name}</span>
+    </div>
+  </div>
+</nav>`;
 }
 
 /* ---- HTML Shell injection ---- */
 function _buildShell() {
   const cfg = window.FLOW_CONFIG || {};
-  const moduleMeta = _resolveModuleMeta(cfg);
   document.body.innerHTML = `
-<aside class="sidebar">
-  <div class="brand">${moduleMeta.brand}</div>
-  ${_moduleNavItemsHtml(moduleMeta)}
-  <div class="avatar" title="${cfg.operatorName || 'Daniele Ribeiro'}">${(cfg.operatorInitials || 'DR')}</div>
-</aside>
+${_cockpitNavHtml(cfg)}
 
 <div class="main">
   <div class="topbar">
@@ -552,7 +570,7 @@ function _buildShell() {
                  link vai, de QUALQUER tela: o mesmo shell roda dentro do v1 e do v3, então
                  mandar pro v0 jogaria quem está numa versão dentro de outra.
                  Ver decisoes/porta-de-entrada.md. -->
-            <a href="/" style="text-align: left; font-size: 12px; color: var(--text-primary); background: #fff; border: 1px solid var(--border); padding: 7px 10px; border-radius: 6px; cursor: pointer; text-decoration: none; display: block;">← Voltar ao menu de protótipos</a>
+            <a id="hub-link" href="/" style="text-align: left; font-size: 12px; color: var(--text-primary); background: #fff; border: 1px solid var(--border); padding: 7px 10px; border-radius: 6px; cursor: pointer; text-decoration: none; display: block;">← Voltar ao menu de protótipos</a>
           </div>
         </div>
       </div>
@@ -838,5 +856,6 @@ function _buildShell() {
   </div>
 </div>
 `;
+  // Protótipo aberto direto (sem hub): FLOW_CONFIG.showHubLink = false remove o link "Voltar ao menu de protótipos".
+  if (cfg.showHubLink === false) { const l = document.getElementById('hub-link'); if (l) l.remove(); }
 }
-

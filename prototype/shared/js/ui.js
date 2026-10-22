@@ -69,22 +69,27 @@
   // Combobox simples: root precisa dos filhos .combobox-trigger, .combobox-panel,
   // .combobox-search input, .combobox-list — mesma estrutura usada no Sheet de
   // Sócios. `options` = [{value, label, sublabel}]; onSelect(value).
+  // Pode ser chamado de novo no mesmo root (ex.: a cada abertura de um sheet,
+  // ou ao trocar as opções): os listeners são ligados uma vez só e leem
+  // opções/valor/onSelect atuais de root._combobox — antes, cada nova chamada
+  // empilhava outro listener no trigger e o segundo clique fechava a lista.
   function initCombobox(root, options, currentValue, onSelect) {
     const trigger = root.querySelector(".combobox-trigger");
-    const panel = root.querySelector(".combobox-panel");
     const searchInput = root.querySelector(".combobox-search input");
     const list = root.querySelector(".combobox-list");
+    const state = { options: options, currentValue: currentValue, onSelect: onSelect };
+    root._combobox = state;
 
     function renderList(filterText) {
       const termo = (filterText || "").toLowerCase();
-      const filtrados = options.filter((o) => (o.label + " " + (o.sublabel || "")).toLowerCase().includes(termo));
+      const filtrados = state.options.filter((o) => (o.label + " " + (o.sublabel || "")).toLowerCase().includes(termo));
       list.innerHTML = "";
       if (filtrados.length === 0) {
         list.innerHTML = '<div class="combobox-empty">' + (root.getAttribute("data-empty-text") || "Nenhum resultado encontrado.") + "</div>";
         return;
       }
       filtrados.forEach((o) => {
-        const isSel = String(o.value) === String(currentValue);
+        const isSel = String(o.value) === String(state.currentValue);
         const item = document.createElement("div");
         item.className = "combobox-item" + (isSel ? " is-selected" : "");
         item.innerHTML =
@@ -93,8 +98,8 @@
           (o.sublabel ? '<span class="combobox-item-sub truncate">' + o.sublabel + "</span>" : "") +
           "</div>";
         item.addEventListener("click", () => {
-          currentValue = o.value;
-          onSelect(o.value, o.label);
+          state.currentValue = o.value;
+          state.onSelect(o.value, o.label);
           trigger.querySelector(".combobox-label").textContent = o.label;
           trigger.classList.add("has-value");
           root.classList.remove("is-open");
@@ -104,80 +109,31 @@
         list.appendChild(item);
       });
     }
+    state.renderList = renderList;
 
-    trigger.addEventListener("click", () => {
-      root.classList.toggle("is-open");
-      if (root.classList.contains("is-open")) {
-        searchInput.value = "";
-        renderList("");
-        searchInput.focus();
-      }
-    });
-    searchInput.addEventListener("input", (e) => renderList(e.target.value));
-    document.addEventListener("click", (e) => {
-      if (!root.contains(e.target)) root.classList.remove("is-open");
-    });
-
-    renderList("");
-    const selecionado = options.find((o) => String(o.value) === String(currentValue));
-    if (selecionado) {
-      trigger.querySelector(".combobox-label").textContent = selecionado.label;
-      trigger.classList.add("has-value");
-    }
-  }
-
-  // Multi-select popover — mesma estrutura do Combobox acima (trigger +
-  // panel + list), mas cada item é marcável independente sem fechar o
-  // painel, e o rótulo do trigger resume quantos estão marcados. Pedido do
-  // Luiz na revisão de 10/09/2026 ("talvez até colocar uma multi select
-  // aqui seria bom") para o filtro de status da lista de Implantação de
-  // Empresas. `options` = [{value, label, count}]; `currentValues` = array
-  // de value já selecionados; onChange(novoArrayDeValues) — array vazio (ou
-  // com todas as opções) equivale a "todos", sem filtro aplicado.
-  function initMultiSelect(root, options, currentValues, onChange) {
-    const trigger = root.querySelector(".combobox-trigger");
-    const list = root.querySelector(".combobox-list");
-    let selected = currentValues.slice();
-
-    function labelTrigger() {
-      const labelEl = trigger.querySelector(".combobox-label");
-      if (selected.length === 0 || selected.length === options.length) {
-        labelEl.textContent = root.getAttribute("data-all-label") || "Todos";
-      } else if (selected.length === 1) {
-        const o = options.find((x) => x.value === selected[0]);
-        labelEl.textContent = o ? o.label : selected[0];
-      } else {
-        labelEl.textContent = selected.length + " selecionados";
-      }
-      trigger.classList.add("has-value");
-    }
-
-    function renderList() {
-      list.innerHTML = "";
-      options.forEach((o) => {
-        const isSel = selected.indexOf(o.value) !== -1;
-        const item = document.createElement("div");
-        item.className = "combobox-item" + (isSel ? " is-selected" : "");
-        item.innerHTML =
-          '<span class="check">' + Icon("check", "size-4") + "</span>" +
-          '<span class="truncate">' + o.label + (typeof o.count === "number" ? ' <span class="combobox-item-sub" style="display:inline;">(' + o.count + ")</span>" : "") + "</span>";
-        item.addEventListener("click", () => {
-          selected = isSel ? selected.filter((v) => v !== o.value) : selected.concat([o.value]);
-          renderList();
-          labelTrigger();
-          onChange(selected.slice());
-        });
-        list.appendChild(item);
+    if (!root._comboboxWired) {
+      root._comboboxWired = true;
+      trigger.addEventListener("click", () => {
+        root.classList.toggle("is-open");
+        if (root.classList.contains("is-open")) {
+          searchInput.value = "";
+          root._combobox.renderList("");
+          searchInput.focus();
+        }
       });
+      searchInput.addEventListener("input", (e) => root._combobox.renderList(e.target.value));
+      document.addEventListener("click", (e) => {
+        if (!root.contains(e.target)) root.classList.remove("is-open");
+      });
+      // O texto inicial do trigger é o placeholder; guardado para quando o valor for limpo.
+      root._comboboxPlaceholder = trigger.querySelector(".combobox-label").textContent;
     }
 
-    trigger.addEventListener("click", () => root.classList.toggle("is-open"));
-    document.addEventListener("click", (e) => {
-      if (!root.contains(e.target)) root.classList.remove("is-open");
-    });
-
-    renderList();
-    labelTrigger();
+    root.classList.remove("is-open");
+    renderList("");
+    const selecionado = state.options.find((o) => String(o.value) === String(state.currentValue));
+    trigger.querySelector(".combobox-label").textContent = selecionado ? selecionado.label : root._comboboxPlaceholder;
+    trigger.classList.toggle("has-value", !!selecionado);
   }
 
   const MESES_PT = [
@@ -344,42 +300,43 @@
     };
   }
 
-  // Tooltip da barra de progresso segmentada (Implantação DP por empresa,
-  // ver .segbar em components.css) — monta um elemento solto em <body>,
-  // position:fixed, em vez de um ::after no próprio segmento. Um ::after
-  // fica preso ao recorte do ancestral mais próximo com overflow != visible
-  // (aqui, .table-wrap, que precisa do overflow-x:auto para rolagem
-  // horizontal — e isso recorta o eixo Y também, por especificação).
-  // Chame de novo depois de qualquer re-render da tabela/lista que contenha
-  // segbars, igual iniTole/initCombobox — não fica "escutando" mudança de
-  // DOM sozinho.
-  function initSegbarTooltips(root) {
-    let tooltipEl = null;
-    function remover() {
-      if (tooltipEl) {
-        tooltipEl.remove();
-        tooltipEl = null;
-      }
-    }
-    (root || document).querySelectorAll(".segbar-segment[data-tooltip], .progress-bar-wrap[data-tooltip]").forEach((seg) => {
-      seg.addEventListener("mouseenter", () => {
-        remover();
-        tooltipEl = document.createElement("div");
-        tooltipEl.className = "segbar-tooltip";
-        tooltipEl.textContent = seg.getAttribute("data-tooltip");
-        document.body.appendChild(tooltipEl);
-        const rectSeg = seg.getBoundingClientRect();
-        const rectTip = tooltipEl.getBoundingClientRect();
-        let top = rectSeg.top - rectTip.height - 8;
-        // Perto do topo da viewport (linha 1 da tabela) não cabe em cima —
-        // desce pra baixo do segmento em vez de cortar contra o teto.
-        if (top < 4) top = rectSeg.bottom + 8;
-        tooltipEl.style.left = Math.max(4, rectSeg.left + rectSeg.width / 2 - rectTip.width / 2) + "px";
-        tooltipEl.style.top = top + "px";
-      });
-      seg.addEventListener("mouseleave", remover);
-    });
+  // Tabs that are separate pages reload the whole screen; this keeps the tab body behind a skeleton for a
+  // short simulated load (same idea as FISCAL_LOADING_DELAY_MS), so the switch reads as content loading.
+  const TAB_LOADING_DELAY_MS = 450;
+
+  function skeletonBar(width, height) {
+    return '<span class="skeleton" style="width:' + width + "; height:" + height + ';"></span>';
   }
 
-  global.UI = { openSheet, closeSheet, openDialog, closeDialog, showToast, truncatedCell, initToggleGroup, initCombobox, initMultiSelect, initDatePicker, initSegbarTooltips };
+  function tabSkeletonHtml(variant) {
+    const header = '<div class="flex flex-col gap-2">' + skeletonBar("200px", "22px") + skeletonBar("320px", "13px") + "</div>";
+    if (variant === "list") {
+      const rows = [1, 2, 3, 4, 5].map(() => skeletonBar("100%", "40px")).join("");
+      return header + '<div class="flex items-end gap-3">' + skeletonBar("280px", "36px") + skeletonBar("200px", "36px") + "</div>" + '<div class="flex flex-col gap-2">' + rows + "</div>";
+    }
+    const field = '<div class="flex flex-col gap-2">' + skeletonBar("90px", "10px") + skeletonBar("70%", "15px") + "</div>";
+    const grid = '<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:18px 24px;">' + [1, 2, 3, 4, 5, 6].map(() => field).join("") + "</div>";
+    return header + skeletonBar("100%", "1px") + grid + skeletonBar("100%", "1px") + grid;
+  }
+
+  // contentEl stays rendered but hidden, so the tab logic runs untouched; only its visibility is deferred.
+  function showTabSkeleton(contentEl, opts) {
+    if (!contentEl) return;
+    const options = opts || {};
+    const skeleton = document.createElement("div");
+    skeleton.className = "card";
+    skeleton.setAttribute("role", "status");
+    skeleton.setAttribute("aria-busy", "true");
+    skeleton.style.marginTop = getComputedStyle(contentEl).marginTop;
+    skeleton.innerHTML =
+      '<span class="sr-only">Carregando…</span><div class="card-content flex flex-col gap-4">' + tabSkeletonHtml(options.variant) + "</div>";
+    contentEl.classList.add("hidden");
+    contentEl.parentNode.insertBefore(skeleton, contentEl);
+    window.setTimeout(() => {
+      skeleton.remove();
+      contentEl.classList.remove("hidden");
+    }, options.delayMs || TAB_LOADING_DELAY_MS);
+  }
+
+  global.UI = { openSheet, closeSheet, openDialog, closeDialog, showToast, truncatedCell, initToggleGroup, initCombobox, initDatePicker, showTabSkeleton };
 })(window);

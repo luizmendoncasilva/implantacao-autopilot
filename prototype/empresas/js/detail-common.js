@@ -1,7 +1,9 @@
 /*
   Cabeçalho + barra de abas do cadastro de empresa — portado de EmpresaDetalhe.jsx.
-  Compartilhado pelas 7 páginas de detalhe (dados-gerais, atividades,
-  responsavel-legal, socios, contadores, centralizadora, historico). Cada página só
+  Compartilhado pelas 6 páginas de detalhe (dados-gerais, atividades,
+  socios, contadores, centralizadora, historico). Responsável legal e Quadro
+  societário dividem a mesma aba (socios.html, "Sócios/Resp. legal"), em seções separadas;
+  responsavel-legal.html só redireciona para ela. Cada página só
   implementa o conteúdo da própria aba; navegar de aba é navegar de arquivo HTML,
   preservando ?empresa=. A aba "Módulos" foi descontinuada — os módulos
   habilitados agora aparecem direto no cabeçalho (ver renderHeaderAndTabs),
@@ -11,8 +13,7 @@
   const TABS = [
     { key: "geral", label: "Dados gerais", href: "dados-gerais.html" },
     { key: "atividades", label: "Atividades", href: "atividades.html" },
-    { key: "responsavelLegal", label: "Responsável legal", href: "responsavel-legal.html" },
-    { key: "societario", label: "Quadro societário", href: "socios.html" },
+    { key: "societario", label: "Sócios/Resp. legal", href: "socios.html" },
     { key: "contadores", label: "Contadores", href: "contadores.html" },
     { key: "centralizadora", label: "Empresa centralizadora", href: "centralizadora.html" },
     { key: "historico", label: "Histórico de alterações", href: "historico.html" },
@@ -26,12 +27,13 @@
   // Abas em que a edição da empresa (via drawer lateral no Autopilot) fica
   // disponível no cabeçalho. "Empresa centralizadora" fica de fora: mostra só
   // a relação matriz/filial entre empresas já cadastradas, controlada pelo
-  // Cockpit, sem campo próprio desta empresa para editar aqui.
+  // Cockpit, sem campo próprio desta empresa para editar aqui. "Sócios/Resp.
+  // legal" também: cada seção tem a própria ação no card.
   function renderHeaderAndTabs(empresa, activeTab) {
     const D = global.EmpresasData;
     const centralInfo = D.getCentralizacao()[empresa.codigo] || {};
     const tipoBadge = TIPO_BADGE[centralInfo.tipo];
-    const mostrarBotaoEditar = activeTab === "geral" || activeTab === "atividades" || activeTab === "responsavelLegal";
+    const mostrarBotaoEditar = activeTab === "geral" || activeTab === "atividades";
     const dg = empresa.dadosGerais;
     const titulo = dg.razaoSocial + " — " + dg.nomeFantasia + " — " + dg.cnpj;
 
@@ -109,8 +111,7 @@
     document.getElementById(rootMountId).innerHTML = renderHeaderAndTabs(empresa, activeTab);
     ensureToast();
     // Cada aba que tem o botão "Editar" define seu próprio
-    // window.abrirEdicaoEmpresa (dados-gerais.js, atividades.js,
-    // responsavel-legal.js) — a edição é sempre feita aqui no Autopilot, num
+    // window.abrirEdicaoEmpresa (dados-gerais.js, atividades.js) — a edição é sempre feita aqui no Autopilot, num
     // drawer lateral próprio da aba, nunca no Cockpit.
     const btnEditar = document.getElementById("btn-editar-empresa");
     if (btnEditar) {

@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23171717%27/%3E%3Ctext x=%2712%27 y=%2716.5%27 font-family=%27Arial%2C sans-serif%27 font-size=%278%27 font-weight=%27700%27 fill=%27%23fafafa%27 text-anchor=%27middle%27%3EAP%3C/text%3E%3C/svg%3E" />
+  <title>Tabela de Feriados — AutoPilot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lato:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="../core/cockpit-01-shell.js"></script>
+  <script src="../core/cockpit-09-cx-sidebar.js"></script>
+  <link rel="expect" href="#page-ready" blocking="render" />
+  <link rel="stylesheet" href="../shared/css/tokens.css" />
+  <link rel="stylesheet" href="../shared/css/base.css" />
+  <link rel="stylesheet" href="../shared/css/components.css" />
+  <link rel="stylesheet" href="../shared/css/layout.css" />
+</head>
+<body>
+  <div id="shell-root"></div>
+
+  <template id="page-content">
+    <section class="max-w-7xl flex flex-col gap-4">
+      <div class="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h1 class="text-xl font-semibold mb-1">Tabela de Feriados</h1>
+          <p class="text-sm text-muted max-w-2xl">
+            Fonte única de feriados consumida pelos motores de DP, Fiscal e Contábil. A empresa é vinculada automaticamente pelo código IBGE do município dela.
+          </p>
+        </div>
+        <button type="button" class="btn btn-sm w-fit" id="btn-novo-feriado"><span id="icon-plus"></span> Novo feriado</button>
+      </div>
+
+      <div class="tabs-list tabs-list-underline" id="feriados-abas" style="overflow-x:auto; max-width:100%;">
+        <button type="button" class="tabs-trigger is-active" data-aba="federal">Federal</button>
+        <button type="button" class="tabs-trigger" data-aba="estadual">Estadual</button>
+        <button type="button" class="tabs-trigger" data-aba="municipal">Municipal</button>
+      </div>
+
+      <div class="flex flex-wrap items-end gap-3">
+        <div class="flex flex-col gap-1">
+          <label class="field-label" for="f-ano">Ano</label>
+          <div class="field-select-wrap" style="width:110px;">
+            <select id="f-ano" class="field-select"></select>
+            <span class="chev"></span>
+          </div>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="field-label" for="f-busca">Descrição</label>
+          <input id="f-busca" class="field-input w-72" placeholder="Pesquisar por descrição" />
+        </div>
+        <div class="flex flex-col gap-1" id="grupo-f-uf" style="display:none;">
+          <label class="field-label" for="f-uf">UF</label>
+          <div class="field-select-wrap" style="width:110px;">
+            <select id="f-uf" class="field-select"></select>
+            <span class="chev"></span>
+          </div>
+        </div>
+        <div class="flex flex-col gap-1" id="grupo-f-municipio" style="display:none;">
+          <label class="field-label">Município</label>
+          <div class="combobox w-72" id="f-municipio" data-empty-text="Nenhum município encontrado no catálogo do protótipo.">
+            <button type="button" class="combobox-trigger">
+              <span class="combobox-label truncate">Todos os municípios</span>
+              <span class="chev"></span>
+            </button>
+            <div class="combobox-panel">
+              <div class="combobox-search">
+                <span class="search-icon"></span>
+                <input type="text" placeholder="Buscar por código IBGE ou nome..." />
+              </div>
+              <div class="combobox-list"></div>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="field-label">Tipo</label>
+          <div class="toggle-group" id="f-tipo">
+            <button type="button" class="toggle-item is-on" data-value="">Todos</button>
+            <button type="button" class="toggle-item" data-value="fixo">Fixo</button>
+            <button type="button" class="toggle-item" data-value="movel">Móvel</button>
+          </div>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="field-label">Status</label>
+          <div class="toggle-group" id="f-status">
+            <button type="button" class="toggle-item is-on" data-value="">Todos</button>
+            <button type="button" class="toggle-item" data-value="ativo">Ativos</button>
+            <button type="button" class="toggle-item" data-value="inativo">Inativos</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="resumo-municipio"></div>
+      <div id="aviso-ano"></div>
+
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <span class="text-sm text-muted" id="contagem-feriados"></span>
+        <button type="button" class="btn btn-outline btn-sm w-fit" id="btn-proximo-ano"></button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="dtable" id="tabela-feriados">
+          <thead id="tabela-feriados-head"></thead>
+          <tbody id="tabela-feriados-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </template>
+
+  <!-- Sheet (drawer) de novo/editar feriado — o mesmo painel para incluir e editar;
+       abrangência pré-selecionada pela aba e bloqueada na edição. -->
+  <div class="sheet-overlay" id="fer-overlay"></div>
+  <div class="sheet-panel" id="fer-panel" role="dialog" aria-modal="true" aria-labelledby="fer-title">
+    <button type="button" class="sheet-close" id="fer-close"></button>
+    <div class="sheet-header">
+      <div class="sheet-title" id="fer-title">Novo feriado</div>
+      <div class="sheet-description" id="fer-description"></div>
+    </div>
+    <div class="sheet-body">
+      <div class="sheet-field">
+        <span class="field-label">Abrangência <span class="text-muted">*</span></span>
+        <div class="toggle-group" id="fer-abrangencia">
+          <button type="button" class="toggle-item" data-value="federal">Federal</button>
+          <button type="button" class="toggle-item" data-value="estadual">Estadual</button>
+          <button type="button" class="toggle-item" data-value="municipal">Municipal</button>
+        </div>
+        <div class="sheet-field-locked-value" id="fer-abrangencia-travada" style="display:none;"></div>
+      </div>
+      <div class="sheet-field" id="fer-grupo-uf">
+        <label class="field-label" for="fer-uf">UF <span class="text-muted">*</span></label>
+        <div class="field-select-wrap">
+          <select id="fer-uf" class="field-select"></select>
+          <span class="chev"></span>
+        </div>
+      </div>
+      <div class="sheet-field" id="fer-grupo-municipio">
+        <label class="field-label">Município <span class="text-muted">*</span></label>
+        <div class="combobox" id="fer-municipio" data-empty-text="Nenhum município desta UF no catálogo do protótipo.">
+          <button type="button" class="combobox-trigger">
+            <span class="combobox-label truncate">Selecione o município</span>
+            <span class="chev"></span>
+          </button>
+          <div class="combobox-panel">
+            <div class="combobox-search">
+              <span class="search-icon"></span>
+              <input type="text" placeholder="Buscar por código IBGE ou nome..." />
+            </div>
+            <div class="combobox-list"></div>
+          </div>
+        </div>
+        <span class="text-xs text-muted">Sempre identificado pelo código IBGE; a empresa é vinculada automaticamente por ele.</span>
+      </div>
+      <div class="sheet-field">
+        <label class="field-label" for="fer-descricao">Descrição <span class="text-muted">*</span></label>
+        <input id="fer-descricao" class="field-input" placeholder="Ex.: Tiradentes" maxlength="80" />
+      </div>
+      <div class="sheet-field">
+        <span class="field-label">Tipo <span class="text-muted">*</span></span>
+        <div class="toggle-group" id="fer-tipo">
+          <button type="button" class="toggle-item is-on" data-value="fixo">Fixo</button>
+          <button type="button" class="toggle-item" data-value="movel">Móvel</button>
+        </div>
+        <span class="text-xs text-muted" id="fer-tipo-hint"></span>
+      </div>
+      <div class="sheet-row" id="fer-grupo-fixo">
+        <div class="sheet-field">
+          <label class="field-label" for="fer-dia">Dia <span class="text-muted">*</span></label>
+          <div class="field-select-wrap">
+            <select id="fer-dia" class="field-select"></select>
+            <span class="chev"></span>
+          </div>
+        </div>
+        <div class="sheet-field">
+          <label class="field-label" for="fer-mes">Mês <span class="text-muted">*</span></label>
+          <div class="field-select-wrap">
+            <select id="fer-mes" class="field-select"></select>
+            <span class="chev"></span>
+          </div>
+        </div>
+      </div>
+      <div class="sheet-field" id="fer-grupo-movel">
+        <label class="field-label">Data <span class="text-muted">*</span></label>
+        <div class="date-picker" id="fer-data-picker">
+          <button type="button" class="date-picker-trigger">
+            <span class="date-picker-icon"></span>
+            <span class="date-picker-label">Selecione uma data</span>
+          </button>
+          <div class="date-picker-panel">
+            <div class="date-picker-header">
+              <button type="button" class="date-picker-nav-btn" data-nav="prev" aria-label="Mês anterior"></button>
+              <span class="date-picker-caption"></span>
+              <button type="button" class="date-picker-nav-btn" data-nav="next" aria-label="Próximo mês"></button>
+            </div>
+            <div class="date-picker-weekdays">
+              <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
+            </div>
+            <div class="date-picker-grid"></div>
+          </div>
+        </div>
+      </div>
+      <span class="text-xs" id="fer-duplicidade" style="display:none; color:var(--destructive);"></span>
+      <div class="sheet-field">
+        <label class="field-label" for="fer-obs">Observação / fundamento legal</label>
+        <textarea id="fer-obs" class="field-textarea" placeholder="Opcional" maxlength="300"></textarea>
+      </div>
+      <div class="sheet-field" id="fer-grupo-motivo">
+        <label class="field-label" for="fer-motivo">Motivo da alteração <span class="text-muted">*</span></label>
+        <textarea id="fer-motivo" class="field-textarea" placeholder="Fica registrado no histórico" maxlength="300"></textarea>
+      </div>
+    </div>
+    <div class="sheet-footer">
+      <button type="button" class="btn btn-outline" id="fer-cancelar">Cancelar</button>
+      <button type="button" class="btn" id="fer-salvar" disabled>Salvar</button>
+    </div>
+  </div>
+
+  <!-- Sheet (drawer) de histórico — somente leitura. -->
+  <div class="sheet-overlay" id="hist-overlay"></div>
+  <div class="sheet-panel sheet-panel-wide" id="hist-panel" role="dialog" aria-modal="true" aria-labelledby="hist-title">
+    <button type="button" class="sheet-close" id="hist-close"></button>
+    <div class="sheet-header">
+      <div class="sheet-title" id="hist-title">Histórico</div>
+      <div class="sheet-description" id="hist-description"></div>
+    </div>
+    <div class="sheet-body" id="hist-body"></div>
+    <div class="sheet-footer">
+      <button type="button" class="btn btn-outline" id="hist-fechar">Fechar</button>
+    </div>
+  </div>
+
+  <!-- Sheet (drawer) de preparação do ano seguinte — datas dos móveis para confirmar/ajustar. -->
+  <div class="sheet-overlay" id="prox-overlay"></div>
+  <div class="sheet-panel sheet-panel-wide" id="prox-panel" role="dialog" aria-modal="true" aria-labelledby="prox-title">
+    <button type="button" class="sheet-close" id="prox-close"></button>
+    <div class="sheet-header">
+      <div class="sheet-title" id="prox-title">Preparar ano seguinte</div>
+      <div class="sheet-description" id="prox-description"></div>
+    </div>
+    <div class="sheet-body" id="prox-body"></div>
+    <div class="sheet-footer">
+      <button type="button" class="btn btn-outline" id="prox-cancelar">Cancelar</button>
+      <button type="button" class="btn" id="prox-salvar" disabled>Salvar datas</button>
+    </div>
+  </div>
+
+  <!-- Dialog de inativar/reativar — o motivo vai para o histórico. -->
+  <div class="dialog-overlay" id="status-overlay">
+    <div class="dialog-content" role="dialog" aria-modal="true" aria-labelledby="status-title">
+      <button type="button" class="dialog-close" id="status-close" aria-label="Fechar"></button>
+      <div class="flex flex-col gap-1">
+        <h2 class="dialog-title" id="status-title"></h2>
+        <p class="dialog-description" id="status-description"></p>
+      </div>
+      <div class="sheet-field">
+        <label class="field-label" for="status-motivo">Motivo <span class="text-muted">*</span></label>
+        <textarea id="status-motivo" class="field-textarea" placeholder="Fica registrado no histórico" maxlength="300"></textarea>
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-outline" id="status-cancelar">Cancelar</button>
+        <button type="button" class="btn" id="status-confirmar" disabled>Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../shared/js/icons.js"></script>
+  <script src="../shared/js/chassi-dados.js"></script>
+  <script src="../shared/js/chassi.js"></script>
+  <script src="../shared/js/shell.js"></script>
+  <script src="../shared/js/ui.js"></script>
+  <script src="../shared/js/fab-tools.js"></script>
+  <script src="js/data.js"></script>
+  <script>
+    Shell.mount(document.getElementById("shell-root"), {
+      base: "../",
+      active: "feriados",
+      crumbs: [{ label: "parâmetros gerais" }, { label: "tabela de feriados" }],
+    });
+  </script>
+  <script src="js/feriado-form.js"></script>
+  <script src="js/feriado-historico.js"></script>
+  <script src="js/feriado-proximo-ano.js"></script>
+  <script src="js/feriados-page.js"></script>
+  <span id="page-ready" hidden></span>
+</body>
+</html>

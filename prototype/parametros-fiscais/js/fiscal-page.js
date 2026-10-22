@@ -58,6 +58,19 @@
       objetivo: "Levantamento de campos de IBS/CBS/Imposto Seletivo, preservado sem desenvolvimento nesta rodada.",
       emConstrucao: true,
     },
+    // Aba transversal, adicionada ao final da navegação, sem reorganizar as
+    // 6 abas funcionais acima (docs/parametros-fiscais-as-built.md,
+    // "Histórico de Alterações"). Somente leitura — nunca entra em
+    // ABAS_COM_EDICAO, então nunca ganha o botão "Editar" nem é afetada
+    // pelo bloqueio de vigência histórica (que rege apenas a edição dos
+    // campos Manual das outras 4 abas). Não deve ser confundida com o
+    // Histórico de Vigências (indicador + "Ver histórico", no cabeçalho da
+    // página) — são componentes distintos que coexistem.
+    {
+      key: "historico-alteracoes",
+      label: "Histórico de Alterações",
+      objetivo: "Quem alterou, o que foi alterado, de qual valor para qual valor, e quando — agrupado por evento, do mais recente para o mais antigo.",
+    },
   ];
 
   // Sem fallback para "primeira empresa do mock": Fiscal só considera a
@@ -202,7 +215,7 @@
 
   function renderTabsBar(activeKey) {
     return (
-      '<div class="tabs-list" style="overflow-x:auto; max-width:100%;">' +
+      '<div class="tabs-list tabs-list-underline" style="overflow-x:auto; max-width:100%;">' +
       TABS.map(
         (t) =>
           '<button type="button" class="tabs-trigger' +
@@ -427,12 +440,13 @@
     }
 
     // Mapa de abas com jornada de edição (drawer) — cada módulo expõe
-    // `abrirEdicao(empresa, onSalvo)`. Abas sem campo Manual (Federais,
-    // Contábil × Fiscal e Obrigações e Documentos Fiscais parcialmente já
-    // cobertas acima; placeholders) simplesmente não entram neste mapa.
+    // `abrirEdicao(empresa, onSalvo)`. Federais ganhou seu primeiro campo
+    // Manual (Opção pela CPRB) na rodada de complementação de conteúdo, e
+    // por isso entrou neste mapa junto das demais.
     const ABAS_COM_EDICAO = {
       gerais: () => window.FiscalGerais,
-      "estaduais-municipais": () => window.FiscalEstaduaisMunicipais,
+      federais: () => window.FiscalFederais,
+      "estaduais-municipais": () => window.FiscalParametrosEstaduaisMunicipais,
       "contabil-fiscal": () => window.FiscalContabilFiscal,
       "obrigacoes-documentos": () => window.FiscalObrigacoesDocumentos,
     };
@@ -457,6 +471,31 @@
       });
     }
 
+    // Atalho de edição a partir do indicador de origem "Informado
+    // manualmente" (rodada "Refinação UX — Informado manualmente como
+    // atalho para edição"). Reaproveita EXATAMENTE o mesmo
+    // `abrirEdicao(empresa, vigenciaId, onSalvo, focusId)` já usado pelo
+    // botão "Editar" acima — nenhum fluxo de edição novo, nenhuma
+    // duplicação de drawer/validação/persistência/histórico. Os elementos
+    // clicáveis (`[data-origem-editar-campo]`) só existem no HTML quando o
+    // próprio módulo de aba decidiu renderizá-los como editáveis (ver
+    // shared/js/origem.js, opts.editavel) — cada módulo só passa
+    // `origemEditavel: true` quando a origem é "Informado manualmente" E
+    // `isReadOnly` é false, então em vigência histórica nenhum desses
+    // elementos é renderizado e este wiring não encontra nada a ligar
+    // (nenhuma exceção precisa ser tratada aqui).
+    function wireOrigemEditavel(tab, mountEl) {
+      const getModulo = ABAS_COM_EDICAO[tab.key];
+      const modulo = getModulo ? getModulo() : null;
+      if (!modulo) return;
+      mountEl.querySelectorAll("[data-origem-editar-campo]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const focusId = btn.getAttribute("data-origem-editar-campo");
+          modulo.abrirEdicao(empresa, vigenciaSelecionadaId, () => rerenderTabPreservandoAccordion(tab, mountEl), focusId);
+        });
+      });
+    }
+
     // Re-renderiza só o conteúdo da aba ativa após Salvar no drawer,
     // preservando o estado aberto/fechado do accordion (quando a aba usa
     // um) — mesmo princípio já usado nas abas com accordion antes desta
@@ -465,13 +504,15 @@
     function rerenderTabPreservandoAccordion(tab, mountEl) {
       const abertos = Array.from(mountEl.querySelectorAll("[data-accordion-item]")).map((el) => el.classList.contains("is-open"));
       if (tab.key === "gerais") mountEl.innerHTML = FiscalGerais.renderConteudo(empresa, historicoAtivo, vigenciaSelecionadaId, false);
-      else if (tab.key === "estaduais-municipais") mountEl.innerHTML = FiscalEstaduaisMunicipais.renderConteudo(empresa, historicoAtivo, vigenciaSelecionadaId, false);
+      else if (tab.key === "federais") mountEl.innerHTML = FiscalFederais.renderConteudo(empresa, historicoAtivo, vigenciaSelecionadaId, false);
+      else if (tab.key === "estaduais-municipais") mountEl.innerHTML = FiscalParametrosEstaduaisMunicipais.renderConteudo(empresa, historicoAtivo, vigenciaSelecionadaId, false);
       else if (tab.key === "contabil-fiscal") mountEl.innerHTML = FiscalContabilFiscal.renderConteudo(empresa, historicoAtivo, vigenciaSelecionadaId);
       else if (tab.key === "obrigacoes-documentos") mountEl.innerHTML = FiscalObrigacoesDocumentos.renderConteudo(empresa, historicoAtivo, vigenciaSelecionadaId, false);
       const itens = mountEl.querySelectorAll("[data-accordion-item]");
       itens.forEach((el, i) => el.classList.toggle("is-open", !!abertos[i]));
       wireAccordions(mountEl);
       renderAcaoEditar(tab, mountEl);
+      wireOrigemEditavel(tab, mountEl);
     }
 
     function renderContent() {
@@ -503,28 +544,42 @@
       if (tab.key === "gerais") {
         montarComIndicadoresCarregando(
           (carregando) => FiscalGerais.renderConteudo(empresa, historicoAtivo, vigenciaSelecionadaId, carregando),
-          null
+          (root) => wireOrigemEditavel(tab, root)
         );
       } else if (tab.key === "federais") {
         montarComIndicadoresCarregando(
-          (carregando) => FiscalFederais.renderConteudo(empresa, historicoAtivo, carregando),
-          null
+          (carregando) => FiscalFederais.renderConteudo(empresa, historicoAtivo, vigenciaSelecionadaId, carregando),
+          (root) => wireOrigemEditavel(tab, root)
         );
       } else if (tab.key === "estaduais-municipais") {
         montarComIndicadoresCarregando(
-          (carregando) => FiscalEstaduaisMunicipais.renderConteudo(empresa, historicoAtivo, vigenciaSelecionadaId, carregando),
-          (root) => wireAccordions(root)
+          (carregando) => FiscalParametrosEstaduaisMunicipais.renderConteudo(empresa, historicoAtivo, vigenciaSelecionadaId, carregando),
+          (root) => {
+            wireAccordions(root);
+            wireOrigemEditavel(tab, root);
+          }
         );
       } else if (tab.key === "contabil-fiscal") {
         // Sem Indicador Calculado nesta aba (todos os 5 campos do MVP são
         // Manual ou Sistema/regra fixa, sem espera perceptível) — nenhum
         // skeleton é necessário (docs/CLAUDE.md, "Estados de Carregamento").
         mountEl.innerHTML = FiscalContabilFiscal.renderConteudo(empresa, historicoAtivo, vigenciaSelecionadaId);
+        wireOrigemEditavel(tab, mountEl);
       } else if (tab.key === "obrigacoes-documentos") {
         montarComIndicadoresCarregando(
           (carregando) => FiscalObrigacoesDocumentos.renderConteudo(empresa, historicoAtivo, vigenciaSelecionadaId, carregando),
-          (root) => wireAccordions(root)
+          (root) => {
+            wireAccordions(root);
+            wireOrigemEditavel(tab, root);
+          }
         );
+      } else if (tab.key === "historico-alteracoes") {
+        // Sempre a lista completa da empresa, independente da vigência
+        // selecionada no indicador — o Histórico de Alterações não filtra
+        // por vigência nesta implementação (decisão registrada no
+        // relatório da tarefa); `vigenciaId` já fica gravado em cada
+        // evento (historico-eventos.js), só não é usado aqui para filtrar.
+        mountEl.innerHTML = FiscalHistorico.renderConteudo(empresa);
       } else {
         mountEl.innerHTML = renderTabContent(tab);
         wireAccordions(mountEl);
@@ -557,7 +612,8 @@
     // inteira, não de uma aba isolada).
     const MODULOS_DADOS_COM_MANUAL = [
       { get: (id) => FiscalGeraisData.getDadosGerais(empresa.codigo, id), set: (id, v) => FiscalGeraisData.setDadosManuais(empresa.codigo, id, v) },
-      { get: (id) => FiscalEstaduaisMunicipaisData.getDados(empresa.codigo, id), set: (id, v) => FiscalEstaduaisMunicipaisData.setDadosManuais(empresa.codigo, id, v) },
+      { get: (id) => FiscalFederaisData.getDados(empresa.codigo, id), set: (id, v) => FiscalFederaisData.setDadosManuais(empresa.codigo, id, v) },
+      { get: (id) => FiscalParametrosEstaduaisMunicipaisData.getDados(empresa.codigo, id), set: (id, v) => FiscalParametrosEstaduaisMunicipaisData.setDadosManuais(empresa.codigo, id, v) },
       { get: (id) => FiscalContabilFiscalData.getDados(empresa.codigo, id), set: (id, v) => FiscalContabilFiscalData.setDadosManuais(empresa.codigo, id, v) },
       { get: (id) => FiscalObrigacoesDocumentosData.getDados(empresa.codigo, id), set: (id, v) => FiscalObrigacoesDocumentosData.setDadosManuais(empresa.codigo, id, v) },
     ];

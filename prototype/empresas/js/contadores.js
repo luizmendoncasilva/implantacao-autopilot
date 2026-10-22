@@ -23,8 +23,8 @@
               (c) =>
                 "<tr>" +
                 "<td>" + UI.truncatedCell(c.nome, 220) + "</td>" +
-                "<td>" + c.cpf + "</td>" +
-                "<td>" + c.crc + "</td>" +
+                '<td class="cell-mono">' + c.cpf + "</td>" +
+                '<td class="cell-mono">' + c.crc + "</td>" +
                 '<td><button type="button" class="btn-link" data-desvincular="' + c.id + '" style="color:var(--destructive);">desvincular</button></td>' +
                 "</tr>"
             )

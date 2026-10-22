@@ -38,7 +38,7 @@
     const badgeClass = r.situacao === "Ativo" ? "badge-success" : "badge-outline";
     return (
       '<tr class="row-clickable" data-abrir="' + r.codigo + '" tabindex="0" role="button">' +
-      '<td class="col-pad-sm">' + r.codigo + "</td>" +
+      '<td class="col-pad-sm cell-mono">' + r.codigo + "</td>" +
       "<td>" + UI.truncatedCell(r.nome, null, "text-sm font-medium") + "</td>" +
       '<td class="col-pad-md">' + tipoLabel(r.geral.tipoRubrica) + "</td>" +
       '<td class="col-pad-md"><span class="badge ' + badgeClass + '">' + r.situacao + "</span></td>" +

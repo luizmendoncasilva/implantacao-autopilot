@@ -12,11 +12,13 @@
 (function (global) {
   const D = window.SindicatosData;
 
-  const CAMPOS_OBRIGATORIOS = ["sind-nome", "sind-cep", "sind-endereco", "sind-numero", "sind-bairro", "sind-cidade", "sind-uf", "sind-cnpj", "sind-tipo", "sind-cnes"];
-  const CAMPOS_TEXTO = ["sind-nome", "sind-cep", "sind-endereco", "sind-numero", "sind-complemento", "sind-bairro", "sind-cidade", "sind-telefone", "sind-fax", "sind-site", "sind-email", "sind-cnpj", "sind-cnes"];
+  // CEP, Cidade e UF ficam com o componente de endereço (shared/js/endereco-cep.js).
+  const CAMPOS_OBRIGATORIOS = ["sind-nome", "sind-endereco", "sind-numero", "sind-bairro", "sind-cnpj", "sind-tipo", "sind-cnes"];
+  const CAMPOS_TEXTO = ["sind-nome", "sind-endereco", "sind-numero", "sind-complemento", "sind-bairro", "sind-telefone", "sind-fax", "sind-site", "sind-email", "sind-cnpj", "sind-cnes"];
 
   let editandoCodigo = null; // null = modo criação
   let onSalvoCallback = null;
+  let endereco = null;
 
   function ensureToast() {
     if (document.getElementById("toast")) return;
@@ -38,17 +40,21 @@
       "</div>" +
       '<div class="sheet-body">' +
       '<div class="sheet-field"><label class="field-label" for="sind-nome">Nome (Razão Social) <span class="text-muted">*</span></label><input id="sind-nome" class="field-input" placeholder="Nome completo do sindicato" /></div>' +
-      '<div class="sheet-field"><label class="field-label" for="sind-cep">CEP <span class="text-muted">*</span></label><input id="sind-cep" class="field-input" placeholder="00.000-000" /></div>' +
+      '<div class="sheet-field"><label class="field-label" for="sind-cep">CEP <span class="text-muted">*</span></label><input id="sind-cep" class="field-input" placeholder="00.000-000" inputmode="numeric" /><span class="text-xs text-muted" id="sind-cep-status"></span></div>' +
+      '<div class="sheet-row">' +
+      '<div class="sheet-field"><label class="field-label">Cidade <span class="text-muted">*</span></label>' +
+      '<div class="combobox" id="sind-cidade" data-empty-text="Nenhum município encontrado para esta UF.">' +
+      '<button type="button" class="combobox-trigger"><span class="combobox-label truncate">Selecione o município</span><span class="chev"></span></button>' +
+      '<div class="combobox-panel"><div class="combobox-search"><span class="search-icon"></span><input type="text" placeholder="Buscar município..." /></div><div class="combobox-list"></div></div>' +
+      "</div></div>" +
+      '<div class="sheet-field sheet-field-fixed" style="width:100px;"><label class="field-label" for="sind-uf">Estado (UF) <span class="text-muted">*</span></label><div class="field-select-wrap"><select id="sind-uf" class="field-select"></select><span class="chev"></span></div></div>' +
+      "</div>" +
       '<div class="sheet-field"><label class="field-label" for="sind-endereco">Endereço <span class="text-muted">*</span></label><input id="sind-endereco" class="field-input" placeholder="Rua/avenida" /></div>' +
       '<div class="sheet-row">' +
       '<div class="sheet-field"><label class="field-label" for="sind-numero">Número <span class="text-muted">*</span></label><input id="sind-numero" class="field-input" /></div>' +
       '<div class="sheet-field"><label class="field-label" for="sind-complemento">Complemento</label><input id="sind-complemento" class="field-input" /></div>' +
       "</div>" +
       '<div class="sheet-field"><label class="field-label" for="sind-bairro">Bairro <span class="text-muted">*</span></label><input id="sind-bairro" class="field-input" /></div>' +
-      '<div class="sheet-row">' +
-      '<div class="sheet-field"><label class="field-label" for="sind-cidade">Cidade <span class="text-muted">*</span></label><input id="sind-cidade" class="field-input" /></div>' +
-      '<div class="sheet-field sheet-field-fixed" style="width:100px;"><label class="field-label" for="sind-uf">Estado (UF) <span class="text-muted">*</span></label><div class="field-select-wrap"><select id="sind-uf" class="field-select"><option value="">Selecione...</option></select><span class="chev"></span></div></div>' +
-      "</div>" +
       '<div class="sheet-row">' +
       '<div class="sheet-field"><label class="field-label" for="sind-telefone">Telefone</label><input id="sind-telefone" class="field-input" /></div>' +
       '<div class="sheet-field"><label class="field-label" for="sind-fax">Fax</label><input id="sind-fax" class="field-input" /></div>' +
@@ -77,8 +83,17 @@
     while (wrapper.firstChild) document.body.appendChild(wrapper.firstChild);
 
     document.getElementById("sind-close").innerHTML = Icon("x", "size-4");
-    document.querySelectorAll("#sind-panel .field-select-wrap .chev").forEach((el) => (el.innerHTML = Icon("chevron-down", "size-4")));
-    document.getElementById("sind-uf").innerHTML = '<option value="">Selecione...</option>' + D.UF_OPCOES.map((uf) => '<option value="' + uf + '">' + uf + "</option>").join("");
+    document.querySelectorAll("#sind-panel .chev").forEach((el) => (el.innerHTML = Icon("chevron-down", "size-4")));
+    document.querySelector("#sind-cidade .search-icon").innerHTML = Icon("search", "size-4");
+    endereco = EnderecoCep.init({
+      cep: document.getElementById("sind-cep"),
+      uf: document.getElementById("sind-uf"),
+      municipio: document.getElementById("sind-cidade"),
+      logradouro: document.getElementById("sind-endereco"),
+      bairro: document.getElementById("sind-bairro"),
+      status: document.getElementById("sind-cep-status"),
+      onChange: atualizarBotaoSalvar,
+    });
     document.getElementById("sind-tipo").innerHTML = '<option value="">Selecione...</option>' + D.TIPO_ENTIDADE_OPCOES.map((t) => '<option value="' + t + '">' + t + "</option>").join("");
 
     document.getElementById("sind-overlay").addEventListener("click", fechar);
@@ -99,13 +114,20 @@
       const campo = id.replace("sind-", "");
       document.getElementById(id).value = sindicato ? sindicato[campo] || "" : "";
     });
-    document.getElementById("sind-uf").value = sindicato ? sindicato.uf || "" : "";
+    endereco.setValores(sindicato ? { cep: sindicato.cep, municipio: sindicato.cidade, uf: sindicato.uf } : {});
     document.getElementById("sind-tipo").value = sindicato ? sindicato.tipoEntidade || "" : "";
   }
 
+  function formularioCompleto() {
+    const end = endereco.getValores();
+    return (
+      CAMPOS_OBRIGATORIOS.every((id) => document.getElementById(id).value.trim() !== "") &&
+      end.cep.replace(/\D/g, "").length === 8 && !!end.municipio && !!end.uf && !endereco.estaBuscando()
+    );
+  }
+
   function atualizarBotaoSalvar() {
-    const preenchido = CAMPOS_OBRIGATORIOS.every((id) => document.getElementById(id).value.trim() !== "");
-    document.getElementById("sind-salvar").disabled = !preenchido;
+    document.getElementById("sind-salvar").disabled = !formularioCompleto();
   }
 
   function abrir(sindicatoOuNull, onSalvo) {
@@ -130,19 +152,19 @@
   }
 
   function salvar() {
-    const preenchido = CAMPOS_OBRIGATORIOS.every((id) => document.getElementById(id).value.trim() !== "");
-    if (!preenchido) return;
+    if (!formularioCompleto()) return;
+    const end = endereco.getValores();
 
     const dados = {
       codigo: editandoCodigo || "",
       nome: document.getElementById("sind-nome").value.trim(),
-      cep: document.getElementById("sind-cep").value.trim(),
+      cep: end.cep,
       endereco: document.getElementById("sind-endereco").value.trim(),
       numero: document.getElementById("sind-numero").value.trim(),
       complemento: document.getElementById("sind-complemento").value.trim(),
       bairro: document.getElementById("sind-bairro").value.trim(),
-      cidade: document.getElementById("sind-cidade").value.trim(),
-      uf: document.getElementById("sind-uf").value,
+      cidade: end.municipio,
+      uf: end.uf,
       cnpj: document.getElementById("sind-cnpj").value.trim(),
       telefone: document.getElementById("sind-telefone").value.trim(),
       fax: document.getElementById("sind-fax").value.trim(),

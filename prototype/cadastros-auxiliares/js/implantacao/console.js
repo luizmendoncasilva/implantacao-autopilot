@@ -1,31 +1,33 @@
 /*
-  Console de Implantação DP por empresa (Épico 6, CTB-269) — amarra as 5
-  frentes dos Épicos 1 a 5 numa tela só, com abas. Navegação por JS, sem
-  reload (mesmo padrão de parametros-fiscais/js/fiscal-page.js), pra nunca
-  perder o contexto da empresa ao trocar de aba.
+  Console de Implantação da empresa — cabeçalho da empresa e uma aba por
+  frente (DP, Fiscal, Contábil), no lugar dos subitens que existiam na
+  sidebar. ?empresa=CODE&frente=dp|fiscal&tab=<aba interna>.
 
-  Aba "Dados do Colaborador" já resolve a conciliação aqui mesmo — mesmas
-  linhas/drawers de js/implantacao/fila-colaborador.js. A antiga fila global
-  (implantacao.html, todas as empresas juntas) foi removida — a implantacao-
-  -empresas.html é a única porta de entrada agora, e o console por empresa
-  cobre o que a fila global cobria, com filtro de status e busca próprios.
+  A frente DP é o console do Épico 6 (CTB-269): amarra as frentes dos
+  Épicos 1 a 5 em abas internas, navegando por JS, sem reload. A aba "Dados
+  do Colaborador" resolve a conciliação aqui mesmo, com as linhas/drawers de
+  js/implantacao/fila-colaborador.js. A frente Fiscal (saldos de CPP para o
+  Fator R, CTB-534) vive em js/implantacao/fiscal-console.js.
 */
 (function () {
   const EI = window.EmpresasImplantacaoData;
   const CD = window.ImplantacaoData;
   const E = window.EmpresasData;
+  const F = window.ImplantacaoFrentes;
 
   function empresaNome(codigo) {
-    const empresa = E.findEmpresaByCodigo(codigo);
-    return empresa ? empresa.nome : codigo;
+    return EI.infoEmpresa(codigo).nome;
   }
 
   const codigoEmpresa = E.getQueryParam("empresa");
-  const empresaImplant = codigoEmpresa ? EI.empresaImplantacao(codigoEmpresa) : null;
-  if (!empresaImplant) {
-    window.location.replace("implantacao-empresas.html");
+  if (!codigoEmpresa || F.empresasNaImplantacao().indexOf(codigoEmpresa) === -1) {
+    window.location.replace("implantacao-geral.html");
     return;
   }
+  const empresaImplant = EI.empresaImplantacao(codigoEmpresa);
+
+  const frenteParam = E.getQueryParam("frente");
+  let frenteAtiva = F.FRENTES.some((f) => f.key === frenteParam && !f.emBreve) ? frenteParam : F.frentePadrao(codigoEmpresa);
 
   const TABS = [
     { key: "colaborador", label: "Dados do Colaborador" },
@@ -41,7 +43,8 @@
   // quando "relatório personalizado" foi marcado — ver js/implantacao/
   // importar.js) — ?empresa=...&tab=relatorios.
   const tabInicial = E.getQueryParam("tab");
-  if (tabInicial && TABS.some((t) => t.key === tabInicial)) activeKey = tabInicial;
+  if (frenteAtiva === "dp" && tabInicial && TABS.some((t) => t.key === tabInicial)) activeKey = tabInicial;
+  let abaFiscal = frenteAtiva === "fiscal" && tabInicial ? tabInicial : null;
   // Filtro por status na aba "Dados do Colaborador" — pedido de revisão
   // (Jaqueline/Thais, 09/09/2026): em empresa com muitos colaboradores,
   // poder ir direto no que tem pendência em vez de rolar a lista toda.
@@ -53,22 +56,116 @@
     return t ? t.label : "";
   }
 
+  function frenteLabel(key) {
+    return F.FRENTES.find((f) => f.key === key).label;
+  }
+
+  function crumbs(abaLabel) {
+    const lista = [{ label: "implantação", href: "implantacao-geral.html" }, { label: empresaNome(codigoEmpresa) }, { label: frenteLabel(frenteAtiva) }];
+    if (abaLabel) lista.push({ label: abaLabel });
+    return lista;
+  }
+
+  // Mantém frente e aba na URL, para recarregar ou compartilhar o link sem perder o lugar.
+  function sincronizarUrl(aba) {
+    const params = new URLSearchParams({ empresa: codigoEmpresa, frente: frenteAtiva });
+    if (aba) params.set("tab", aba);
+    window.history.replaceState(null, "", "implantacao-console.html?" + params.toString());
+  }
+
   Shell.mount(document.getElementById("shell-root"), {
     base: "../",
-    active: "implantacao-dp",
-    crumbs: [
-      { label: "implantação de empresas", href: "implantacao-geral.html" },
-      { label: "DP", href: "implantacao-empresas.html" },
-      { label: empresaNome(codigoEmpresa) },
-      { label: tabLabel(activeKey) },
-    ],
+    active: "implantacao",
+    crumbs: crumbs(frenteAtiva === "dp" && empresaImplant ? tabLabel(activeKey) : null),
   });
 
-  // ===== Cabeçalho =====
+  // ===== Cabeçalho da empresa + abas de frente =====
+  function renderEmpresaHeader() {
+    const info = EI.infoEmpresa(codigoEmpresa);
+    document.getElementById("empresa-header-mount").innerHTML =
+      '<div class="flex items-start justify-between gap-3 flex-wrap"><div class="flex flex-col gap-1">' +
+      '<div class="flex items-center gap-2 flex-wrap"><h1 class="text-xl font-semibold">' + info.nome + "</h1>" + F.badgeStatusGeral(F.statusGeral(codigoEmpresa)) + "</div>" +
+      '<div class="flex flex-wrap items-center gap-3 text-sm text-muted">' +
+      '<span class="cell-mono">' + info.cnpj + "</span>" +
+      (info.regime ? "<span>" + info.regime + "</span>" : "") +
+      (info.cnaePrincipal ? "<span>CNAE " + info.cnaePrincipal + "</span>" : "") +
+      "</div></div>" +
+      // A ficha abre na gaveta do chassi: dá para consultá-la sem sair da implantação.
+      '<button type="button" class="btn btn-outline btn-sm w-fit" id="btn-ver-ficha-cliente">' + Icon("external-link", "size-3-5") + " Ver ficha do cliente</button>" +
+      "</div>";
+    document.getElementById("btn-ver-ficha-cliente").addEventListener("click", () => Chassi.abrirCliente(codigoEmpresa));
+  }
+
+  function renderFrenteTabs() {
+    document.getElementById("frente-tabs-mount").innerHTML =
+      '<div class="tabs-list tabs-list-underline" role="tablist" aria-label="Frentes de implantação">' +
+      F.FRENTES.map((f) => {
+        const ativa = f.key === frenteAtiva;
+        return (
+          '<button type="button" role="tab" class="tabs-trigger frente-tab' + (ativa ? " is-active" : "") + '"' +
+          ' aria-selected="' + (ativa ? "true" : "false") + '"' +
+          (f.emBreve ? ' disabled title="Em breve"' : ' data-frente-key="' + f.key + '"') + ">" +
+          f.label +
+          '<span class="frente-tab-status is-' + F.tomFrente(f.key, codigoEmpresa) + '">' + F.rotuloFrente(f.key, codigoEmpresa) + "</span>" +
+          "</button>"
+        );
+      }).join("") +
+      "</div>";
+    document.querySelectorAll("[data-frente-key]").forEach((btn) => {
+      btn.addEventListener("click", () => irParaFrente(btn.getAttribute("data-frente-key")));
+    });
+  }
+
+  function irParaFrente(key) {
+    if (key === frenteAtiva) return;
+    frenteAtiva = key;
+    renderFrenteTabs();
+    renderFrente();
+  }
+
+  function renderFrente() {
+    const mountEl = document.getElementById("frente-content-mount");
+    if (frenteAtiva === "fiscal") {
+      FiscalConsole.render(mountEl, {
+        codigo: codigoEmpresa,
+        aba: abaFiscal,
+        onAbaChange: (aba, label) => {
+          abaFiscal = aba;
+          sincronizarUrl(aba);
+          Shell.updateBreadcrumb({ crumbs: crumbs(label) });
+        },
+        onChange: () => {
+          renderEmpresaHeader();
+          renderFrenteTabs();
+        },
+        irParaDp: () => irParaFrente("dp"),
+      });
+      return;
+    }
+    if (!empresaImplant) {
+      mountEl.innerHTML =
+        '<div class="empty-state">' +
+        '<span class="empty-state-icon">' + Icon("users", "size-5") + "</span>" +
+        '<p class="empty-state-title">DP não contratado para esta empresa</p>' +
+        '<p class="empty-state-desc">A empresa não opera Departamento Pessoal na BHub, então não há colaboradores nem histórico de folha para implantar.</p>' +
+        "</div>";
+      sincronizarUrl(null);
+      Shell.updateBreadcrumb({ crumbs: crumbs(null) });
+      return;
+    }
+    mountEl.innerHTML = '<div id="console-header-mount"></div><div id="console-tabs-mount"></div><div id="console-content-mount" class="flex flex-col gap-4"></div>';
+    renderHeader();
+    renderTabsBar();
+    renderContent();
+    sincronizarUrl(activeKey);
+    Shell.updateBreadcrumb({ crumbs: crumbs(tabLabel(activeKey)) });
+  }
+
+  // ===== Frente DP — cabeçalho =====
   function statusBadgeEmpresa() {
     return empresaImplant.status === "implantada"
-      ? '<span class="badge badge-success">' + Icon("check", "size-3-5") + " Implantada</span>"
-      : '<span class="badge badge-info">' + Icon("clock", "size-3-5") + " Em andamento</span>";
+      ? '<span class="badge badge-success">' + Icon("check", "size-3") + " Implantada</span>"
+      : '<span class="badge badge-warning">' + Icon("clock", "size-3") + " Em andamento</span>";
   }
 
   // Formata a data/hora atual no mesmo padrão dos demais logs do Histórico
@@ -93,9 +190,11 @@
     empresaImplant.logs = (empresaImplant.logs || []).concat([
       { dataHora, operador: "Operador BHub", acao: "Concluiu implantação", detalhe: "Passagem de bastão para a operação — status Em Operação no Cockpit.", aprovadoPor: null },
     ]);
+    renderEmpresaHeader();
+    renderFrenteTabs();
     renderHeader();
     renderContent();
-    UI.showToast("Implantação concluída", empresaNome(codigoEmpresa) + " passou para o status Implantada.");
+    UI.showToast("Implantação DP concluída", empresaNome(codigoEmpresa) + " passou para o status Implantada no DP.");
   }
 
   function renderHeader() {
@@ -106,7 +205,7 @@
     document.getElementById("console-header-mount").innerHTML =
       '<div class="flex items-start justify-between gap-3 flex-wrap">' +
       '<div class="flex flex-col gap-1">' +
-      '<div class="flex items-center gap-2 flex-wrap"><h1 class="text-xl font-semibold">' + empresaNome(codigoEmpresa) + "</h1>" + statusBadgeEmpresa() + "</div>" +
+      '<div class="flex items-center gap-2 flex-wrap"><h2 class="text-lg font-semibold">Implantação DP</h2>' + statusBadgeEmpresa() + "</div>" +
       '<p class="text-sm text-muted">' + empresaImplant.etapaAtual + "</p>" +
       "</div>" +
       (podeConcluir ? '<button type="button" class="btn" id="btn-concluir-implantacao">' + Icon("check", "size-3-5") + " Concluir implantação</button>" : "") +
@@ -172,7 +271,7 @@
   }
 
   // ===== Aba Geral =====
-  // Mesma barra segmentada da lista de empresas (empresas-list.js) — um
+  // Mesma barra segmentada do console geral (ImplantacaoFrentes.marcosDpHtml) — um
   // segmento por frente, verde quando concluída, âmbar quando em andamento,
   // cinza (padrão) quando nada foi feito. Tooltip no hover com o número.
   function segmento(classe, tooltip) {
@@ -580,14 +679,8 @@
     activeKey = key;
     renderTabsBar();
     renderContent();
-    Shell.updateBreadcrumb({
-      crumbs: [
-        { label: "implantação de empresas", href: "implantacao-geral.html" },
-        { label: "DP", href: "implantacao-empresas.html" },
-        { label: empresaNome(codigoEmpresa) },
-        { label: tabLabel(activeKey) },
-      ],
-    });
+    sincronizarUrl(activeKey);
+    Shell.updateBreadcrumb({ crumbs: crumbs(tabLabel(activeKey)) });
   }
 
   function renderTabsBar() {
@@ -640,6 +733,8 @@
       if (btnConfirmar) {
         btnConfirmar.addEventListener("click", () => {
           EI.confirmarParametros(codigoEmpresa);
+          renderEmpresaHeader();
+          renderFrenteTabs();
           renderHeader();
           renderContent();
           UI.showToast("Parâmetros confirmados", "Registrado que " + empresaNome(codigoEmpresa) + " está com os parâmetros de DP configurados.");
@@ -664,11 +759,15 @@
   FilaColaborador.setup();
   setupVisualizarGenerico();
   setupLayoutRelatorio();
+  FiscalConsole.setup();
   FilaColaborador.setOnChange(() => {
+    renderEmpresaHeader();
+    renderFrenteTabs();
+    if (frenteAtiva !== "dp") return;
     renderHeader();
     renderContent();
   });
-  renderHeader();
-  renderTabsBar();
-  renderContent();
+  renderEmpresaHeader();
+  renderFrenteTabs();
+  renderFrente();
 })();

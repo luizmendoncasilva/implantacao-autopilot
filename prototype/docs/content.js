@@ -17,7 +17,7 @@
     - 03-cadastro-socios <- docs/03-cadastro-socios.md
     - 04-registro-contadores <- docs/04-registro-contadores.md
     - 05-importacao-massiva-empresas <- docs/05-importacao-massiva-empresas.md
-    - implantacao-spec <- docs/implantacao-spec.md
+    - 07-tabela-feriados <- docs/07-tabela-feriados.md
 */
 window.DocsContent = {
   // fonte: docs/cadastro-empresas-spec.md
@@ -27,15 +27,13 @@ window.DocsContent = {
     markdown: `# Cadastro de Empresas — Especificação do estado atual (as-built)
 
 > Este documento descreve **o que existe hoje** no protótipo do Cadastro de Empresas do AutoPilot. Ele não é a especificação original de requisitos — é o retrato funcional da implementação, para que Product Managers validem o que foi construído e planejem as próximas evoluções. Não repete o conteúdo do documento de requisitos original; documenta apenas o comportamento real da tela.
->
-> **Nota — 15/09/2026:** Dados Gerais, Atividades e Responsável Legal tornaram-se **somente leitura** nesta versão (decisão de Produto confirmada por Thais Lima de Souza; ver \`docs/RN-RF_CadastroEmpresasAuxiliares.md\`, seção 4-A). O botão "Editar" descrito nas seções abaixo não aparece mais no cabeçalho dessas 3 abas; os drawers de edição e o dialog "Salvar e refletir no Cockpit" continuam implementados no código, só sem ponto de entrada na tela — texto abaixo preservado como histórico do desenho original.
 
 ## Visão geral
 
 O Cadastro de Empresas é composto por duas telas:
 
 1. **Listagem de Empresas** — tela inicial, mostra todas as empresas cadastradas.
-2. **Cadastro de uma empresa** — aberto ao clicar em uma empresa da listagem, organizado em **7 abas internas**: Dados Gerais, Atividades, Responsável Legal, Quadro Societário, Contadores, Empresa Centralizadora e Histórico de Alterações. Os módulos do AutoPilot habilitados para a empresa aparecem no cabeçalho do cadastro — comum a todas as abas, não é mais uma aba própria (ver "Cabeçalho do cadastro de uma empresa" abaixo).
+2. **Cadastro de uma empresa** — aberto ao clicar em uma empresa da listagem, organizado em **6 abas internas**: Dados Gerais, Atividades, Sócios/Resp. legal (duas seções: Responsável Legal e Quadro Societário), Contadores, Empresa Centralizadora e Histórico de Alterações. Os módulos do AutoPilot habilitados para a empresa aparecem no cabeçalho do cadastro — comum a todas as abas, não é mais uma aba própria (ver "Cabeçalho do cadastro de uma empresa" abaixo).
 
 As abas **Quadro Societário** e **Contadores** só cuidam do *vínculo* entre a empresa aberta e um sócio/contador já existente — o cadastro mestre de cada um (pessoa física, dados próprios) mora fora do Cadastro de Empresas, no módulo de navegação de nível superior **Cadastros Auxiliares** (abas internas "Sócios" e "Registro de Contadores"). Ver \`docs/03-cadastro-socios.md\` e \`docs/04-registro-contadores.md\`.
 
@@ -109,7 +107,7 @@ Uma única tela (aba "Dados Gerais" dentro do cadastro da empresa).
 - **Regime tributário federal é um atributo cadastral da empresa, e o Cadastro de Empresas (esta aba) é o único ponto autorizado de edição.** O campo é um Select (\`EmpresasData.REGIME_TRIBUTARIO_FEDERAL_OPCOES\`, catálogo D01 de \`docs/02-parametros-fiscais.md\`, seção 14: Simples Nacional, Simples Nacional — MEI, Simples Nacional — excesso de sublimite, Lucro Presumido, Lucro Real, Imune, Isenta). No escopo atual do Autopilot, somente **Simples Nacional** está habilitado para seleção — os demais regimes permanecem visíveis no catálogo, porém \`disabled\`, sem poder ser selecionados. Parâmetros Fiscais (e, futuramente, Contábil) consomem esse mesmo dado (\`empresa.dadosGerais.regimeTributarioFederal\`) somente leitura — nenhuma cópia independente do regime existe em outra trilha.
 - "Data de inativação" só é exibida quando o status do cliente é "Inativo" — para clientes ativos, o campo não aparece.
 - O contador responsável exibido aqui prioriza uma seleção explícita feita pela ação "Alterar"/"Selecionar contador" desta aba; na ausência dela, cai para o mesmo contador mostrado na aba Contadores (primeiro contador do Registro cujo vínculo inclui esta empresa) — um atalho ("Ver em Contadores") leva direto para lá em ambos os casos.
-- Selecionar um contador responsável não exige que ele já esteja vinculado via aba Contadores, nem impede a seleção de mais de um contador ao longo do tempo (a seleção mais recente sempre substitui a anterior) — nenhuma regra de prioridade ou múltiplos responsáveis foi criada (ver "Pendências"). Vigência não é mais pendência (resolvido 15/09/2026 — o Log de Histórico de Alterações já cobre o rastreio).
+- Selecionar um contador responsável não exige que ele já esteja vinculado via aba Contadores, nem impede a seleção de mais de um contador ao longo do tempo (a seleção mais recente sempre substitui a anterior) — nenhuma regra de prioridade, múltiplos responsáveis ou vigência foi criada (ver "Pendências").
 
 ### Integrações
 Dados de origem do Cockpit (indicado explicitamente na tela). A edição acontece exclusivamente no Autopilot, dentro deste Cadastro de Empresas — o Cockpit não tem mais um botão de edição associado a esta tela; ele é apenas o destino conceitual das alterações, quando o usuário escolhe refletir a alteração nele. Ao salvar o drawer, um dialog de confirmação pergunta explicitamente se a alteração deve ser refletida no Cockpit ("Salvar e refletir no Cockpit") ou descartada ("Descartar alterações") — não existe salvamento silencioso.
@@ -125,8 +123,14 @@ Nenhum previsto para esta aba.
 
 ### Decisões de UX adotadas
 - **Contador Responsável (adicionado nesta rodada):** ação de seleção/alteração via sheet + combobox sobre o Registro de Contadores, deliberadamente sem restringir as opções aos contadores já vinculados via aba Contadores — decisão neutra para não assumir, por conta própria, que "responsável" deve pressupor vínculo prévio (regra ainda não fechada pelo Produto). A seleção explícita é independente do vínculo plural (\`empresasAtendidas\`) já usado por Contadores; quando nenhuma seleção explícita existe, o campo cai para o mesmo valor que já era exibido antes desta rodada, preservando o comportamento anterior.
-- O botão "Editar" aparece nesta aba e nas abas Atividades e Responsável Legal — as três com conteúdo espelhado do Cockpit e efetivamente editável por aqui. Empresa Centralizadora também espelha o Cockpit, mas não tem botão de edição: a classificação Matriz/Filial é só exibida, sem campo próprio desta empresa para alterar. O badge "Somente leitura" foi removido do cabeçalho por ficar contraditório com a existência do botão de edição.
+- O botão "Editar" do cabeçalho aparece nesta aba e na aba Atividades. Responsável Legal, também espelhado do Cockpit e editável por aqui, tem o próprio botão "Editar" no card da seção (ver seção 4), à direita do título da seção. Empresa Centralizadora também espelha o Cockpit, mas não tem botão de edição: a classificação Matriz/Filial é só exibida, sem campo próprio desta empresa para alterar. O badge "Somente leitura" foi removido do cabeçalho por ficar contraditório com a existência do botão de edição.
 - **Refinamento de UX (2026-08-21):** o rótulo fixo "Origem dos dados: Cockpit" — antes presente no cabeçalho do card em Dados Gerais, Atividades, Responsável Legal e Empresa Centralizadora — foi removido. Decisão de produto: o Autopilot é a superfície de edição e o Cockpit é só uma superfície de consulta; essa relação é arquitetural e não precisa ocupar espaço permanente na tela. Em vez de uma indicação fixa, a relação com o Cockpit passou a ser comunicada apenas no contexto da edição: (1) no rodapé do drawer "Editar", um texto discreto ("As alterações serão refletidas no Cockpit.") ao lado dos botões de ação; (2) no dialog de confirmação ao salvar, que já pergunta explicitamente se a alteração deve ser refletida no Cockpit; (3) no toast de sucesso ("Alterações salvas e sincronizadas com o Cockpit."). A mesma lógica foi aplicada à frase de abertura da Listagem de Empresas (\`empresas/index.html\`), que descrevia a tela como "somente para visualização" com os dados "lidos do Cockpit" — texto desatualizado desde que a edição passou a acontecer no Autopilot, e removido pelo mesmo motivo.
+- **Origem por campo (2026-10-02):** cada campo de Dados Gerais, Atividades e Responsável Legal passou a exibir sua origem, com o mesmo indicador discreto de Parâmetros Fiscais (\`CampoOrigem\`/\`OrigemBadge\`, \`shared/js/origem.js\`, classe \`.field-origin\`). Não reintroduz o rótulo fixo de cabeçalho removido em 2026-08-21: a origem é um metadado por campo, abaixo do valor. Regra: a origem indica o sistema dono do dado, não se ele é editável.
+  - **Cockpit** — todos os campos espelhados (Razão social, Nome fantasia, Natureza jurídica, CNPJ, Regime tributário federal, Inscrições, Telefone, E-mail, Endereço, Contrato, Certificado digital, Observações gerais, CNAEs). Continua "Cockpit" mesmo depois de editado pelo drawer, porque a alteração é refletida no Cockpit. Não é clicável; a edição segue pelo botão "Editar".
+  - **Informado manualmente** — campos nativos do Autopilot: Grupo de empresas, Contador responsável (quando selecionado explicitamente nesta aba, ou ainda sem nenhum contador) e, desde a revisão de 2026-10-02, os campos do Responsável Legal (ver seção 4). Clicável, como em Fiscal: abre a mesma edição do campo (edição inline / sheet de seleção). Os links "editar"/"Alterar" existentes foram mantidos.
+  - **Autopilot** — Contador responsável sem seleção explícita, herdado do vínculo da aba Contadores. Não é clicável.
+  - Quadro Societário, Contadores, Empresa Centralizadora e Histórico não exibem origem por campo nesta rodada.
+- **Endereço por CEP (2026-10-02):** no drawer "Editar empresa", a ordem passou a ser CEP → Município → UF → Logradouro → Número/Complemento → Bairro. Município e UF nunca são texto livre (componente compartilhado \`shared/js/endereco-cep.js\`). O CEP vem primeiro, com máscara 00.000-000; com os 8 dígitos, o sistema busca o CEP. Encontrado: preenche Município e UF, que ficam travados (para trocar, troca-se o CEP), e sugere Logradouro e Bairro, que continuam editáveis (CEP geral de município, sem rua, preenche só Município e UF). Não encontrado: UF é escolhida em lista (27 estados) e Município numa lista com busca, filtrada pela UF. A busca é só pelo CEP completo, como nos serviços reais (Correios/ViaCEP), sem sugestão por prefixo. No protótipo, a busca é simulada (base de CEPs fictícia + catálogo resumido de municípios por UF), sem chamada externa. Empresa com CEP fora da base (ex.: importada) abre com UF e Município atuais selecionados e liberados para conferência.
 - Optou-se por não duplicar a razão social da empresa dentro do card (ela já aparece uma vez no cabeçalho do cadastro) — o título do card é genérico ("Dados gerais").
 - O card tem largura limitada (não ocupa a tela inteira) porque o conteúdo é uma lista de campos de texto, não uma tabela — segue o mesmo padrão da aba Atividades.
 
@@ -163,7 +167,7 @@ Auditoria pontual da experiência do campo "CNAE principal" (preenchido, vazio, 
 Nenhuma regra de negócio foi criada ou alterada por esta correção — é puramente uma clarificação de UX de um estado que já existia na prática.
 
 ### Pendências
-Os CNAEs são mostrados apenas pelo código (ex.: "2599-3/99"), sem a descrição textual da atividade — não há indicação de que essa descrição deva ou não existir. **Fonte, se o campo vier a ser criado: resolvido 15/09/2026 — Cockpit, validado pela revisão da Andressa como hipótese de trabalho. A decisão sobre criar ou não o campo continua em aberto.**
+Os CNAEs são mostrados apenas pelo código (ex.: "2599-3/99"), sem a descrição textual da atividade — não há indicação de que essa descrição deva ou não existir.
 
 ### Itens de Fase 2
 Nenhum previsto para esta aba.
@@ -175,24 +179,29 @@ Mesmo padrão visual e de edição via drawer da aba Dados Gerais. Estado vazio 
 
 ## 4. Responsável Legal
 
+> **Aba unificada (2026-10-02):** Responsável Legal e Quadro Societário (seção 5) deixaram de ser abas separadas e passaram a ser duas seções da aba **"Sócios/Resp. legal"** (\`empresas/socios.html\`). Mesmo padrão de Dados Gerais: um card único ("Sócios e responsável legal") com as seções separadas por \`.detail-section-title\`. Quadro societário vem primeiro (lista de participações, com "Adicionar sócio"), Responsável legal em seguida (dado único da empresa, com "Editar"); a ação de cada seção fica à direita do título dela (modificador \`.detail-section-action\`, \`shared/css/components.css\`). O botão "Editar" do cabeçalho do cadastro não aparece nesta aba, para não ficar ambíguo a qual seção se refere. O nome da aba cita os dois assuntos — "Quadro societário" sozinho esconderia o responsável legal, que nem sempre é sócio — abreviado para não alongar a barra de abas. \`empresas/responsavel-legal.html\` só redireciona para a aba unificada.
+
 ### Objetivo
 Apresentar a pessoa física legalmente responsável pela empresa perante os órgãos competentes.
 
 ### Comportamento
-Mesmo aviso de origem e o mesmo botão "Editar" das abas Dados Gerais e Atividades — abre um drawer lateral para alterar Nome, CPF e Cargo/Qualificação; nenhum campo desta aba fica bloqueado.
+**Revisão 2026-10-02:** o responsável legal não vem mais do Cockpit — é cadastrado e gerenciado no Autopilot. A pessoa fica no registro único de Cadastros Auxiliares → Sócios/Resp. legal (tipo "Resp. legal"); a empresa guarda só qual pessoa responde por ela e o cargo nesta empresa. A ação no título da seção ("Editar", ou "Selecionar responsável legal" quando não há nenhum) abre um sheet com combobox — mesmo padrão de "Contador responsável" — que lista só pessoas com o tipo "Resp. legal", mais o campo Cargo/Qualificação. Nome e CPF são lidos do registro e só são alterados em Cadastros Auxiliares. Os três campos exibem a origem "Informado manualmente", clicável (abre o mesmo sheet). Salvar não passa mais pelo dialog "Refletir no Cockpit".
 
 ### Telas
-- Aba "Responsável Legal", com o card de exibição.
-- Drawer lateral "Editar responsável legal" (Nome, CPF, Cargo/Qualificação).
+- Seção "Responsável legal" (segunda seção) da aba "Sócios/Resp. legal".
+- Sheet "Editar responsável legal" (seleção da pessoa + Cargo/Qualificação), com atalho para Cadastros Auxiliares quando a pessoa ainda não está marcada como Resp. legal.
 
 ### Campos implementados
 Nome, CPF, Cargo/Qualificação.
 
 ### Regras de negócio implementadas
-Nenhuma regra de negócio além da exibição do estado vazio ("Nenhum responsável legal cadastrado.") quando a empresa não tem responsável legal informado.
+- Um responsável legal por empresa.
+- Só pessoas com o tipo "Resp. legal" no registro aparecem na seleção; o tipo não pode ser removido da pessoa enquanto ela for responsável legal de alguma empresa (ver \`docs/03-cadastro-socios.md\`).
+- Estado vazio: "Nenhum responsável legal definido."
+- Cada troca gera evento no Histórico de alterações (Nome, CPF e Cargo do responsável, antes e depois).
 
 ### Integrações
-Dados de origem do Cockpit, com o mesmo botão "Editar" e o mesmo dialog de confirmação de reflexo no Cockpit descritos na aba Dados Gerais.
+Nenhuma com o Cockpit. Lê o registro de pessoas de Cadastros Auxiliares (\`SociosData\`). A Importação Massiva liga o responsável legal da planilha a esse registro pelo CPF (ver \`docs/05-importacao-massiva-empresas.md\`). Empresas importadas antes desta revisão, que guardavam Nome/CPF/Cargo como texto, têm a pessoa resolvida pelo CPF.
 
 ### Pendências
 Nenhuma pendência funcional conhecida nesta aba.
@@ -201,11 +210,13 @@ Nenhuma pendência funcional conhecida nesta aba.
 Nenhum previsto para esta aba.
 
 ### Decisões de UX adotadas
-Mesmo padrão visual e de edição via drawer das abas Dados Gerais e Atividades — passa a ser a terceira aba com conteúdo espelhado do Cockpit e editável por aqui.
+Seleção em vez de digitação, para não duplicar a pessoa entre empresas — o mesmo cadastro pode ser sócio e/ou responsável legal. Cargo/Qualificação fica na empresa porque a mesma pessoa pode ter cargos diferentes em empresas diferentes. Cadastrar uma pessoa nova sem sair da empresa ficou fora desta rodada (o "Adicionar sócio" também não tem): o sheet orienta e leva a Cadastros Auxiliares.
 
 ------------------------------------------------------------------------
 
 ## 5. Quadro Societário
+
+Primeira seção da aba "Sócios/Resp. legal" — ver nota no início da seção 4.
 
 ### Objetivo
 Mostrar e gerenciar quais sócios participam do capital social da empresa, e em qual proporção.
@@ -374,13 +385,13 @@ Nenhum previsto para esta aba.
 Identificar a empresa aberta e mostrar, independentemente da aba selecionada, quais módulos do AutoPilot ela tem habilitados — sem depender de uma aba própria só para essa consulta.
 
 ### Comportamento
-O título do cadastro mostra Razão social, Nome fantasia e CNPJ (formato "Razão social — Nome fantasia — CNPJ"), com o badge de contexto ao lado (Matriz/Filial, quando a empresa participa dessa relação). Nas abas Dados Gerais, Atividades e Responsável Legal, o botão "Editar" aparece ao lado do título e abre o drawer lateral de edição daquela aba — a edição acontece sempre aqui no Autopilot, nunca no Cockpit. Logo abaixo do título, uma linha "Módulos:" lista em etiquetas os módulos habilitados para aquela empresa.
+O título do cadastro mostra Razão social, Nome fantasia e CNPJ (formato "Razão social — Nome fantasia — CNPJ"), com o badge de contexto ao lado (Matriz/Filial, quando a empresa participa dessa relação). Nas abas Dados Gerais e Atividades, o botão "Editar" aparece ao lado do título e abre o drawer lateral de edição daquela aba (na aba Sócios/Resp. legal, cada seção tem a própria ação no título da seção) — a edição acontece sempre aqui no Autopilot, nunca no Cockpit. Logo abaixo do título, uma linha "Módulos:" lista em etiquetas os módulos habilitados para aquela empresa.
 
 ### Telas
 Não é uma tela própria — é a área de cabeçalho compartilhada por todas as abas do cadastro, implementada uma única vez (\`empresas/js/detail-common.js\`).
 
 ### Campos implementados
-Razão social, Nome fantasia, CNPJ (título), badge de tipo (Matriz/Filial), botão "Editar" (nas abas Dados Gerais, Atividades e Responsável Legal), módulos habilitados (Fiscal, DP e/ou Contábil, em etiquetas).
+Razão social, Nome fantasia, CNPJ (título), badge de tipo (Matriz/Filial), botão "Editar" (nas abas Dados Gerais e Atividades), módulos habilitados (Fiscal, DP e/ou Contábil, em etiquetas).
 
 ### Regras de negócio implementadas
 - Só os módulos habilitados aparecem na lista — ao contrário da antiga aba Módulos, que listava o catálogo completo com status "Habilitado"/"Não habilitado" para cada item, o cabeçalho não repete os módulos não habilitados.
@@ -446,9 +457,9 @@ Auditoria de ponta a ponta da experiência do Cadastro de Empresas (Listagem →
 - **Módulos** — a remoção da aba própria "Módulos" está completa; a linha "Módulos:" aparece de forma consistente no cabeçalho em todas as 7 abas; nenhuma referência quebrada à antiga aba foi encontrada no código.
 
 **Pendências de negócio mantidas em aberto (não resolvidas nesta auditoria):**
-- Regra definitiva de vínculo do Contador Responsável (vínculo prévio obrigatório, múltiplos responsáveis, prioridade) — ver seção 2. Vigência não é mais pendência (resolvido 15/09/2026).
+- Regra definitiva de vínculo do Contador Responsável (vínculo prévio obrigatório, múltiplos responsáveis, prioridade, vigência) — ver seção 2.
 - Regra "módulo habilitado → libera parâmetro" — não avaliada nem implementada nesta rodada.
-- Descrição textual do CNAE (código puro) — ver seção 3. Fonte, se criado, já resolvida (Cockpit, 15/09/2026); falta decidir se o campo será criado.
+- Descrição textual do CNAE (código puro) — ver seção 3.
 - Campos "Dados de acesso"/"Credenciais necessárias" de Contadores — ver seção 6.
 - Trilha de auditoria real do Histórico de Alterações — ver seção 8.
 - Usuários e Permissões — ver "Pendências gerais" acima.
@@ -545,11 +556,13 @@ Origem: Cockpit.
 -   [ ] CPF
 -   [ ] Cargo / Qualificação
 
-Observação: Decisão resolvida — os dados permanecem no Cockpit (aba somente leitura, com atalho "Editar no Cockpit").
+Observação: Decisão revista em 2026-10-02 — o responsável legal **não vem do Cockpit**: é cadastrado e gerenciado no Autopilot, no registro único de pessoas de Cadastros Auxiliares → Sócios/Resp. legal (tipo "Resp. legal"). Na empresa, ele é selecionado nesse registro; Nome e CPF vêm do registro e o Cargo/Qualificação é informado na empresa. Um responsável legal por empresa. Ver \`docs/cadastro-empresas-spec.md\`, seção 4.
 
 ------------------------------------------------------------------------
 
 # 4. Quadro Societário
+
+Observação: Responsável Legal (seção 3) e Quadro Societário são exibidos juntos, em seções separadas, na aba "Sócios/Resp. legal".
 
 ## Campos
 
@@ -571,7 +584,7 @@ Relacionamento com Registro de Sócios.
 
 Observação: Decisão resolvida — o papel de cada empresa (Matriz ou
 Filial) já existe no Cockpit; a aba apenas exibe essa classificação
-(somente leitura, com atalho "Editar no Cockpit"), sem campo editável
+(somente leitura), sem campo editável
 de "Empresa é Centralizadora (Sim/Não)" nem seleção manual de vínculo.
 
 ------------------------------------------------------------------------
@@ -813,6 +826,9 @@ Sistemas.*
   **Legislação**    Valor fixo definido em lei, mantido pelo produto
 
   **Sistema**       Definido por regra interna do Autopilot
+
+  **Autopilot**     Herdado de outro vínculo do próprio Autopilot (ex.:
+                    Contador responsável no Cadastro de Empresas)
   -----------------------------------------------------------------------
 
 ## **Prioridade e coluna Domínio**
@@ -2648,6 +2664,7 @@ flowchart LR
     markdown: `# Especificação Funcional — Cadastro de Sócios
 
 > Status: MVP implementado no protótipo navegável — ver "Notas de implementação do protótipo" ao final
+> Revisão 2026-10-02: o cadastro passou a reunir **sócios e responsáveis legais** (aba "Sócios/Resp. legal") — ver "Tipo: Sócio e/ou Resp. legal" nas notas finais.
 > Escopo: MVP
 > Documento funcional para orientar a construção do módulo Cadastro de Sócios.
 
@@ -2985,7 +3002,7 @@ A seção "Integração com Cadastro de Empresas" acima descreve o fluxo de pesq
 
 ## Atalho para o cadastro da empresa
 
-Dentro do drawer, cada empresa em "Empresas vinculadas" tem um link "Abrir cadastro" que leva direto à aba Dados gerais daquela empresa no Cadastro de Empresas — de lá, as demais abas (Atividades, Quadro societário, Contadores, Empresa centralizadora, Módulos) ficam a um clique.
+Dentro do drawer, cada empresa em "Empresas vinculadas" tem um link "Abrir cadastro" que leva direto à aba Sócios/Resp. legal daquela empresa no Cadastro de Empresas — de lá, as demais abas ficam a um clique.
 
 ## Ação de excluir ainda não existe na tela
 
@@ -2996,6 +3013,18 @@ A regra de negócio "CPF único" e a regra de bloqueio de exclusão com vínculo
 A aba Quadro Societário (Cadastro de Empresas) permite remover a participação de um sócio na empresa aberta — a ação é rotulada "desvincular", nunca "excluir", e a mensagem de confirmação deixa explícito que o sócio continua cadastrado no registro unificado e mantém suas participações em outras empresas. Essa tela nunca exclui o cadastro do sócio em si.
 
 A exclusão do cadastro completo do sócio (com o bloqueio quando há vínculos ativos, descrito na seção "Exclusão") pertence exclusivamente a este módulo (Cadastro de Sócios) e, como registrado acima, ainda não foi implementada aqui. Se um dia a nomenclatura "desvincular" do Quadro Societário for revista, mantenha a distinção clara entre as duas ações — são operações diferentes sobre entidades diferentes (vínculo vs. pessoa).
+
+## Tipo: Sócio e/ou Resp. legal (2026-10-02)
+
+O responsável legal das empresas deixou de vir do Cockpit e passou a ser cadastrado aqui, no mesmo registro único de pessoa física dos sócios — uma pessoa pode ser só sócia, só responsável legal ou as duas coisas, com um cadastro só (CPF único continua valendo).
+
+- **Aba e textos:** a aba passou a se chamar "Sócios/Resp. legal" (título "Sócios e responsáveis legais"); o botão "Novo sócio" virou "Novo cadastro".
+- **Campo Tipo (obrigatório):** duas caixas de seleção, "Sócio" e "Resp. legal", com pelo menos uma marcada. O tipo define em qual seleção a pessoa aparece no cadastro da empresa: "Adicionar sócio" (Quadro societário) lista só quem tem "Sócio"; a seleção de responsável legal lista só quem tem "Resp. legal".
+- **Tipo em uso não pode ser desmarcado:** "Sócio" fica bloqueado enquanto houver participação ativa; "Resp. legal" fica bloqueado enquanto a pessoa for responsável legal de alguma empresa. O motivo aparece abaixo da opção. Mesma lógica do bloqueio de exclusão com vínculos.
+- **Listagem:** nova coluna "Tipo" — "Sócio", "Resp. legal" ou "Sócio, Resp. legal" (uma linha por pessoa, nunca duplicada). Novo filtro "Tipo" (Todos, Sócio, Resp. legal) ao lado de Nome e CPF.
+- **Empresas vinculadas:** conta empresas onde a pessoa é sócia (participação ativa) ou responsável legal, sem repetir a mesma empresa. No drawer, cada empresa mostra o papel da pessoa nela (ex.: "Sócio · 60% · Administrador" e/ou "Resp. legal · Sócia-administradora"), e o link "Abrir cadastro" leva à aba Sócios/Resp. legal da empresa.
+- **Onde fica o vínculo:** a participação continua na pessoa (\`participacoes\`); o vínculo de responsável legal fica na empresa (pessoa + cargo nesta empresa), porque cada empresa tem um responsável legal.
+- **Importação Massiva:** o responsável legal da planilha é procurado pelo CPF neste registro; se existir, recebe o tipo "Resp. legal" (se ainda não tiver); se não existir, é criado só com esse tipo.
 
 ## Navegação: aba dentro de Cadastros Auxiliares, não módulo próprio
 
@@ -3362,6 +3391,8 @@ Cada linha da planilha corresponde a uma empresa nova. Não existe importação 
 
 ## Escopo fechado no Cadastro Geral (+ Responsável Legal)
 
+> Revisão 2026-10-02: o Responsável Legal deixou de vir do Cockpit — é cadastrado e gerenciado no Autopilot, no registro de Cadastros Auxiliares → Sócios/Resp. legal, e selecionado na empresa (ver \`docs/cadastro-empresas-spec.md\`, seção 4, e \`docs/03-cadastro-socios.md\`, "Tipo: Sócio e/ou Resp. legal"). Na importação, o CPF do responsável legal da planilha é usado para encontrar a pessoa nesse registro; se ela não existir, é criada com o tipo "Resp. legal". As menções abaixo ao Cockpit como fonte de verdade do responsável legal ficaram desatualizadas.
+
 A planilha simulada espelha os campos da aba Dados Gerais **e** os campos da aba Responsável Legal (Nome, CPF, Cargo/Qualificação) — na prática, tudo que descreve "quem é a empresa e quem responde por ela". CNAE (Atividades), Sócios, Contadores e a relação Matriz/Filial (Empresa Centralizadora) não têm coluna na planilha e não são tocados pela importação. Essa divisão está detalhada em "Dois modelos de planilha" e em "Notas de implementação do protótipo".
 
 Importante: incluir Responsável Legal no escopo da planilha é uma decisão da **experiência de importação**, não uma mudança na fonte de verdade desse dado. Por \`docs/01-cadastro-empresas.md\` (seção "3. Responsável Legal"), a aba Responsável Legal do Cadastro de Empresas é somente leitura e tem o Cockpit como fonte de verdade — o mesmo vale para uma empresa importada. A planilha e a consulta cadastral apenas representam/populam esses três campos no protótipo para que a aba não fique vazia após a importação; isso não substitui nem contradiz o Cockpit como origem oficial do dado.
@@ -3683,185 +3714,162 @@ Diferente das 6 abas de uma empresa (que são páginas HTML separadas, mas conce
 `,
   },
 
-  // fonte: docs/implantacao-spec.md
-  "implantacao-spec": {
-    title: `Implantação de Empresas — Especificação (as-built)`,
-    source: "docs/implantacao-spec.md",
-    markdown: `# Implantação de Empresas — Especificação (as-built)
+  // fonte: docs/07-tabela-feriados.md
+  "07-tabela-feriados": {
+    title: `Tabela de Feriados — Especificação funcional`,
+    source: "docs/07-tabela-feriados.md",
+    markdown: `# Especificação Funcional — Tabela de Feriados
 
-> Este documento descreve **o que existe hoje** no protótipo da trilha de Implantação do AutoPilot. Ele não é a especificação original de requisitos — é o retrato funcional da implementação, para que Product Managers validem o que foi construído e planejem as próximas evoluções. Boa parte das decisões aqui documentadas vem do alinhamento entre Andressa Teles Rodrigues, Jeniffer Dauricio e Luiz Felipe Mendonça Silva em 10/09/2026 ("Alinhamento Telas de Implantação — Parte 2").
+> Status: rascunho navegável no protótipo (dados mockados) para validação com Produto, DP e Fiscal — ver "Notas de implementação do protótipo" ao final
+> Escopo: CTB-259, parte 1 (a parte 2, tabelas INSS/IRRF, está fora deste documento)
+> Documento funcional para orientar a construção da Tabela de Feriados do Autopilot.
 
-## Visão geral
+---
 
-A Implantação cobre o processo de trazer uma empresa nova (ou uma migração de sistema) para dentro do Autopilot, módulo a módulo. Hoje só o módulo **DP** tem experiência completa; Fiscal e Contábil aparecem como "em breve" nas telas que já preveem as três frentes lado a lado.
+# Objetivo
 
-A trilha é composta por quatro telas:
+A **Tabela de Feriados** é a fonte única de feriados do Autopilot, em **Parâmetros Gerais**. É uma tabela **transversal**: os motores consomem este mesmo cadastro.
 
-1. **Implantação de Empresas** (\`implantacao-geral.html\`) — dash geral com as três frentes (DP/Fiscal/Contábil) por empresa, a porta de entrada de nível mais alto.
-2. **Implantação DP** (\`implantacao-empresas.html\`) — lista de empresas em implantação de DP especificamente, com filtro e busca.
-3. **Console de Implantação** (\`implantacao-console.html?empresa=CODIGO\`) — uma tela por empresa, com 7 abas que cobrem cada frente do processo.
-4. **Nova Implantação** (\`implantacao-importar.html\`) — fluxo de upload do lote de relatórios do Domínio que inicia (ou alimenta) a implantação de uma empresa.
+- **DP:** definição de dia útil e cálculo de DSR.
+- **Fiscal:** vencimento de impostos (antecipar ou postergar quando cair em feriado).
+- **Contábil.**
 
-Uma empresa só entra nesta trilha se estiver cadastrada no Cockpit com a tag Autopilot do módulo correspondente (ex.: tag Autopilot DP) — isso é validado no momento do upload (ver "Nova Implantação" abaixo), não há cadastro de empresa dentro da Implantação.
+Os motores passarão a apontar para esta tabela em entrega posterior. O protótipo não simula esse consumo.
 
-------------------------------------------------------------------------
+---
 
-## 1. Implantação de Empresas (dash geral — 3 frentes)
+# Decisões do discovery (02/10)
 
-### Objetivo
-Dar uma visão "termômetro" do progresso de implantação de cada empresa nos três módulos do Autopilot, antes de entrar na implantação específica de um deles.
+1. **Três abrangências separadas: Federal, Estadual e Municipal.** Não é um cadastro único misturado (como no Domínio) nem uma tabela por município repetindo tudo (como na Sênior).
+2. **Município sempre identificado pelo código IBGE**, exibido como "código – nome", com filtro por UF antes. Vale para consultar e para cadastrar.
+3. **A empresa é vinculada automaticamente** pelo código IBGE do município dela. Não existe tela nem ação de vincular tabela a cliente.
+4. **Fixo × Móvel:**
+   - **Fixo:** só dia e mês, sem ano. Vale para todos os anos (ex.: 21/04).
+   - **Móvel:** data completa, com ano. Precisa ser mantido a cada ano (Carnaval, Corpus Christi, Sexta-feira Santa, feriado decretado extraordinário).
+5. **Consulta + cadastro/edição** no mesmo painel, para incluir e editar.
+6. **Log de alterações:** quem editou, quando e o que mudou.
+7. **Origem dos dados:** federal e estadual virão por API, a carga inicial vem do Domínio e os municipais são cadastrados manualmente.
 
-### Comportamento
-- Uma linha por empresa, com uma barra de progresso por módulo (DP / Fiscal / Contábil) lado a lado — não segmentada por frente interna (isso vive no console de cada módulo), só o percentual geral daquele módulo.
-- O percentual de cada módulo só aparece no hover da barra (tooltip) — o texto sempre visível é só o nome do módulo, para não competir visualmente com as três barras.
-- Fiscal e Contábil mostram um badge "Em breve", sem barra nem link, até ganharem o mesmo console que o DP já tem.
-- Clicar em qualquer parte da linha leva para o Console de Implantação (DP) daquela empresa.
-- Busca por nome ou CNPJ.
-- Botão "Nova Implantação" no cabeçalho, que abre o fluxo de upload (\`implantacao-importar.html\`).
+---
 
-### Campos implementados
-Empresa, barra de progresso DP (com tooltip de percentual), Fiscal (em breve), Contábil (em breve).
+# Fora do escopo
 
-### Regras de negócio implementadas
-- O percentual de DP vem do mesmo cálculo usado no console e na lista de DP (ver seção 3).
+- Feriados sindicais e de convenção coletiva (ficam na tela de Sindicato, CTB-261).
+- Pontos facultativos.
+- Tabelas INSS/IRRF (parte 2 da issue).
+- Correção e padronização de municípios no cadastro de empresa (ticket do time de dados).
+- Integração real com API ou banco.
 
-------------------------------------------------------------------------
+---
 
-## 2. Implantação DP (lista por empresa)
+# Regras de negócio
 
-### Objetivo
-Listar as empresas em implantação de DP especificamente, com o essencial para o operador priorizar o que atacar.
+## Estrutura do cadastro
 
-### Comportamento
-- Uma linha por empresa: nome, uma barra segmentada (uma cor por frente que bloqueia — ver seção 3.6), etapa atual em texto livre, badge de status (Em andamento / Implantada) e percentual de conclusão.
-- **Filtro de status é multi-select** (combobox com checkbox por opção: "Em andamento", "Implantadas") — nenhuma opção marcada ou as duas marcadas equivalem a "Todos os status". Por padrão só "Em andamento" vem marcado. Decisão explícita do alinhamento de 10/09/2026 (Luiz: *"talvez até colocar uma multi select aqui seria bom"*) — antes era um \`<select>\` de opção única.
-- Busca por nome ou CNPJ.
-- Clicar na linha leva ao Console de Implantação daquela empresa.
-- Botão "Nova Implantação" no cabeçalho.
+Cada feriado tem: abrangência, UF (Estadual e Municipal), município por código IBGE (Municipal), descrição, tipo (Fixo ou Móvel), dia e mês, ano (somente Móvel), origem (API, Carga Domínio ou Manual), status (Ativo ou Inativo) e observação ou fundamento legal (opcional).
 
-### Regras de negócio implementadas
-- Só 3 frentes contam para o percentual e para a barra segmentada: Colaboradores, Dados Financeiros (histórico de folha) e Cálculo em Paralelo. Rubricas **não** entra nessa conta — ver seção 3.3.
+## Ano e ocorrência
 
-------------------------------------------------------------------------
+- O seletor de **Ano** calcula a ocorrência dos fixos naquele ano (data e dia da semana) e mostra apenas os móveis cadastrados para aquele ano.
+- Um fixo aparece em todos os anos. Um móvel só aparece no ano em que foi cadastrado.
 
-## 3. Console de Implantação (por empresa)
+## Duplicidade
 
-### Objetivo
-Concentrar as cinco frentes de trabalho da implantação de uma empresa numa tela só, navegável por abas sem perder o contexto (sem reload de página ao trocar de aba).
+Não pode haver dois feriados na mesma data, na mesma abrangência e no mesmo local (federal, UF ou código IBGE).
 
-### Cabeçalho
-- Nome da empresa, badge de status (Em andamento / Implantada), etapa atual em texto livre.
-- Data de início, competência inicial e, se concluída, data de conclusão.
-- Barra de progresso segmentada (uma cor por frente que bloqueia: Colaboradores / Dados Financeiros / Cálculo em Paralelo) com tooltip por segmento e o percentual geral ao lado.
-- Alerta quando as 3 frentes estão 100% mas os parâmetros DP ainda não foram confirmados — com link direto para a aba Parâmetros.
-- 4 cartões de resumo: Colaboradores prontos, Competências de folha carregadas, Rubricas utilizadas (12 meses), Competências validadas em paralelo.
+- Dois fixos: mesmo dia e mês.
+- Dois móveis: mesma data completa.
+- Um fixo e um móvel: mesmo dia e mês no ano do móvel.
 
-### 3.1 Aba "Dados do Colaborador"
-Fila de conciliação de colaboradores entre o Lake (Domínio) e a Ficha Financeira enviada pela empresa, já filtrada para esta empresa (mesma experiência que antes vivia numa fila global separada).
+Se o conflito for com um registro inativo, a mensagem orienta a reativá-lo em vez de cadastrar de novo.
 
-- Busca por nome ou CPF; filtro de status (Todos, Divergência, Pendente conciliação, Não encontrado no Lake, Rejeitado, Aguardando eSocial, Pronto), cada opção com a contagem entre parênteses.
-- Cada status tem um significado e uma origem específicos:
-  - **Divergência** — campo com valor diferente ou ausente entre Lake e Ficha Financeira; resolvido no drawer de conferência, escolhendo Lake, Ficha ou digitando um valor manual.
-  - **Pendente conciliação** — está no Lake, a Ficha Financeira ainda não chegou/foi lida.
-  - **Não encontrado no Lake** — a Ficha trouxe um colaborador cujo CPF não existe no Lake para esta empresa (ex.: admissão recente ainda não sincronizada); mostra os dados extraídos da Ficha sem contraparte para comparar, e o operador decide entre criar o cadastro ou ignorar por enquanto.
-  - **Rejeitado** — a linha nem chegou a ser conciliada, falhou na validação antes de gravar (CPF inválido, categoria inexistente no eSocial, caractere especial); fica com motivo + número da linha, e dá para corrigir e reprocessar só aquela linha.
-  - **Aguardando eSocial** — a base Domínio não trouxe a categoria do trabalhador; o eSocial só é acionado nesse caminho de exceção. Depois do retorno, o colaborador volta ao fluxo normal como "Pendente conciliação".
-  - **Pronto** — conciliado nos dois lados, sem pendência bloqueante; só então conta como implantado.
-- Pendências cadastrais (campos que nem Lake nem Ficha trazem — PIS, título de eleitor, RG, nome dos pais, etc.) não bloqueiam o colaborador ficar "Pronto", mas ficam registradas e resolvíveis manualmente.
-- Dependentes têm sua própria lista de pendências, à parte do colaborador principal.
-- Drawer "Visualizar" (só leitura) mostra a ficha completa de um colaborador "Pronto": dados pessoais, documentos, admissão, dados bancários/FGTS, histórico de alterações salariais/férias e o resumo financeiro do ano — a mesma separação por bloco que existia antes de uma perda de dados identificada em revisão, e que foi restaurada.
+## Exclusão
 
-### 3.2 Aba "Dados Financeiros"
-Histórico de folha por competência — não só a Ficha Financeira, a janela completa de competências.
+Não há exclusão: só **inativar** e **reativar**, para preservar histórico e cálculos. Inativar e reativar exigem motivo, que vai para o log.
 
-- Janela necessária: dezembro/2025 até a última competência fechada, mínimo 12 competências — competências ausentes são reportadas, nunca estimadas.
-- Cada competência mostra status (Carregada / Divergência de total / Ausente), proventos, descontos e líquido.
-- "Divergência de total" significa que o valor gravado não bate com o total do relatório de origem — sempre reportado como falha, nunca como aviso silencioso.
-- Drawer "Visualizar" mostra proventos, descontos, líquido calculado pelo Autopilot e o total do relatório de origem lado a lado.
+## Log de alterações
 
-### 3.3 Aba "Rubricas"
-Puramente informativa, **sem de-para manual** — decisão explícita do alinhamento de 10/09/2026: o Autopilot deixou de fazer de-para de rubrica; a aba só mostra o que a empresa usou nos últimos 12 meses.
+Cada criação, edição, inativação e reativação gera um evento com usuário, data e hora, ação, motivo e, quando houve mudança de campo, o valor anterior e o novo. Na edição o motivo da alteração é obrigatório. A coluna "Última alteração" da tabela mostra o usuário e a data do evento mais recente.
 
-- Colunas: Código, Descrição, Rubrica padrão (ou "Específica da empresa" quando não for uma rubrica padrão do Autopilot), Natureza (Provento/Desconto), e as quatro incidências — IRRF, INSS, FGTS, PIS — todas vindas prontas do Lake.
-- Não tem coluna de status nem botão de ação: nenhuma rubrica bloqueia nada aqui, e por isso esta aba **não entra** no cálculo de percentual de conclusão nem na barra segmentada (só Colaboradores, Dados Financeiros e Cálculo em Paralelo bloqueiam).
+---
 
-### 3.4 Aba "Cálculo em Paralelo"
-Roda **depois** que Colaboradores e Dados Financeiros já foram carregados — aciona o motor para recalcular a folha de cada competência com as regras atuais e concilia contra o relatório da Domínio já importado.
+# Escopo do rascunho
 
-- Não gera nenhum pacote de relatório — só diz se bateu ou não; quando não bate, aponta campo + colaborador + rubrica que divergiu (mesma lógica da conciliação de colaborador contra o Lake).
-- Sem efeito externo: modo paralelo não transmite nada nem envia e-mail.
-- Botão "Calcular e conciliar" simula a execução; drawer "Visualizar" mostra executor, data, resultado e o detalhe de cada divergência.
-- Status possíveis: Não executado, Bate com o Domínio, Com divergência.
+## Cabeçalho e abas
 
-### 3.5 Aba "Parâmetros"
-Checklist dos campos obrigatórios de configuração específica da empresa (sindicato, regime de tributação, FAP, percentual de adiantamento, arredondamento), que vivem de fato na tela real de **Parâmetros DP** (\`parametros/dp.html\` — em construção por outra frente do time, hoje "em breve").
+Título "Tabela de Feriados", descrição curta e o botão **Novo feriado**. Abas **Federal | Estadual | Municipal**.
 
-- Link "Abrir Parâmetros DP" e uma lista de campos com badge Pendente/Preenchido.
-- Botão "Confirmar parâmetros" só fica habilitado quando não há pendências — precisa de confirmação manual do operador (não é automático mesmo com todos os campos preenchidos), e essa confirmação vira evento no Histórico.
-- **Não entra** no percentual de conclusão das 3 frentes, mas é pré-requisito para a empresa ser considerada implantada de fato: mesmo com as 3 frentes em 100%, um alerta no cabeçalho lembra que os parâmetros ainda precisam ser confirmados.
-- Como a Implantação de Sindicato não ganhou tela própria, ela foi incorporada aqui — é um dos campos do checklist, e a operação lida com sindicato configurando o parâmetro correspondente.
+## Filtros
 
-### 3.6 Aba "Relatórios"
-Layout de cada processo de DP usado pela empresa — Admissão, Férias e Rescisão — dizendo se ela usa o **padrão Domínio** ou um **layout personalizado**. Aba própria, separada da Ficha Financeira: os relatórios personalizados aqui não são necessariamente os mesmos arquivos que a empresa sobe na Nova Implantação (podem ser um contrato de admissão específico, um recibo de férias próprio, etc.).
+- **Todas as abas:** Ano, busca por descrição, Tipo (Fixo ou Móvel) e Status (Ativo ou Inativo).
+- **Estadual:** UF.
+- **Municipal:** UF e Município (combobox pesquisável "código IBGE – nome"). Ao selecionar o município, um resumo mostra os feriados municipais ativos no ano, a indicação de que os federais e os estaduais da UF também se aplicam e o número de empresas vinculadas (informativo, pelo vínculo automático).
 
-- Uma linha por processo, com badge "Padrão Domínio" ou "Personalizado", o nome do arquivo quando houver, e as ações "Importar layout"/"Substituir" e "Voltar ao padrão" (quando já personalizado).
-- Importar layout abre um drawer com upload (arraste ou clique) e um botão "Salvar layout".
-- Não bloqueia a implantação nem entra no percentual de conclusão — é só informativo, para a operação saber o que gerar em cada processo.
-- Quando o operador sinaliza "relatório personalizado" no fluxo de Nova Implantação (seção 4), o resultado da importação linka direto para esta aba da empresa (\`implantacao-console.html?empresa=CODIGO&tab=relatorios\`).
-- Hoje só existe aqui, dentro da Implantação. A ideia de replicar esta mesma aba dentro de Parâmetros DP (para consulta contínua depois da implantação) é um item futuro — ver "Pendências e itens futuros".
+## Colunas
 
-### 3.7 Aba "Histórico"
-Log de auditoria: cada etapa registra executor, data/hora, ação, detalhe e quem aprovou (quando aplicável) — inclui desde o início da implantação até a confirmação final dos parâmetros.
+Data (dd/mm no fixo, dd/mm/aaaa no móvel), dia da semana no ano selecionado, descrição, tipo, origem, status, última alteração (usuário e data) e ações (Editar, Histórico, Inativar ou Reativar). As abas Estadual e Municipal acrescentam a coluna do local (UF ou município).
 
-------------------------------------------------------------------------
+## Novo e editar feriado
 
-## 4. Nova Implantação (upload do lote)
+Um único painel lateral para incluir e editar:
 
-### Objetivo
-Trazer o lote de relatórios do Domínio (Ficha de Registro, Ficha Financeira, Programação de Férias, Relatório de Médias, Extrato Mensal) para iniciar ou alimentar a implantação de uma ou várias empresas de uma vez.
+- **Abrangência:** pré-selecionada pela aba atual e bloqueada na edição.
+- **UF:** quando Estadual ou Municipal.
+- **Município:** quando Municipal, combobox "código – nome" filtrado pela UF.
+- **Descrição.**
+- **Tipo:** Fixo (dia e mês) ou Móvel (data completa).
+- **Observação ou fundamento legal:** opcional.
+- **Motivo da alteração:** só na edição, obrigatório, vai para o log. O botão Salvar só habilita quando algo mudou.
 
-### Comportamento
-- Tela cheia (não modal), com dropzone de arquivos em PDF — até 100 arquivos por lote, 15MB por arquivo. Não é preciso selecionar uma empresa por vez: dá para soltar arquivos de várias empresas juntas, o sistema identifica cada uma pelo CNPJ.
-- **Tipo de implantação** — toggle "Novo cliente" / "Migração de empresa já em operação". "Novo cliente" (padrão) bloqueia arquivos de empresas que já operam no Autopilot; "Migração" permite prosseguir mesmo assim. Regra explícita do alinhamento (Andressa/Jeniffer): evita que alguém suba, sem querer, dados de uma empresa que já está em produção e sobrescreva cálculos existentes.
-- Cada arquivo da lista mostra um de quatro estados:
-  - **Identificado** — CNPJ lido com sucesso e associado a uma empresa cadastrada.
-  - **CNPJ não identificado** — não deu para ler o CNPJ automaticamente; resolvido depois, no modal de Inconsistência, associando manualmente a uma empresa.
-  - **Empresa sem Cockpit** — CNPJ identificado, mas a empresa não está cadastrada no Cockpit com a tag Autopilot do módulo; não é processado, é preciso pedir o cadastro antes.
-  - **Bloqueado por operação** — CNPJ de uma empresa que já opera no Autopilot, com "Novo cliente" selecionado; só passa marcando "Migração".
-- Ao clicar em "Importar lote", um dialog de confirmação resume quantos colaboradores/empresas serão processados e quantos arquivos ficaram de fora (e por quê), e pergunta: **"Esta empresa usa relatório personalizado (fora do layout padrão Domínio)?"** (Sim/Não) — a resposta não faz upload de nenhum layout aqui, só sinaliza a necessidade; o upload de fato acontece na aba Relatórios do console (seção 3.6).
-- Processamento assíncrono simulado em 4 passos (Lendo arquivos → Extraindo campos → Conciliando com o Lake → Gerando resultado).
-- Tela de resultado com estatísticas (processados, sem divergência, com divergência, não importados por CNPJ não identificado, não importados por falta de Cockpit, bloqueados por operação) e um alerta + atalho por cada exceção, incluindo o link direto para a aba Relatórios quando "relatório personalizado" foi marcado.
+## Histórico
 
-------------------------------------------------------------------------
+Painel lateral com a linha do tempo do feriado: usuário, data e hora, ação (criado, editado, inativado ou reativado), motivo e antes → depois dos campos alterados.
 
-## Regras de negócio principais (consolidado)
+## Preparar ano seguinte (hipótese a validar)
 
-- Uma empresa só aparece na Implantação se estiver cadastrada no Cockpit com a tag Autopilot do módulo correspondente.
-- Só 3 frentes bloqueiam a implantação e contam para o percentual: Colaboradores, Dados Financeiros (histórico de folha) e Cálculo em Paralelo. Rubricas e Relatórios são informativos, não bloqueiam.
-- O Cálculo em Paralelo só roda depois de Colaboradores e Dados Financeiros carregados, e nunca tem efeito externo (não transmite, não envia e-mail).
-- Confirmar os Parâmetros DP é uma ação manual e obrigatória à parte das 3 frentes — a implantação só é considerada de fato concluída depois dessa confirmação.
-- "Novo cliente" bloqueia por padrão empresas já em operação no Autopilot; só "Migração" permite prosseguir.
-- Rubricas não fazem mais de-para manual — a tela é só um espelho do que já vem pronto do Lake (natureza + incidências).
+Botão na aba que lista os feriados móveis ativos do ano selecionado, no escopo da aba (e da UF ou município filtrados), e permite confirmar ou ajustar a data de cada um no ano seguinte. Linhas sem data são ignoradas; móveis já cadastrados no ano seguinte aparecem como "já cadastrado". Os fixos não precisam dessa ação. Os registros criados têm origem Manual e o motivo registra a preparação.
 
-------------------------------------------------------------------------
+## Estados
 
-## Pendências e itens futuros
+Vazio para o filtro, município sem feriados municipais (com atalho para cadastrar), aviso quando um ano futuro ainda não tem móveis cadastrados e toast de sucesso ao salvar, inativar, reativar e preparar o ano.
 
-- **Fiscal e Contábil** — hoje só aparecem como "Em breve" no dash geral; ainda não têm console próprio equivalente ao de DP.
-- **Parâmetros DP** (\`parametros/dp.html\`) — tela real ainda "em construção" por outra frente do time (Elaine); o checklist da aba Parâmetros do console é uma simulação até essa tela existir de fato.
-- **Aba Relatórios espelhada em Parâmetros DP** — a ideia (Jeniffer, 10/09/2026) é que a mesma configuração de layout de admissão/férias/rescisão apareça também dentro de Parâmetros DP para consulta contínua após a implantação — hoje só existe no console de Implantação.
-- **Menu central de relatórios** — geração de relatórios sob demanda (não só os de implantação) discutida como possível evolução futura, sem tela prevista ainda.
-- **Anexo do relatório usado anteriormente pela empresa** (quando ela já usava outro sistema) — mencionado como visão de futuro, sem compromisso de implementação.
-- **Regras de bloqueio de migração mais refinadas** (ex.: qualquer cálculo já rodado pelo Autopilot trava novo upload) — a versão atual usa o status "Implantada" da empresa como proxy simplificado; regras mais específicas ficaram como próxima rodada.
+---
 
-------------------------------------------------------------------------
+# Pontos em aberto para validação
 
-## Decisões de UX adotadas
+1. **Edição manual de registro vindo da API:** a próxima sincronização pode sobrescrever a edição. É preciso definir se a edição é bloqueada, se vale até a próxima carga ou se o dado manual prevalece.
+2. **Preparar ano seguinte:** confirmar se a ação faz sentido para o DP e o Fiscal e se a sugestão de data pela Páscoa (Carnaval, Sexta-feira Santa e Corpus Christi) deve existir.
+3. **Códigos IBGE do catálogo do protótipo:** conferir antes de virarem dado real. Os dados mockados são ilustrativos.
+4. **Regra de duplicidade entre fixo e móvel:** confirmar o tratamento descrito acima.
 
-- A barra de progresso do dash geral (3 frentes) mostra só a barra + nome do módulo, com o percentual só no tooltip — para não competir visualmente com as três barras lado a lado.
-- O filtro de status da lista de Implantação DP virou multi-select (checkbox) em vez de opção única, para permitir combinar "Em andamento" + "Implantadas" sem precisar de um terceiro valor "Todos" redundante.
-- Toda interação com dados (visualizar detalhe, importar layout, resolver divergência) usa drawer lateral, nunca modal — modal fica reservado para confirmações pontuais (ex.: confirmar importação, CNPJ não identificado).
-- A aba Relatórios foi mantida separada da pergunta "relatório personalizado" do fluxo de upload — a pergunta só sinaliza a necessidade; o upload do layout em si acontece na aba, por processo (Admissão/Férias/Rescisão), porque nem sempre são os mesmos arquivos.
+---
+
+# Notas de implementação do protótipo
+
+Decisões tomadas durante a construção do rascunho que não estavam explícitas no briefing.
+
+## Navegação
+
+A tela é um item próprio em **Parâmetros Gerais** na sidebar ("Tabela de Feriados", chave \`feriados\`), em \`prototype/feriados/index.html\`. A troca de aba é feita por JS na mesma página, como no Fiscal. Abas e filtros ficam só em memória, sem querystring.
+
+## Componentes reaproveitados
+
+Nenhuma classe visual nova. Abas sublinhadas, grupos de botões (Tipo e Status), combobox pesquisável, seletor de data, tabela \`dtable\`, badges, painel lateral (\`sheet-*\`), dialog de confirmação, bloco \`history-event\` do histórico de Empresas e Fiscal, alerta informativo e toast.
+
+## Formulário em painel lateral, não em modal
+
+O briefing falava em modal. Como o formulário tem campos, validação e ação, usa-se o painel lateral, como em Sócios, Contadores e Convenção. O modal centrado ficou só para a confirmação de inativar e reativar.
+
+## Dados e persistência
+
+- Os mocks ficam em \`localStorage\` (\`autopilot_prototype_feriados_v1\` para os feriados e \`autopilot_prototype_feriados_log_v1\` para o log), então o "Restaurar dados do protótipo" também limpa esta tela. O usuário do log para ações feitas no protótipo é "Elaine C.".
+- O catálogo de municípios é mínimo, só para o combobox. Os números de empresas vinculadas são fictícios.
+- Ano padrão 2026; o seletor oferece 2025 a 2028.
+- Há um registro inativo (Corpus Christi de Belo Horizonte) e registros com histórico de edição (Carnaval/RJ, Aniversário da cidade/SP, fundamento legal em SP e o feriado decretado de Goiânia) para demonstrar o log.
+
+## Arquivos
+
+\`prototype/feriados/index.html\`, \`js/data.js\` (dados, regras e log), \`js/feriado-form.js\` (novo/editar e inativar/reativar), \`js/feriado-historico.js\`, \`js/feriado-proximo-ano.js\` e \`js/feriados-page.js\` (abas, filtros e tabela).
 `,
   },
 };

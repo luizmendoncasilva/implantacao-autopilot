@@ -84,7 +84,52 @@
         { dataHora: "28/04/2026 10:00", operador: "Andressa Teles Rodrigues", acao: "Concluiu implantação", detalhe: "Passagem de bastão para a operação — status Em Operação no Cockpit.", aprovadoPor: "Jeniffer Dauricio" },
       ],
     },
+    {
+      // Clínica Vitalis — serviço do Simples sujeito ao Fator R, com o
+      // histórico de folha já implantado pelo DP: é o caso "folha implantada
+      // pela DP" da Implantação Fiscal (CTB-532), que ainda exige a CPP.
+      empresaCodigo: "CV-0058",
+      status: "em_andamento",
+      etapaAtual: "Cálculo em Paralelo — conciliação com o Domínio",
+      dataInicio: "01/07/2026",
+      competenciaInicial: "07/2026",
+      resumo: {
+        financeiro: { carregadas: 12, necessarias: 12 },
+        rubricas: { total: 8 },
+        calculoParalelo: { validadas: 9, comDivergencia: 0, total: 12 },
+      },
+      logs: [
+        { dataHora: "01/07/2026 09:30", operador: "Andressa Teles Rodrigues", acao: "Iniciou implantação", detalhe: "Contrato assinado, card de DP criado no Pipefy.", aprovadoPor: null },
+        { dataHora: "02/07/2026 10:15", operador: "Luiz Felipe Mendonça Silva", acao: "Importou lote de Ficha de Registro", detalhe: "Ficha_Registro_Clinica_Vitalis.pdf — 8 colaboradores processados.", aprovadoPor: null },
+        { dataHora: "03/07/2026 14:40", operador: "Luiz Felipe Mendonça Silva", acao: "Resolveu divergência", detalhe: "Luana Ferreira Matos — campo Endereço, valor da Ficha de Registro mantido.", aprovadoPor: null },
+        { dataHora: "08/07/2026 15:20", operador: "Sistema", acao: "Carregou histórico completo", detalhe: "12 competências de folha gravadas a partir dos relatórios da Domínio.", aprovadoPor: null },
+        { dataHora: "09/07/2026 09:05", operador: "Sistema", acao: "Identificou rubricas utilizadas", detalhe: "8 rubricas identificadas nos últimos 12 meses, com natureza e incidências.", aprovadoPor: null },
+        { dataHora: "14/10/2026 11:05", operador: "Luiz Felipe Mendonça Silva", acao: "Executou cálculo em paralelo", detalhe: "9 competências calculadas — nenhuma divergência contra o Domínio.", aprovadoPor: null },
+      ],
+    },
   ];
+
+  // Empresas em implantação que ainda não existem no Cadastro de Empresas do
+  // protótipo (empresas/js/data.js) — só a Implantação as conhece.
+  const EMPRESAS_EXTRAS = [
+    { codigo: "CV-0058", nome: "Clínica Vitalis", cnpj: "31.452.118/0001-07", regime: "Simples Nacional", cnaePrincipal: "8630-5/03" },
+    { codigo: "EL-0073", nome: "Estúdio Lumen Arquitetura", cnpj: "28.907.334/0001-62", regime: "Simples Nacional", cnaePrincipal: "7111-1/00" },
+    { codigo: "NC-0091", nome: "Nexo Consultoria em TI", cnpj: "45.118.270/0001-33", regime: "Simples Nacional", cnaePrincipal: "6204-0/00" },
+  ];
+
+  function infoEmpresa(codigo) {
+    const extra = EMPRESAS_EXTRAS.find((e) => e.codigo === codigo);
+    if (extra) return extra;
+    const empresa = global.EmpresasData ? global.EmpresasData.findEmpresaByCodigo(codigo) : null;
+    if (!empresa) return { codigo, nome: codigo, cnpj: "", regime: "", cnaePrincipal: "" };
+    return {
+      codigo,
+      nome: empresa.nome,
+      cnpj: empresa.dadosGerais ? empresa.dadosGerais.cnpj : "",
+      regime: empresa.dadosGerais ? empresa.dadosGerais.regimeTributarioFederal : "",
+      cnaePrincipal: empresa.atividades ? empresa.atividades.cnaePrincipal : "",
+    };
+  }
 
   // Épico 2 — competências de histórico de folha, janela dezembro/2025 até a
   // última fechada (RF-DP-509 reporta as ausentes, nunca estima).
@@ -99,21 +144,13 @@
       // Exemplos de divergência de total (RF-DP-507) — o valor gravado não
       // bate com o total do relatório de origem, sempre falha, nunca aviso.
       const divergente = (i === 2 && empresaCodigo === "MS-0027") || (i === 1 && empresaCodigo === "CH-0042");
-      const proventos = 38000 + i * 900;
-      const descontos = 9200 + i * 150;
-      const liquido = 28800 + i * 750;
-      // Divergência de total (RF-DP-507) é sempre no Desconto/Líquido — o
-      // Provento bate nas duas fontes; comparar os 3 campos (não só o
-      // líquido) é o que deixa claro ONDE está a diferença.
       return {
         competencia,
         status: divergente ? "divergencia_total" : "carregada",
-        proventos: "R$ " + proventos.toLocaleString("pt-BR") + ",00",
-        proventosOrigem: "R$ " + proventos.toLocaleString("pt-BR") + ",00",
-        descontos: "R$ " + descontos.toLocaleString("pt-BR") + ",00",
-        descontosOrigem: "R$ " + (divergente ? descontos - 120 : descontos).toLocaleString("pt-BR") + ",00",
-        liquido: "R$ " + liquido.toLocaleString("pt-BR") + ",00",
-        liquidoOrigem: "R$ " + (divergente ? liquido + 120 : liquido).toLocaleString("pt-BR") + ",00",
+        proventos: "R$ " + (38000 + i * 900).toLocaleString("pt-BR") + ",00",
+        descontos: "R$ " + (9200 + i * 150).toLocaleString("pt-BR") + ",00",
+        liquido: "R$ " + (28800 + i * 750).toLocaleString("pt-BR") + ",00",
+        totalOrigem: divergente ? "R$ " + (28800 + i * 750 + 120).toLocaleString("pt-BR") + ",00" : null,
       };
     }).reverse();
   }
@@ -205,18 +242,12 @@
     return total === 0 ? 1 : feito / total;
   }
 
-  // 24/09/2026 (Andressa, validação Parte 3): parâmetros DP passou a
-  // contar como a 4ª frente do percentual, não só um gate à parte —
-  // "tem que incluir o parâmetro também" pra considerar 100%.
-  // empresaCodigo é opcional pra não quebrar chamadas antigas que ainda
-  // não repassam o código (nesse caso mantém as 3 frentes de antes).
-  function percentualConclusao(r, empresaCodigo) {
+  function percentualConclusao(r) {
     const fracoes = [
       fracaoFrente(r.colaboradores.prontos, r.colaboradores.total),
       fracaoFrente(r.financeiro.carregadas, r.financeiro.necessarias),
       fracaoFrente(r.calculoParalelo.validadas, r.calculoParalelo.total),
     ];
-    if (empresaCodigo) fracoes.push(parametrosConfirmados(empresaCodigo) ? 1 : 0);
     const media = fracoes.reduce((a, b) => a + b, 0) / fracoes.length;
     return Math.round(media * 100);
   }
@@ -234,6 +265,7 @@
     "MS-0027": ["FAP", "Percentual de adiantamento"],
     "CH-0042": ["Sindicato vinculado", "Arredondamento"],
     "PA-0011": [],
+    "CV-0058": ["FAP"],
   };
   const TODOS_CAMPOS_PARAMETROS_DP = ["Sindicato vinculado", "Regime de tributação", "FAP", "Percentual de adiantamento", "Arredondamento"];
 
@@ -282,6 +314,7 @@
       Férias: { arquivo: "Recibo_Ferias_ComercioAurora.pdf", importadoEm: "20/03/2026" },
       Rescisão: { arquivo: "Termo_Rescisao_ComercioAurora.pdf", importadoEm: "20/03/2026" },
     },
+    "CV-0058": { Admissão: { arquivo: "Contrato_Admissao_ClinicaVitalis.pdf", importadoEm: "02/07/2026" } },
   };
 
   const RELATORIOS_LAYOUT_KEY = "autopilot_prototype_implantacao_relatorios_layout_v1";
@@ -327,6 +360,8 @@
 
   global.EmpresasImplantacaoData = {
     EMPRESAS_IMPLANTACAO,
+    EMPRESAS_EXTRAS,
+    infoEmpresa,
     empresaImplantacao,
     contarPorStatusEmpresa,
     resumoColaboradores,
