@@ -17,6 +17,15 @@
   const D = window.ImplantacaoData;
   const E = window.EmpresasData;
   const EI = window.EmpresasImplantacaoData;
+  // Aberto pela Nova implantação da aba DP de uma empresa: voltar leva para ela.
+  const empresaDeOrigem = E.getQueryParam("empresa");
+  const urlVoltar = empresaDeOrigem ? "implantacao-console.html?empresa=" + encodeURIComponent(empresaDeOrigem) + "&frente=dp&tab=financeiro" : "implantacao-geral.html";
+  function crumbsImportar(ultimo) {
+    const lista = [{ label: "implantação", href: "implantacao-geral.html" }];
+    if (empresaDeOrigem) lista.push({ label: EI.infoEmpresa(empresaDeOrigem).nome, href: urlVoltar });
+    lista.push({ label: ultimo });
+    return lista;
+  }
 
   const state = {
     step: "upload",
@@ -143,7 +152,7 @@
   }
 
   function renderUpload() {
-    Shell.updateBreadcrumb({ crumbs: [{ label: "implantação", href: "implantacao-geral.html" }, { label: "nova implantação DP" }] });
+    Shell.updateBreadcrumb({ crumbs: crumbsImportar("nova implantação DP") });
 
     const temArquivos = state.arquivos.length > 0;
     const bloqueados = arquivosBloqueadosPorOperacao();
@@ -179,7 +188,7 @@
           ? '<div class="flex items-center justify-between gap-3 flex-wrap" style="padding-top:4px;">' +
             '<div class="text-sm text-muted">' + state.arquivos.length + (state.arquivos.length === 1 ? " arquivo selecionado" : " arquivos selecionados") + " · " + colaboradoresEstimados() + " colaboradores estimados</div>" +
             '<div class="flex gap-2">' +
-            '<a href="implantacao-geral.html" class="btn btn-outline">Cancelar</a>' +
+            '<a href="' + urlVoltar + '" class="btn btn-outline">Cancelar</a>' +
             '<button type="button" class="btn" id="btn-importar-lote"' + (arquivosProntosParaProcessar().length === 0 ? " disabled" : "") + ">Importar lote</button>" +
             "</div></div>"
           : "")
@@ -346,7 +355,7 @@
 
   // ===== Etapa — Resultado (Tela 5) =====
   function renderResult() {
-    Shell.updateBreadcrumb({ crumbs: [{ label: "implantação", href: "implantacao-geral.html" }, { label: "resultado da importação DP" }] });
+    Shell.updateBreadcrumb({ crumbs: crumbsImportar("resultado da importação DP") });
 
     const naoIdentificados = arquivosNaoIdentificados();
     const semCockpit = arquivosSemCockpit();

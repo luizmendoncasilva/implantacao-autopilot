@@ -29,9 +29,8 @@
       <div class="flex items-start justify-between gap-3 flex-wrap">
         <div class="flex flex-col gap-1">
           <h1 class="text-xl font-semibold">Implantação</h1>
-          <p class="text-sm text-muted max-w-2xl">Acompanhe cada empresa nas três frentes de implantação. Abra uma empresa para trabalhar em DP, Fiscal ou Contábil.</p>
+          <p class="text-sm text-muted max-w-2xl">Todas as empresas do Cockpit, com o status de implantação em cada frente. Abra a empresa e use a Nova implantação dentro da aba DP ou Fiscal.</p>
         </div>
-        <a href="implantacao-importar.html" class="btn w-fit" id="btn-nova-implantacao-geral"><span id="icon-upload-geral"></span> Nova implantação</a>
       </div>
 
       <div class="flex flex-wrap gap-3" id="dash-implantacao-geral-mount"></div>
@@ -45,7 +44,7 @@
           <label class="field-label">Status</label>
           <div class="combobox w-52" id="combo-status-geral" data-all-label="Todos os status">
             <button type="button" class="combobox-trigger has-value">
-              <span class="combobox-label truncate">Todos os status</span>
+              <span class="combobox-label truncate">Em andamento</span>
               <span class="chev"></span>
             </button>
             <div class="combobox-panel">
@@ -64,9 +63,10 @@
       </div>
 
       <div class="table-wrap">
-        <table class="dtable dtable-fixed" id="tabela-implantacao-geral" style="min-width:900px;">
+        <table class="dtable dtable-fixed" id="tabela-implantacao-geral" style="min-width:1040px;">
           <colgroup>
             <col />
+            <col style="width:170px" />
             <col style="width:200px" />
             <col style="width:200px" />
             <col style="width:120px" />
@@ -76,10 +76,11 @@
           <thead>
             <tr>
               <th>Empresa</th>
+              <th class="col-pad-md">Status no Cockpit</th>
               <th class="col-pad-md">DP</th>
               <th class="col-pad-md">Fiscal</th>
               <th class="col-pad-md">Contábil</th>
-              <th class="col-pad-md">Status</th>
+              <th class="col-pad-md">Implantação</th>
               <th class="col-pad-end"><span class="sr-only">Abrir</span></th>
             </tr>
           </thead>
@@ -107,9 +108,8 @@
       active: "implantacao",
       crumb: "implantação",
     });
-    document.getElementById("icon-upload-geral").innerHTML = Icon("upload", "size-4");
   </script>
-  <script src="js/implantacao/geral-list.js?v=5"></script>
+  <script src="js/implantacao/geral-list.js?v=6"></script>
   <span id="page-ready" hidden></span>
 </body>
 </html>

@@ -192,3 +192,15 @@
 .money-input.is-pendente .field-input { border-color: var(--warning-border); background: var(--warning-subtle); }
 .money-input.is-pendente .field-input:focus { background: var(--background); border-color: var(--ring); }
 .cpp-table td { padding-top: 8px; padding-bottom: 8px; }
+
+/* ===== Saldos de CPP — motivo do retorno da SERPRO e evidência do valor manual. ===== */
+.cpp-motivo { color: var(--warning-text); }
+.money-input + .cpp-evidencia { max-width: 150px; height: 28px; padding: 0 8px; font-size: 12px; }
+
+/* ===== Status vindos do Cockpit no cabeçalho da empresa. ===== */
+.status-cockpit { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.status-cockpit-item { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted-foreground); }
+.status-cockpit-item b { font-weight: 500; color: var(--foreground); }
+.cockpit-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.cockpit-cell-linha { display: inline-flex; align-items: center; gap: 6px; }
+.cockpit-cell-rotulo { width: 38px; font-size: 12px; color: var(--muted-foreground); }

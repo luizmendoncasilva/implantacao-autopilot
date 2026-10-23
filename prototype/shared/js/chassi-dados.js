@@ -14,6 +14,7 @@
     { id: "EL-0073", nome: "Estúdio Lumen Arquitetura Ltda", cnpj: "28.907.334/0001-62", situacao: "implantacao", codDominio: "5102", origem: "BHub", plano: "Fiscal + Contábil", mensalidade: "R$ 980,00", regime: "Simples Nacional", grupo: null },
     { id: "MS-0027", nome: "Metalúrgica Sigma Ltda", cnpj: "06.265.226/0001-09", situacao: "ativo", codDominio: "1187", origem: "BHub", plano: "Completo", mensalidade: "R$ 3.450,00", regime: "Lucro Presumido", grupo: "Grupo Sigma" },
     { id: "NC-0091", nome: "Nexo Consultoria em TI Ltda", cnpj: "45.118.270/0001-33", situacao: "ativo", codDominio: "5390", origem: "Parceiro Contábil Sul", plano: "Fiscal + Contábil", mensalidade: "R$ 540,00", regime: "Simples Nacional", grupo: null },
+    { id: "CA-0132", nome: "Construtora Alicerce Ltda", cnpj: "40.215.887/0001-46", situacao: "implantacao", codDominio: "5521", origem: "BHub", plano: "DP", mensalidade: "R$ 760,00", regime: "Simples Nacional", grupo: null },
     { id: "PA-0011", nome: "Padaria Aurora Ltda", cnpj: "12.345.678/0001-90", situacao: "ativo", codDominio: "0912", origem: "BHub", plano: "Completo", mensalidade: "R$ 1.240,00", regime: "Simples Nacional", grupo: null },
   ];
 

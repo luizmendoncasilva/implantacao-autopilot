@@ -107,6 +107,25 @@
         { dataHora: "14/10/2026 11:05", operador: "Luiz Felipe Mendonça Silva", acao: "Executou cálculo em paralelo", detalhe: "9 competências calculadas — nenhuma divergência contra o Domínio.", aprovadoPor: null },
       ],
     },
+    {
+      // Construtora Alicerce — opera só DP na BHub: tax_status "Não opera" no
+      // Cockpit, então a frente Fiscal não se aplica e não segura o motor.
+      empresaCodigo: "CA-0132",
+      status: "em_andamento",
+      etapaAtual: "Dados Financeiros — histórico de folha",
+      dataInicio: "06/10/2026",
+      competenciaInicial: "11/2026",
+      resumo: {
+        financeiro: { carregadas: 6, necessarias: 12 },
+        rubricas: { total: 11 },
+        calculoParalelo: { validadas: 0, comDivergencia: 0, total: 6 },
+      },
+      logs: [
+        { dataHora: "06/10/2026 09:15", operador: "Andressa Teles Rodrigues", acao: "Iniciou implantação", detalhe: "Empresa opera só DP na BHub (Fiscal em outro escritório).", aprovadoPor: null },
+        { dataHora: "08/10/2026 14:20", operador: "Luiz Felipe Mendonça Silva", acao: "Importou lote de Ficha de Registro", detalhe: "Ficha_Registro_Construtora_Alicerce.pdf — 3 colaboradores processados.", aprovadoPor: null },
+        { dataHora: "15/10/2026 10:40", operador: "Sistema", acao: "Carregou competência de histórico", detalhe: "6 de 12 competências de folha gravadas a partir dos relatórios da Domínio.", aprovadoPor: null },
+      ],
+    },
   ];
 
   // Empresas em implantação que ainda não existem no Cadastro de Empresas do
@@ -115,7 +134,114 @@
     { codigo: "CV-0058", nome: "Clínica Vitalis", cnpj: "31.452.118/0001-07", regime: "Simples Nacional", cnaePrincipal: "8630-5/03" },
     { codigo: "EL-0073", nome: "Estúdio Lumen Arquitetura", cnpj: "28.907.334/0001-62", regime: "Simples Nacional", cnaePrincipal: "7111-1/00" },
     { codigo: "NC-0091", nome: "Nexo Consultoria em TI", cnpj: "45.118.270/0001-33", regime: "Simples Nacional", cnaePrincipal: "6204-0/00" },
+    { codigo: "OP-0105", nome: "Odonto Prisma", cnpj: "39.604.221/0001-18", regime: "Simples Nacional", cnaePrincipal: "8630-5/04" },
+    { codigo: "MB-0118", nome: "Mercado Bom Preço", cnpj: "17.880.453/0001-90", regime: "Simples Nacional", cnaePrincipal: "4711-3/02" },
+    { codigo: "CA-0132", nome: "Construtora Alicerce", cnpj: "40.215.887/0001-46", regime: "Simples Nacional", cnaePrincipal: "4120-4/00" },
   ];
+
+  // Todas as empresas do Cockpit entram no console da Implantação (alinhamento
+  // Andressa, 22/10/2026) — filiais ficam de fora: a implantação é da matriz.
+  function codigosDoCockpit() {
+    const doCadastro = global.EmpresasData ? global.EmpresasData.EMPRESAS.map((e) => e.codigo).filter((c) => !/-F\d+$/.test(c)) : [];
+    return doCadastro.concat(EMPRESAS_EXTRAS.map((e) => e.codigo).filter((c) => doCadastro.indexOf(c) === -1));
+  }
+
+  // Status que já vêm do Cockpit (Andressa, 23/10/2026): situação do cliente,
+  // hr_status (DP), tipo da folha e tax_status (Fiscal). hr_status "Não opera"
+  // dispensa a implantação DP; folha "Sem movimento" faz a "Nova implantação
+  // DP" pedir confirmação para implantar como sem movimento.
+  const STATUS_COCKPIT_PADRAO = { cliente: "Ativo", hr: "OPERATING", folha: "COM_MOVIMENTO", tax: "OPERATING" };
+  const STATUS_COCKPIT = {
+    "CV-0058": { cliente: "Em implantação" },
+    "CH-0042": { cliente: "Em implantação" },
+    "EL-0073": { cliente: "Em implantação", hr: "NOT_OPERATING", dpFora: true },
+    "NC-0091": { hr: "NOT_OPERATING" },
+    "OP-0105": { cliente: "Em implantação", folha: "SEM_MOVIMENTO" },
+    "MB-0118": { cliente: "Em implantação" },
+    "CA-0132": { cliente: "Em implantação", tax: "NOT_OPERATING" },
+  };
+  const ROTULO_STATUS_COCKPIT = {
+    OPERATING: "Opera",
+    NOT_OPERATING: "Não opera",
+    COM_MOVIMENTO: "Com movimento",
+    SEM_MOVIMENTO: "Sem movimento",
+  };
+  function statusCockpit(codigo) {
+    return Object.assign({}, STATUS_COCKPIT_PADRAO, STATUS_COCKPIT[codigo] || {});
+  }
+  function dpContratado(codigo) {
+    return statusCockpit(codigo).hr === "OPERATING";
+  }
+
+  // Implantações DP iniciadas pela tela ("Iniciar implantação DP" na aba DP).
+  const INICIADAS_KEY = "autopilot_prototype_implantacao_dp_iniciadas_v1";
+  function lerLista(chave, padrao) {
+    try {
+      const raw = global.localStorage.getItem(chave);
+      return raw ? JSON.parse(raw) : padrao;
+    } catch (e) {
+      return padrao;
+    }
+  }
+  function gravar(chave, valor) {
+    try {
+      global.localStorage.setItem(chave, JSON.stringify(valor));
+    } catch (e) {
+      /* localStorage indisponível — vale só nesta renderização */
+    }
+  }
+
+  function registroIniciado(i) {
+    return {
+      empresaCodigo: i.empresaCodigo,
+      status: "em_andamento",
+      etapaAtual: "Dados Financeiros — aguardando os relatórios da Domínio",
+      dataInicio: i.dataInicio,
+      competenciaInicial: "11/2026",
+      resumo: { financeiro: { carregadas: 0, necessarias: 12 }, rubricas: { total: 0 }, calculoParalelo: { validadas: 0, comDivergencia: 0, total: 0 } },
+      logs: [{ dataHora: i.dataHora, operador: "Operador BHub", acao: "Iniciou implantação", detalhe: "Implantação DP iniciada pelo console. Próximo passo: subir os relatórios da Domínio.", aprovadoPor: null }],
+    };
+  }
+  lerLista(INICIADAS_KEY, []).forEach((i) => {
+    if (!EMPRESAS_IMPLANTACAO.some((e) => e.empresaCodigo === i.empresaCodigo)) EMPRESAS_IMPLANTACAO.push(registroIniciado(i));
+  });
+
+  function agoraBr() {
+    const d = new Date();
+    const p = (n) => String(n).padStart(2, "0");
+    return p(d.getDate()) + "/" + p(d.getMonth() + 1) + "/" + d.getFullYear() + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+  }
+
+  function iniciarDp(codigo) {
+    if (EMPRESAS_IMPLANTACAO.some((e) => e.empresaCodigo === codigo)) return;
+    const dataHora = agoraBr();
+    const item = { empresaCodigo: codigo, dataInicio: dataHora.split(" ")[0], dataHora };
+    gravar(INICIADAS_KEY, lerLista(INICIADAS_KEY, []).concat([item]));
+    EMPRESAS_IMPLANTACAO.push(registroIniciado(item));
+  }
+
+  // "Sem movimento" (Andressa, 22/10/2026): empresa sem folha a implantar —
+  // histórico de folha e cálculo em paralelo deixam de ser exigidos e o DP
+  // pode ser concluído.
+  const SEM_MOVIMENTO_KEY = "autopilot_prototype_implantacao_dp_sem_movimento_v1";
+  function semMovimento(codigo) {
+    return lerLista(SEM_MOVIMENTO_KEY, {})[codigo] || null;
+  }
+  function marcarSemMovimento(codigo, ativo) {
+    const atual = lerLista(SEM_MOVIMENTO_KEY, {});
+    const e = EMPRESAS_IMPLANTACAO.find((x) => x.empresaCodigo === codigo);
+    const dataHora = agoraBr();
+    if (ativo) atual[codigo] = { em: dataHora, por: "Operador BHub" };
+    else delete atual[codigo];
+    gravar(SEM_MOVIMENTO_KEY, atual);
+    if (e) {
+      e.logs = (e.logs || []).concat([
+        ativo
+          ? { dataHora, operador: "Operador BHub", acao: "Marcou sem movimento", detalhe: "Empresa sem movimento de folha — histórico de folha e cálculo em paralelo não se aplicam.", aprovadoPor: null }
+          : { dataHora, operador: "Operador BHub", acao: "Desfez sem movimento", detalhe: "Histórico de folha e cálculo em paralelo voltaram a ser exigidos.", aprovadoPor: null },
+      ]);
+    }
+  }
 
   function infoEmpresa(codigo) {
     const extra = EMPRESAS_EXTRAS.find((e) => e.codigo === codigo);
@@ -230,7 +356,12 @@
   // ImplantacaoData) com o de colaboradores, sempre recalculado. Use esta
   // função em vez de ler `empresaImplant.resumo` direto.
   function resumoCompleto(empresaImplant) {
-    return Object.assign({}, empresaImplant.resumo, { colaboradores: resumoColaboradores(empresaImplant.empresaCodigo) });
+    const r = Object.assign({}, empresaImplant.resumo, { colaboradores: resumoColaboradores(empresaImplant.empresaCodigo) });
+    if (semMovimento(empresaImplant.empresaCodigo)) {
+      r.financeiro = { carregadas: 0, necessarias: 0 };
+      r.calculoParalelo = { validadas: 0, comDivergencia: 0, total: 0 };
+    }
+    return r;
   }
 
   // % de conclusão = média das 3 frentes que bloqueiam a implantação
@@ -362,6 +493,13 @@
     EMPRESAS_IMPLANTACAO,
     EMPRESAS_EXTRAS,
     infoEmpresa,
+    codigosDoCockpit,
+    dpContratado,
+    statusCockpit,
+    ROTULO_STATUS_COCKPIT,
+    iniciarDp,
+    semMovimento,
+    marcarSemMovimento,
     empresaImplantacao,
     contarPorStatusEmpresa,
     resumoColaboradores,

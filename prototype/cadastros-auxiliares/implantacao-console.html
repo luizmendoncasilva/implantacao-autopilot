@@ -191,6 +191,36 @@
     </div>
   </div>
 
+  <!-- Modal — Nova implantação DP de empresa com folha "sem movimento" no Cockpit. -->
+  <div class="dialog-overlay" id="dialog-sem-movimento">
+    <div class="dialog-content" role="dialog" aria-modal="true" aria-labelledby="dialog-sem-movimento-titulo">
+      <button type="button" class="dialog-close" data-close-dialog="dialog-sem-movimento" aria-label="Fechar"><span id="icon-close-sem-movimento"></span></button>
+      <div class="flex flex-col gap-1">
+        <h2 class="dialog-title" id="dialog-sem-movimento-titulo">Implantar como sem movimento?</h2>
+        <p class="dialog-description">O tipo da folha no Cockpit está como "sem movimento". Não há relatórios da Domínio para subir: histórico de folha e cálculo em paralelo deixam de ser exigidos, e você pode implantar só colaboradores e parâmetros, se houver. O Fiscal passa a considerar a folha como sem movimento.</p>
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-outline" data-close-dialog="dialog-sem-movimento">Cancelar</button>
+        <button type="button" class="btn" id="btn-confirmar-sem-movimento">Implantar sem movimento</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drawer — carga em lote dos saldos de CPP por planilha (RF-104). Componente em js/implantacao/fiscal-lote.js. -->
+  <div class="sheet-overlay" id="lote-cpp-overlay"></div>
+  <div class="sheet-panel sheet-panel-wide" id="lote-cpp-panel" role="dialog" aria-modal="true" aria-labelledby="lote-cpp-title">
+    <button type="button" class="sheet-close" id="lote-cpp-close" aria-label="Fechar"></button>
+    <div class="sheet-header">
+      <div class="sheet-title" id="lote-cpp-title">Carga em lote · saldos de CPP</div>
+      <div class="sheet-description">Planilha com CNPJ, período, CPP e nº da declaração, para várias empresas de uma vez.</div>
+    </div>
+    <div class="sheet-body" id="lote-cpp-body"></div>
+    <div class="sheet-footer">
+      <button type="button" class="btn btn-outline" id="btn-lote-cancelar">Cancelar</button>
+      <button type="button" class="btn" id="btn-lote-aplicar" disabled>Aplicar carga</button>
+    </div>
+  </div>
+
   <!-- Modal — confirmação de conclusão da Implantação Fiscal. -->
   <div class="dialog-overlay" id="dialog-concluir-fiscal">
     <div class="dialog-content" role="dialog" aria-modal="true" aria-labelledby="dialog-concluir-fiscal-titulo">
@@ -217,10 +247,11 @@
   <script src="../empresas/js/data.js"></script>
   <script src="js/implantacao/data.js?v=5"></script>
   <script src="js/implantacao/empresas-data.js?v=9"></script>
-  <script src="js/implantacao/fiscal-data.js?v=1"></script>
+  <script src="js/implantacao/fiscal-data.js?v=2"></script>
   <script src="js/implantacao/frentes.js?v=1"></script>
   <script src="js/implantacao/visualizar-colaborador.js?v=2"></script>
   <script src="js/implantacao/fila-colaborador.js?v=1"></script>
+  <script src="js/implantacao/fiscal-lote.js?v=2"></script>
   <script src="js/implantacao/fiscal-console.js?v=1"></script>
   <script>
     document.getElementById("concil-close").innerHTML = Icon("x", "size-4");

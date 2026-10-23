@@ -24,7 +24,7 @@
     window.location.replace("implantacao-geral.html");
     return;
   }
-  const empresaImplant = EI.empresaImplantacao(codigoEmpresa);
+  let empresaImplant = EI.empresaImplantacao(codigoEmpresa);
 
   const frenteParam = E.getQueryParam("frente");
   let frenteAtiva = F.FRENTES.some((f) => f.key === frenteParam && !f.emBreve) ? frenteParam : F.frentePadrao(codigoEmpresa);
@@ -89,11 +89,33 @@
       '<span class="cell-mono">' + info.cnpj + "</span>" +
       (info.regime ? "<span>" + info.regime + "</span>" : "") +
       (info.cnaePrincipal ? "<span>CNAE " + info.cnaePrincipal + "</span>" : "") +
-      "</div></div>" +
+      "</div>" +
+      statusCockpitHtml() +
+      envioMotorHtml() +
+      "</div>" +
       // A ficha abre na gaveta do chassi: dá para consultá-la sem sair da implantação.
       '<button type="button" class="btn btn-outline btn-sm w-fit" id="btn-ver-ficha-cliente">' + Icon("external-link", "size-3-5") + " Ver ficha do cliente</button>" +
       "</div>";
     document.getElementById("btn-ver-ficha-cliente").addEventListener("click", () => Chassi.abrirCliente(codigoEmpresa));
+  }
+
+  // Status que vêm do Cockpit (RF-101): situação do cliente, hr_status (DP), tipo da folha e tax_status (Fiscal).
+  function statusCockpitHtml() {
+    const sc = EI.statusCockpit(codigoEmpresa);
+    const itens = [
+      ["Cockpit", F.badgeCockpit("cliente", sc.cliente)],
+      ["DP", F.badgeCockpit("hr", sc.hr) + (sc.dpFora ? '<span class="badge badge-outline">DP fora da BHub</span>' : "")],
+      ["Folha", F.badgeCockpit("folha", sc.folha)],
+      ["Fiscal", F.badgeCockpit("tax", sc.tax)],
+    ];
+    return '<div class="status-cockpit" style="margin-top:6px;">' + itens.map((i) => '<span class="status-cockpit-item">' + i[0] + " " + i[1] + "</span>").join("") + "</div>";
+  }
+
+  // RN-12: a empresa só volta para o motor com DP e Fiscal concluídos.
+  function envioMotorHtml() {
+    const envio = F.envioMotor(codigoEmpresa);
+    if (envio.liberado) return '<span class="status-cockpit-item" style="margin-top:6px;">Motor <span class="badge badge-success">' + Icon("check", "size-3") + " Liberada: DP e Fiscal concluídos</span></span>";
+    return '<span class="status-cockpit-item" style="margin-top:6px;">Motor <span class="badge badge-warning">' + Icon("clock", "size-3") + " Aguardando concluir " + envio.faltam.join(" e ") + "</span></span>";
   }
 
   function renderFrenteTabs() {
@@ -142,13 +164,28 @@
       });
       return;
     }
+    if (!EI.dpContratado(codigoEmpresa)) {
+      const fora = EI.statusCockpit(codigoEmpresa).dpFora;
+      mountEl.innerHTML =
+        '<div class="empty-state">' +
+        '<span class="empty-state-icon">' + Icon("users", "size-5") + "</span>" +
+        '<p class="empty-state-title">Empresa não opera DP</p>' +
+        '<p class="empty-state-desc">No Cockpit, a empresa está como "Não opera" no DP: a Implantação DP já conta como concluída e não há nada para subir.' +
+        (fora ? " Como a empresa opera DP fora da BHub, a folha de cada período é informada na aba Fiscal." : "") + "</p>" +
+        "</div>";
+      sincronizarUrl(null);
+      Shell.updateBreadcrumb({ crumbs: crumbs(null) });
+      return;
+    }
     if (!empresaImplant) {
       mountEl.innerHTML =
         '<div class="empty-state">' +
         '<span class="empty-state-icon">' + Icon("users", "size-5") + "</span>" +
-        '<p class="empty-state-title">DP não contratado para esta empresa</p>' +
-        '<p class="empty-state-desc">A empresa não opera Departamento Pessoal na BHub, então não há colaboradores nem histórico de folha para implantar.</p>' +
+        '<p class="empty-state-title">Implantação DP não iniciada</p>' +
+        '<p class="empty-state-desc">A Nova implantação começa pelos relatórios da Domínio. Se o tipo da folha no Cockpit for "sem movimento", ela pede para confirmar a implantação sem movimento.</p>' +
+        '<button type="button" class="btn w-fit" id="btn-nova-implantacao-dp" style="margin-top:8px;">' + Icon("plus", "size-3-5") + " Nova implantação</button>" +
         "</div>";
+      document.getElementById("btn-nova-implantacao-dp").addEventListener("click", novaImplantacaoDp);
       sincronizarUrl(null);
       Shell.updateBreadcrumb({ crumbs: crumbs(null) });
       return;
@@ -159,6 +196,36 @@
     renderContent();
     sincronizarUrl(activeKey);
     Shell.updateBreadcrumb({ crumbs: crumbs(tabLabel(activeKey)) });
+  }
+
+  // Discovery 23/10/2026: a Nova implantação lê o tipo da folha no Cockpit. Sem
+  // movimento → confirma e já leva a informação para o Fiscal; com movimento →
+  // segue para o upload dos relatórios da Domínio.
+  function novaImplantacaoDp() {
+    if (EI.statusCockpit(codigoEmpresa).folha === "SEM_MOVIMENTO") {
+      UI.openDialog(document.getElementById("dialog-sem-movimento"));
+      return;
+    }
+    EI.iniciarDp(codigoEmpresa);
+    window.location.href = "implantacao-importar.html?empresa=" + encodeURIComponent(codigoEmpresa);
+  }
+
+  function confirmarSemMovimento() {
+    EI.iniciarDp(codigoEmpresa);
+    EI.marcarSemMovimento(codigoEmpresa, true);
+    empresaImplant = EI.empresaImplantacao(codigoEmpresa);
+    empresaImplant.etapaAtual = "Sem movimento — colaboradores e parâmetros, se houver";
+    UI.closeDialog(document.getElementById("dialog-sem-movimento"));
+    UI.showToast("Implantação DP sem movimento", "Histórico de folha e cálculo em paralelo não se aplicam. O Fiscal já sabe que a folha é sem movimento.");
+    activeKey = "colaborador";
+    renderEmpresaHeader();
+    renderFrenteTabs();
+    renderFrente();
+  }
+
+  function setupSemMovimento() {
+    document.getElementById("icon-close-sem-movimento").innerHTML = Icon("x", "size-4");
+    document.getElementById("btn-confirmar-sem-movimento").addEventListener("click", confirmarSemMovimento);
   }
 
   // ===== Frente DP — cabeçalho =====
@@ -205,10 +272,14 @@
     document.getElementById("console-header-mount").innerHTML =
       '<div class="flex items-start justify-between gap-3 flex-wrap">' +
       '<div class="flex flex-col gap-1">' +
-      '<div class="flex items-center gap-2 flex-wrap"><h2 class="text-lg font-semibold">Implantação DP</h2>' + statusBadgeEmpresa() + "</div>" +
+      '<div class="flex items-center gap-2 flex-wrap"><h2 class="text-lg font-semibold">Implantação DP</h2>' + statusBadgeEmpresa() +
+      (EI.semMovimento(codigoEmpresa) ? '<span class="badge badge-secondary">Sem movimento</span>' : "") + "</div>" +
       '<p class="text-sm text-muted">' + empresaImplant.etapaAtual + "</p>" +
       "</div>" +
+      '<div class="flex gap-2 flex-wrap">' +
+      '<a href="implantacao-importar.html?empresa=' + encodeURIComponent(codigoEmpresa) + '" class="btn' + (podeConcluir || empresaImplant.status === "implantada" ? " btn-outline" : "") + '" title="Subir os relatórios da Domínio desta empresa">' + Icon("plus", "size-3-5") + " Nova implantação</a>" +
       (podeConcluir ? '<button type="button" class="btn" id="btn-concluir-implantacao">' + Icon("check", "size-3-5") + " Concluir implantação</button>" : "") +
+      "</div>" +
       "</div>" +
       '<div class="flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted" style="margin-top:4px;">' +
       "<span><b class=\"text-foreground\">Início:</b> " + empresaImplant.dataInicio + "</span>" +
@@ -385,7 +456,19 @@
     );
   }
 
+  function semMovimentoHtml(oque) {
+    const sm = EI.semMovimento(codigoEmpresa);
+    return (
+      '<div class="empty-state">' +
+      '<span class="empty-state-icon">' + Icon("info", "size-5") + "</span>" +
+      '<p class="empty-state-title">Empresa sem movimento de folha</p>' +
+      '<p class="empty-state-desc">Confirmado na Nova implantação em ' + sm.em.split(" ")[0] + ". " + oque + " não se aplica. Colaboradores e parâmetros, se houver, continuam nas outras abas.</p>" +
+      "</div>"
+    );
+  }
+
   function renderFinanceiro() {
+    if (EI.semMovimento(codigoEmpresa)) return semMovimentoHtml("O histórico de folha");
     FINANCEIRO_CACHE = EI.gerarFinanceiro(codigoEmpresa, empresaImplant.resumo.financeiro.carregadas);
     const linhas = FINANCEIRO_CACHE
       .map(
@@ -472,6 +555,7 @@
   }
 
   function renderCalculo() {
+    if (EI.semMovimento(codigoEmpresa)) return semMovimentoHtml("O cálculo em paralelo");
     const financeiro = EI.gerarFinanceiro(codigoEmpresa, empresaImplant.resumo.financeiro.carregadas);
     CALCULO_CACHE = EI.gerarCalculoParalelo(empresaImplant.resumo.calculoParalelo.validadas, empresaImplant.resumo.calculoParalelo.comDivergencia, financeiro);
     const linhas = CALCULO_CACHE
@@ -760,6 +844,7 @@
   setupVisualizarGenerico();
   setupLayoutRelatorio();
   FiscalConsole.setup();
+  setupSemMovimento();
   FilaColaborador.setOnChange(() => {
     renderEmpresaHeader();
     renderFrenteTabs();

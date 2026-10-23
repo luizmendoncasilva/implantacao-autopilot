@@ -457,6 +457,16 @@
       motivoEsocial: "Categoria do trabalhador não informada pela base Domínio para esta empresa.",
       categoriaEsocial: "Empregado — CLT",
     },
+    // Construtora Alicerce (CA-0132) — opera só DP.
+    { id: 109, nome: "Gilberto Nunes Araújo", cargo: "Mestre de Obras", cpf: "295.114.638-07", empresaCodigo: "CA-0132", status: "pronto", situacao: "ativo", camposDivergentes: [] },
+    { id: 110, nome: "Rosana Lima Teixeira", cargo: "Assistente Administrativa", cpf: "418.552.903-61", empresaCodigo: "CA-0132", status: "pronto", situacao: "ativo", camposDivergentes: [] },
+    {
+      id: 111, nome: "Edson Batista Ferraz", cargo: "Pedreiro", cpf: "536.807.214-92",
+      empresaCodigo: "CA-0132", status: "divergencia", situacao: "ativo",
+      camposDivergentes: [
+        { campo: "Cargo", valorLake: "Servente de Obras", valorFicha: "Pedreiro", valorEscolhido: null, resolvido: false },
+      ],
+    },
     { id: 108, nome: "Márcio Vinícius Teles", cargo: "Auxiliar de Limpeza", cpf: "184.336.592-80", empresaCodigo: "CV-0058", status: "pronto", situacao: "ativo", camposDivergentes: [] },
     // Desligados — fora da fila de implantação por padrão (getColaboradores()
     // já filtra por situacao:"ativo"; ver comentário do bloco acima).
