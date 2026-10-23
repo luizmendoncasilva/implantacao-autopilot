@@ -11,7 +11,8 @@
   const FI = window.FiscalImplantacaoData;
   const F = window.ImplantacaoFrentes;
 
-  const state = { busca: "", statuses: ["em_andamento"], frente: "todas" };
+  const state = { busca: "", statuses: ["em_andamento"], frente: "todas", pagina: 0, porPagina: 5 };
+  const OPCOES_POR_PAGINA = [5, 10, 20, 50];
 
   function apenasDigitos(v) {
     return (v || "").replace(/\D/g, "");
@@ -23,17 +24,6 @@
 
   function linkFrente(codigo, frente, conteudo, rotulo) {
     return '<a href="' + urlConsole(codigo, frente) + '" class="frente-cell-link" aria-label="' + rotulo + '">' + conteudo + "</a>";
-  }
-
-  // Status que vêm do Cockpit: situação do cliente, DP (hr_status) e Fiscal (tax_status).
-  function cockpitHtml(codigo) {
-    const sc = EI.statusCockpit(codigo);
-    return (
-      '<div class="cockpit-cell">' + F.badgeCockpit("cliente", sc.cliente) +
-      '<span class="cockpit-cell-linha"><span class="cockpit-cell-rotulo">DP</span>' + F.badgeCockpit("hr", sc.hr) + "</span>" +
-      '<span class="cockpit-cell-linha"><span class="cockpit-cell-rotulo">Fiscal</span>' + F.badgeCockpit("tax", sc.tax) + "</span>" +
-      "</div>"
-    );
   }
 
   function celulaDp(codigo) {
@@ -49,13 +39,6 @@
     return '<div class="flex flex-col gap-1">' + linkFrente(codigo, "dp", conteudo, "Abrir DP: " + s.percentual + "% concluído") + (s.semMovimento ? '<span class="badge badge-secondary">' + Icon("info", "size-3") + " Sem movimento</span>" : "") + "</div>";
   }
 
-  // Um segmento por período (caixa) da janela do Fator R.
-  function classeMes(m) {
-    if (m.origemCpp === "nao_compoe") return "is-muted";
-    if (m.origemCpp === "pendente" || (m.origemFolha === "dp_fora" && m.folha === null)) return "";
-    return "is-success";
-  }
-
   function celulaFiscal(codigo) {
     const s = F.situacaoFiscal(codigo);
     if (s.status === "nao_opera") return '<div class="flex flex-col gap-1 items-start"><span class="badge badge-outline">Não opera Fiscal</span></div>';
@@ -64,13 +47,13 @@
     if (s.status === "implantada") {
       return '<div class="flex flex-col gap-1 items-start">' + linkFrente(codigo, "fiscal", '<span class="badge badge-success">' + Icon("check", "size-3") + " Implantada</span>", "Abrir Fiscal: implantada") + "</div>";
     }
-    const meses = FI.getImplantacao(codigo).meses;
+    // Uma barra só: quanto da janela de períodos já está resolvido.
     const r = s.resumo;
+    const corClasse = s.percentual === 100 ? "is-success" : s.percentual > 0 ? "is-warning" : "";
     const barra =
       '<div class="flex items-center gap-2 w-full">' +
-      '<div class="segbar segbar-thin">' +
-      meses.map((m) => '<div class="segbar-segment ' + classeMes(m) + '" data-tooltip="Período ' + m.periodo + " · " + FI.ROTULO_ORIGEM_CPP[m.origemCpp] + '"></div>').join("") +
-      "</div>" +
+      '<div class="progress-bar-wrap" style="flex:1;" data-tooltip="' + r.resolvidos + " de " + r.exigidos + ' períodos resolvidos">' +
+      '<div class="progress-bar"><div class="progress-bar-fill ' + corClasse + '" style="width:' + Math.max(s.percentual, 2) + '%;"></div></div></div>' +
       '<span class="text-xs font-medium tabular-nums" style="white-space:nowrap;">' + r.resolvidos + "/" + r.exigidos + "</span>" +
       "</div>";
     return '<div class="flex flex-col gap-1">' + linkFrente(codigo, "fiscal", barra, "Abrir Fiscal: " + r.resolvidos + " de " + r.exigidos + " períodos resolvidos") + "</div>";
@@ -78,17 +61,20 @@
 
   function rowHtml(codigo) {
     const info = EI.infoEmpresa(codigo);
+    const sc = EI.statusCockpit(codigo);
     return (
       '<tr class="row-clickable" data-abrir-console="' + codigo + '">' +
       '<td><div class="flex flex-col gap-0-5 min-w-0">' +
-      '<span class="text-sm font-medium truncate">' + info.nome + "</span>" +
+      '<span class="text-sm font-medium">' + info.nome + "</span>" +
       '<span class="cell-mono text-muted">' + info.cnpj + "</span>" +
       "</div></td>" +
-      '<td class="col-pad-md">' + cockpitHtml(codigo) + "</td>" +
-      '<td class="col-pad-md">' + celulaDp(codigo) + "</td>" +
-      '<td class="col-pad-md">' + celulaFiscal(codigo) + "</td>" +
-      '<td class="col-pad-md"><span class="badge badge-secondary">Em breve</span></td>' +
-      '<td class="col-pad-md">' + F.badgeStatusGeral(F.statusGeral(codigo)) + "</td>" +
+      '<td class="col-pad-sm">' + F.badgeCockpit("hr", sc.hr) + "</td>" +
+      '<td class="col-pad-sm">' + F.badgeCockpit("tax", sc.tax) + "</td>" +
+      '<td class="col-pad-sm">' + F.badgeCockpit("cliente", sc.cliente) + "</td>" +
+      '<td class="col-pad-sm">' + celulaDp(codigo) + "</td>" +
+      '<td class="col-pad-sm">' + celulaFiscal(codigo) + "</td>" +
+      '<td class="col-pad-sm"><span class="badge badge-secondary">Em breve</span></td>' +
+      '<td class="col-pad-sm">' + F.badgeStatusGeral(F.statusGeral(codigo)) + "</td>" +
       '<td class="col-pad-end"><span class="text-muted">' + Icon("chevron-right", "size-4") + "</span></td>" +
       "</tr>"
     );
@@ -134,9 +120,22 @@
       })
       .sort((a, b) => EI.infoEmpresa(a).nome.localeCompare(EI.infoEmpresa(b).nome, "pt-BR", { sensitivity: "base" }));
 
+    const totalPaginas = Math.max(1, Math.ceil(filtradas.length / state.porPagina));
+    state.pagina = Math.min(state.pagina, totalPaginas - 1);
+    const pagina = filtradas.slice(state.pagina * state.porPagina, (state.pagina + 1) * state.porPagina);
+    UI.renderPagination(
+      document.getElementById("paginacao-geral-mount"),
+      { totalLinhas: filtradas.length, rotulo: filtradas.length === 1 ? "empresa" : "empresas", pagina: state.pagina, porPagina: state.porPagina, opcoes: OPCOES_POR_PAGINA },
+      (p) => {
+        state.pagina = p.pagina;
+        state.porPagina = p.porPagina;
+        render();
+      }
+    );
+
     document.getElementById("tabela-implantacao-geral-body").innerHTML = filtradas.length
-      ? filtradas.map(rowHtml).join("")
-      : '<tr><td colspan="7" class="row-empty-state">Nenhuma empresa encontrada para os filtros selecionados.</td></tr>';
+      ? pagina.map(rowHtml).join("")
+      : '<tr><td colspan="9" class="row-empty-state">Nenhuma empresa encontrada para os filtros selecionados.</td></tr>';
     wireRowEvents();
     UI.initSegbarTooltips();
   }
@@ -162,12 +161,14 @@
 
   document.getElementById("f-busca-empresa-geral").addEventListener("input", (e) => {
     state.busca = e.target.value;
+    state.pagina = 0;
     render();
   });
 
   document.querySelectorAll("[data-frente-filtro]").forEach((btn) => {
     btn.addEventListener("click", () => {
       state.frente = btn.getAttribute("data-frente-filtro");
+      state.pagina = 0;
       document.querySelectorAll("[data-frente-filtro]").forEach((b) => {
         const on = b === btn;
         b.classList.toggle("is-on", on);
@@ -180,6 +181,7 @@
 
   UI.initMultiSelect(document.getElementById("combo-status-geral"), statusOptions(F.empresasNaImplantacao()), state.statuses, (valores) => {
     state.statuses = valores;
+    state.pagina = 0;
     render();
   });
 

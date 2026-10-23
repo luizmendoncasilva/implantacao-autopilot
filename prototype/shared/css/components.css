@@ -359,6 +359,33 @@ table.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
 .dtable tfoot tr { border-top: 1px solid var(--border); background: var(--muted); }
 .dtable tfoot td { padding: 10px 12px; font-weight: 600; }
 
+/* ===== Pagination (BSystem components/ui/pagination) + rodapé do DataTable =====
+   Página atual em "outline", demais em "ghost"; contagem de linhas à esquerda. */
+.table-pagination { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 14px; color: var(--muted-foreground); }
+.table-pagination-count { font-variant-numeric: tabular-nums; }
+.table-pagination-acoes { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.table-pagination-tamanho { display: inline-flex; align-items: center; gap: 8px; }
+.table-pagination-select {
+  height: 32px; padding: 0 8px; border: 1px solid var(--input); border-radius: var(--radius-md);
+  background: var(--background); color: var(--foreground); font: inherit; font-size: 14px; cursor: pointer;
+}
+.table-pagination-select:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+.pagination-content { display: flex; flex-direction: row; align-items: center; gap: 4px; }
+.pagination-link {
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  min-width: 36px; height: 36px; padding: 0 8px;
+  border: 1px solid transparent; border-radius: var(--radius-lg); background: transparent;
+  color: var(--ghost-foreground); font: inherit; font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums; cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+.pagination-link:hover:not(:disabled) { background: var(--muted); color: var(--foreground); }
+.pagination-link.is-active { border-color: var(--border); background: var(--background); color: var(--foreground); box-shadow: var(--shadow-xs); }
+.pagination-link:disabled { opacity: 0.5; cursor: not-allowed; }
+.pagination-link:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+.pagination-prev { padding-left: 10px; }
+.pagination-next { padding-right: 10px; }
+.pagination-ellipsis { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; color: var(--muted-foreground); }
+
 /* ===== Empty (BSystem Empty) — ícone, uma frase calma e, se fizer sentido, uma ação. ===== */
 .empty-state {
   display: flex;

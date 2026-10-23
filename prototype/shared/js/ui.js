@@ -338,5 +338,57 @@
     }, options.delayMs || TAB_LOADING_DELAY_MS);
   }
 
-  global.UI = { openSheet, closeSheet, openDialog, closeDialog, showToast, truncatedCell, initToggleGroup, initCombobox, initDatePicker, showTabSkeleton };
+  // ===== Pagination (BSystem components/ui/pagination + rodapé do DataTable) =====
+  // Rodapé de tabela: contagem de linhas à esquerda; "Linhas por página" e a
+  // navegação (Anterior, números, reticências, Próxima) à direita. A página
+  // atual é "outline", as outras "ghost", como no DS. `pagina` começa em 0.
+  function paginasVisiveis(atual, total) {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i);
+    const set = new Set([0, total - 1, atual - 1, atual, atual + 1]);
+    const lista = Array.from(set).filter((p) => p >= 0 && p < total).sort((a, b) => a - b);
+    const comReticencias = [];
+    lista.forEach((p, i) => {
+      if (i > 0 && p - lista[i - 1] > 1) comReticencias.push(null);
+      comReticencias.push(p);
+    });
+    return comReticencias;
+  }
+
+  function paginationHtml(opts) {
+    const totalPaginas = Math.max(1, Math.ceil(opts.totalLinhas / opts.porPagina));
+    const atual = Math.min(opts.pagina, totalPaginas - 1);
+    const item = (conteudo) => '<li class="pagination-item">' + conteudo + "</li>";
+    const numeros = paginasVisiveis(atual, totalPaginas)
+      .map((p) =>
+        p === null
+          ? item('<span class="pagination-ellipsis" aria-hidden="true">' + Icon("more-horizontal", "size-4") + '<span class="sr-only">Mais páginas</span></span>')
+          : item('<button type="button" class="pagination-link' + (p === atual ? " is-active" : "") + '" data-pagina="' + p + '"' + (p === atual ? ' aria-current="page"' : "") + ">" + (p + 1) + "</button>")
+      )
+      .join("");
+    return (
+      '<div class="table-pagination" data-slot="data-table-pagination">' +
+      '<span class="table-pagination-count">' + opts.totalLinhas + " " + (opts.rotulo || "linha(s)") + "</span>" +
+      '<div class="table-pagination-acoes">' +
+      '<label class="table-pagination-tamanho"><span>Linhas por página:</span>' +
+      '<select class="table-pagination-select" data-por-pagina aria-label="Linhas por página">' +
+      (opts.opcoes || [10, 20, 30, 50]).map((n) => '<option value="' + n + '"' + (n === opts.porPagina ? " selected" : "") + ">" + n + "</option>").join("") +
+      "</select></label>" +
+      '<nav class="pagination" role="navigation" aria-label="Paginação"><ul class="pagination-content">' +
+      item('<button type="button" class="pagination-link pagination-prev" data-pagina="' + (atual - 1) + '" aria-label="Ir para a página anterior"' + (atual === 0 ? " disabled" : "") + ">" + Icon("chevron-left", "size-4") + "<span>Anterior</span></button>") +
+      numeros +
+      item('<button type="button" class="pagination-link pagination-next" data-pagina="' + (atual + 1) + '" aria-label="Ir para a próxima página"' + (atual >= totalPaginas - 1 ? " disabled" : "") + "><span>Próxima</span>" + Icon("chevron-right", "size-4") + "</button>") +
+      "</ul></nav></div></div>"
+    );
+  }
+
+  // Monta o rodapé em `mountEl` e chama onChange({ pagina, porPagina }) a cada troca.
+  function renderPagination(mountEl, opts, onChange) {
+    mountEl.innerHTML = paginationHtml(opts);
+    mountEl.querySelectorAll("[data-pagina]").forEach((b) =>
+      b.addEventListener("click", () => onChange({ pagina: Number(b.getAttribute("data-pagina")), porPagina: opts.porPagina }))
+    );
+    mountEl.querySelector("[data-por-pagina]").addEventListener("change", (e) => onChange({ pagina: 0, porPagina: Number(e.target.value) }));
+  }
+
+  global.UI = { openSheet, closeSheet, openDialog, closeDialog, showToast, truncatedCell, initToggleGroup, initCombobox, initDatePicker, showTabSkeleton, renderPagination };
 })(window);
