@@ -83,7 +83,7 @@
   function renderEmpresaHeader() {
     const info = EI.infoEmpresa(codigoEmpresa);
     document.getElementById("empresa-header-mount").innerHTML =
-      '<div class="flex items-start justify-between gap-3 flex-wrap"><div class="flex flex-col gap-1">' +
+      '<div class="flex flex-col gap-1">' +
       '<div class="flex items-center gap-2 flex-wrap"><h1 class="text-xl font-semibold">' + info.nome + "</h1>" + F.badgeStatusGeral(F.statusGeral(codigoEmpresa)) + "</div>" +
       '<div class="flex flex-wrap items-center gap-3 text-sm text-muted">' +
       '<span class="cell-mono">' + info.cnpj + "</span>" +
@@ -92,11 +92,7 @@
       "</div>" +
       statusCockpitHtml() +
       envioMotorHtml() +
-      "</div>" +
-      // A ficha abre na gaveta do chassi: dá para consultá-la sem sair da implantação.
-      '<button type="button" class="btn btn-outline btn-sm w-fit" id="btn-ver-ficha-cliente">' + Icon("external-link", "size-3-5") + " Ver ficha do cliente</button>" +
       "</div>";
-    document.getElementById("btn-ver-ficha-cliente").addEventListener("click", () => Chassi.abrirCliente(codigoEmpresa));
   }
 
   // Status que vêm do Cockpit (RF-101): situação do cliente, hr_status (DP), tipo da folha e tax_status (Fiscal).
